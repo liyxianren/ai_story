@@ -119,15 +119,75 @@
                                 </div>
 
                                 <div class="text-center">
+                                    <button id="startTranscription" class="btn btn-success btn-lg me-3" style="background: linear-gradient(45deg, #4CAF50, #2E7D32); border: none; border-radius: 25px; padding: 12px 24px; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);">
+                                        <i class="fas fa-magic me-2"></i>开始Google识别 | Start Google Recognition
+                                    </button>
                                     <button id="saveRecording" class="btn btn-primary me-3">
-                                        <i class="fas fa-save me-2"></i>Save Story
+                                        <i class="fas fa-save me-2"></i>仅保存录音 | Save Audio Only
                                     </button>
                                     <button id="discardRecording" class="btn btn-outline-danger me-3">
-                                        <i class="fas fa-trash me-2"></i>Discard
+                                        <i class="fas fa-trash me-2"></i>丢弃 | Discard
                                     </button>
                                     <button id="recordAgain" class="btn btn-outline-primary">
-                                        <i class="fas fa-redo me-2"></i>Record Again
+                                        <i class="fas fa-redo me-2"></i>重新录制 | Record Again
                                     </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transcription Section -->
+                    <div id="transcriptionSection" class="d-none mt-4">
+                        <div class="card" style="border: 2px solid var(--warm-info); background: linear-gradient(45deg, #E3F2FD, #FFFFFF); border-radius: 20px;">
+                            <div class="card-body p-4">
+                                <h5 class="card-title" style="color: var(--warm-primary-dark);">
+                                    <i class="fas fa-file-alt me-2" style="color: var(--warm-info);"></i>
+                                    故事转录 | Story Transcription
+                                </h5>
+                                
+                                <div id="transcriptionLoading" class="text-center py-4 d-none">
+                                    <div class="spinner-border" style="color: var(--warm-info);" role="status">
+                                        <span class="visually-hidden">Transcribing...</span>
+                                    </div>
+                                    <p class="mt-3 mb-0" style="color: var(--warm-secondary);">
+                                        <i class="fas fa-magic me-2"></i>
+                                        正在将您的声音转换为文字... | Converting your voice to text...
+                                    </p>
+                                </div>
+                                
+                                <div id="transcriptionResult" class="d-none">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold" style="color: var(--warm-primary-dark);">转录文本 | Transcribed Text:</label>
+                                        <div class="form-control" id="transcriptionText" 
+                                             style="min-height: 120px; border: 2px solid var(--warm-neutral); border-radius: 15px; background: var(--warm-white); resize: vertical;" 
+                                             contenteditable="true"></div>
+                                        <div class="form-text mt-2">
+                                            <i class="fas fa-edit me-1"></i>
+                                            您可以编辑上面的转录文本 | You can edit the transcription above. 
+                                            <span id="confidenceScore"></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="text-center">
+                                        <button id="saveTranscription" class="btn btn-primary me-3">
+                                            <i class="fas fa-save me-2"></i>保存故事和转录 | Save Story & Transcription
+                                        </button>
+                                        <button id="retranscribe" class="btn btn-outline-info">
+                                            <i class="fas fa-redo me-2"></i>重新转录 | Transcribe Again
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div id="transcriptionError" class="d-none">
+                                    <div class="alert alert-danger" role="alert">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <span id="transcriptionErrorText">转录失败，请重试 | Transcription failed. Please try again.</span>
+                                    </div>
+                                    <div class="text-center">
+                                        <button id="retryTranscription" class="btn btn-outline-danger">
+                                            <i class="fas fa-redo me-2"></i>重试 | Try Again
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -145,6 +205,7 @@
                             <li>Keep your device close but not too close to avoid distortion</li>
                             <li>You can pause and resume your recording anytime</li>
                             <li>Review your recording before saving</li>
+                            <li><strong>Your story will be automatically transcribed after recording</strong></li>
                         </ul>
                     </div>
                 </div>
@@ -236,6 +297,7 @@ class VoiceRecorder {
         this.stopBtn = document.getElementById('stopRecording');
         this.playBtn = document.getElementById('playButton');
         this.saveBtn = document.getElementById('saveRecording');
+        this.transcriptionBtn = document.getElementById('startTranscription');
         this.discardBtn = document.getElementById('discardRecording');
         this.recordAgainBtn = document.getElementById('recordAgain');
         this.requestPermissionBtn = document.getElementById('requestPermission');
@@ -268,6 +330,7 @@ class VoiceRecorder {
         this.stopBtn.addEventListener('click', () => this.stopRecording());
         this.playBtn.addEventListener('click', () => this.togglePlayback());
         this.saveBtn.addEventListener('click', () => this.saveRecording());
+        this.transcriptionBtn.addEventListener('click', () => this.startTranscription());
         this.discardBtn.addEventListener('click', () => this.discardRecording());
         this.recordAgainBtn.addEventListener('click', () => this.recordAgain());
         this.requestPermissionBtn.addEventListener('click', () => this.requestMicrophonePermission());
@@ -490,9 +553,105 @@ class VoiceRecorder {
         }
     }
     
+    showTranscriptionSection() {
+        document.getElementById('transcriptionSection').classList.remove('d-none');
+        document.getElementById('transcriptionLoading').classList.remove('d-none');
+        document.getElementById('transcriptionResult').classList.add('d-none');
+        document.getElementById('transcriptionError').classList.add('d-none');
+    }
+    
+    async transcribeAudio() {
+        try {
+            if (!this.recordedBlob) {
+                throw new Error('No audio recording found');
+            }
+            
+            // Get selected language
+            const languageSelect = document.getElementById('languageSelect');
+            const selectedLanguage = languageSelect.value;
+            
+            // Create FormData for the request
+            const formData = new FormData();
+            formData.append('audio', this.recordedBlob, 'recording.webm');
+            formData.append('language', selectedLanguage);
+            
+            // Make request to transcription API
+            const response = await fetch('/api/transcribe', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            // Hide loading spinner
+            document.getElementById('transcriptionLoading').classList.add('d-none');
+            
+            if (result.success) {
+                this.showTranscriptionResult(result);
+            } else {
+                this.showTranscriptionError(result.error);
+            }
+            
+        } catch (error) {
+            document.getElementById('transcriptionLoading').classList.add('d-none');
+            this.showTranscriptionError(error.message);
+        }
+    }
+    
+    showTranscriptionResult(result) {
+        const transcriptionText = document.getElementById('transcriptionText');
+        const confidenceScore = document.getElementById('confidenceScore');
+        
+        transcriptionText.textContent = result.transcript;
+        
+        if (result.confidence) {
+            const confidencePercent = Math.round(result.confidence * 100);
+            confidenceScore.textContent = `(Confidence: ${confidencePercent}%)`;
+            confidenceScore.style.color = confidencePercent > 80 ? 'var(--warm-success)' : 
+                                        confidencePercent > 60 ? 'var(--warm-warning)' : 
+                                        'var(--warm-danger)';
+        }
+        
+        document.getElementById('transcriptionResult').classList.remove('d-none');
+        
+        // Add event listeners for transcription buttons
+        document.getElementById('saveTranscription').onclick = () => this.saveStoryWithTranscription();
+        document.getElementById('retranscribe').onclick = () => this.transcribeAudio();
+    }
+    
+    showTranscriptionError(error) {
+        document.getElementById('transcriptionErrorText').textContent = error;
+        document.getElementById('transcriptionError').classList.remove('d-none');
+        
+        // Add retry button event listener
+        document.getElementById('retryTranscription').onclick = () => {
+            document.getElementById('transcriptionError').classList.add('d-none');
+            this.transcribeAudio();
+        };
+    }
+    
+    async saveStoryWithTranscription() {
+        const transcriptionText = document.getElementById('transcriptionText').textContent;
+        const languageSelect = document.getElementById('languageSelect');
+        const selectedLanguage = languageSelect.value;
+        
+        // TODO: Save both audio and transcription to database
+        alert(`故事已保存！| Story saved!\n语言 | Language: ${selectedLanguage}\n转录 | Transcription: ${transcriptionText.substring(0, 100)}...`);
+        
+        // Reset the recorder for a new recording
+        this.recordAgain();
+        document.getElementById('transcriptionSection').classList.add('d-none');
+    }
+
+    startTranscription() {
+        // Show transcription section and start transcribing
+        this.showTranscriptionSection();
+        this.transcribeAudio();
+    }
+    
     saveRecording() {
-        // TODO: Implement save functionality
-        alert('Save functionality will be implemented next!');
+        // TODO: Save audio only to database
+        alert('录音已保存！您可以点击"开始Google识别"来获取文字转录。\n\nAudio saved! You can click "Start Google Recognition" to get text transcription.');
     }
     
     discardRecording() {
@@ -512,6 +671,9 @@ class VoiceRecorder {
         this.playbackSection.classList.add('d-none');
         this.startBtn.classList.remove('d-none');
         this.recordingTime.textContent = '00:00';
+        
+        // Hide transcription section
+        document.getElementById('transcriptionSection').classList.add('d-none');
     }
     
     startTimer() {

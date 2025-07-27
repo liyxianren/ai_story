@@ -6,6 +6,7 @@ import bcrypt
 import os
 from datetime import datetime
 import secrets
+from speech_service import speech_service
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)  # Generate a secure secret key
@@ -267,6 +268,59 @@ def api_users():
         if 'connection' in locals() and connection.is_connected():
             cursor.close()
             connection.close()
+
+@app.route('/api/transcribe', methods=['POST'])
+@login_required
+def transcribe_audio():
+    """Transcribe uploaded audio using Google Speech-to-Text"""
+    try:
+        # Check if audio file is present
+        if 'audio' not in request.files:
+            return jsonify({'success': False, 'error': 'No audio file provided'}), 400
+        
+        audio_file = request.files['audio']
+        if audio_file.filename == '':
+            return jsonify({'success': False, 'error': 'No audio file selected'}), 400
+        
+        # Get language from form data
+        language_code = request.form.get('language', 'en-US')
+        
+        # Get audio format from filename
+        file_extension = audio_file.filename.split('.')[-1].lower() if '.' in audio_file.filename else 'webm'
+        
+        # Read audio data
+        audio_data = audio_file.read()
+        
+        # Validate audio size (limit to 25MB)
+        if len(audio_data) > 25 * 1024 * 1024:
+            return jsonify({'success': False, 'error': 'Audio file too large (max 25MB)'}), 400
+        
+        # Transcribe audio using speech service
+        result = speech_service.transcribe_audio(
+            audio_data=audio_data,
+            language_code=language_code,
+            input_format=file_extension
+        )
+        
+        if result['success']:
+            # TODO: Save transcription to database
+            return jsonify({
+                'success': True,
+                'transcript': result['transcript'],
+                'confidence': result['confidence'],
+                'language': result['language']
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': result['error']
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Transcription failed: {str(e)}'
+        }), 500
 
 if __name__ == '__main__':
     # Create upload folder for profile pictures
