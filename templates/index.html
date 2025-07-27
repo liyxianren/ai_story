@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Home - VoiceVault | Preserve Marginalized Voices{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold text-white mb-4">
+                    Welcome to VoiceVault
+                    <i class="fas fa-microphone-alt ms-3"></i>
+                </h1>
+                <p class="lead text-white mb-4">
+                    A sanctuary for marginalized voices and untold stories. Record your narrative in any language, 
+                    preserve your heritage, and share your truth with the world.
+                </p>
+                
+                {% if not current_user.is_authenticated %}
+                    <div class="d-flex gap-3">
+                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>Get Started
+                        </a>
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                        </a>
+                    </div>
+                {% else %}
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-heart me-2"></i>Go to My Stories
+                    </a>
+                {% endif %}
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="text-center">
+                    <div class="card">
+                        <div class="card-body p-5">
+                            <i class="fas fa-shield-alt feature-icon"></i>
+                            <h3 class="h4 mb-3">Secure & Reliable</h3>
+                            <p class="text-muted">
+                                Advanced security features including password hashing, 
+                                session management, and protected routes.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12 text-center mb-5">
+            <h2 class="h1 fw-bold text-white">Features</h2>
+            <p class="lead text-white">Everything you need for user management</p>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center p-4">
+                    <i class="fas fa-user-plus feature-icon"></i>
+                    <h4 class="card-title">User Registration</h4>
+                    <p class="card-text">
+                        Easy and secure user registration with email validation 
+                        and duplicate checking.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center p-4">
+                    <i class="fas fa-lock feature-icon"></i>
+                    <h4 class="card-title">Secure Authentication</h4>
+                    <p class="card-text">
+                        Industry-standard password hashing and session-based 
+                        authentication system.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center p-4">
+                    <i class="fas fa-user-edit feature-icon"></i>
+                    <h4 class="card-title">Profile Management</h4>
+                    <p class="card-text">
+                        Complete user profiles with bio, contact information, 
+                        and profile picture support.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center p-4">
+                    <i class="fas fa-database feature-icon"></i>
+                    <h4 class="card-title">MySQL Integration</h4>
+                    <p class="card-text">
+                        Robust database integration with MySQL for reliable 
+                        data storage and retrieval.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center p-4">
+                    <i class="fas fa-mobile-alt feature-icon"></i>
+                    <h4 class="card-title">Responsive Design</h4>
+                    <p class="card-text">
+                        Modern, responsive design that works perfectly on 
+                        desktop, tablet, and mobile devices.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center p-4">
+                    <i class="fas fa-api feature-icon"></i>
+                    <h4 class="card-title">API Ready</h4>
+                    <p class="card-text">
+                        Built-in API endpoints for easy integration with 
+                        other applications and services.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if not current_user.is_authenticated %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body text-center p-5">
+                    <h3 class="card-title mb-4">Ready to Get Started?</h3>
+                    <p class="card-text lead mb-4">
+                        Join our platform today and experience secure, modern user management.
+                    </p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-rocket me-2"></i>Create Account
+                        </a>
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %} 

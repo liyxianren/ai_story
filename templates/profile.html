@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Profile Summary -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture }}" class="rounded-circle" 
+                                 width="120" height="120" alt="Profile Picture">
+                        {% else %}
+                            <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mx-auto" 
+                                 style="width: 120px; height: 120px;">
+                                <i class="fas fa-user text-white fa-3x"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h4 class="fw-bold">{{ user.username }}</h4>
+                    <p class="text-muted">{{ user.email }}</p>
+                    
+                    {% if user.bio %}
+                        <div class="border-top pt-3">
+                            <h6 class="text-muted small text-uppercase">Bio</h6>
+                            <p class="text-muted">{{ user.bio }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mt-3">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Status -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-chart-pie text-primary me-2"></i>Profile Status
+                    </h6>
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="text-muted small me-auto">Completion</span>
+                        <span class="fw-bold" id="completionPercentage">0%</span>
+                    </div>
+                    <div class="progress mb-2" style="height: 6px;">
+                        <div class="progress-bar" id="completionBar" style="width: 0%"></div>
+                    </div>
+                    <small class="text-muted">Complete all fields to reach 100%</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Edit Form -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-edit text-primary me-2"></i>Edit Profile
+                    </h4>
+                </div>
+                
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('profile') }}" enctype="multipart/form-data">
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2">
+                                    <i class="fas fa-info-circle me-2"></i>Basic Information
+                                </h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="username" class="form-label">
+                                    <i class="fas fa-user me-2"></i>Username
+                                </label>
+                                <input type="text" class="form-control" id="username" 
+                                       value="{{ user.username }}" readonly>
+                                <div class="form-text">Username cannot be changed</div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">
+                                    <i class="fas fa-envelope me-2"></i>Email Address
+                                </label>
+                                <input type="email" class="form-control" id="email" 
+                                       value="{{ user.email }}" readonly>
+                                <div class="form-text">Email cannot be changed</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Contact Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2">
+                                    <i class="fas fa-address-book me-2"></i>Contact Information
+                                </h5>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="phone_number" class="form-label">
+                                <i class="fas fa-phone me-2"></i>Phone Number
+                            </label>
+                            <input type="tel" class="form-control" id="phone_number" name="phone_number" 
+                                   value="{{ user.phone_number or '' }}" placeholder="Enter phone number" maxlength="20">
+                            <div class="form-text">Include country code for international numbers</div>
+                        </div>
+                        
+                        <!-- Personal Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2">
+                                    <i class="fas fa-user-circle me-2"></i>Personal Information
+                                </h5>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">
+                                <i class="fas fa-quote-left me-2"></i>Bio
+                            </label>
+                            <textarea class="form-control" id="bio" name="bio" rows="4" 
+                                      placeholder="Tell us about yourself..." maxlength="500">{{ user.bio or '' }}</textarea>
+                            <div class="form-text" id="bioCounter">0/500 characters</div>
+                        </div>
+                        
+                        <!-- Profile Picture Section -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2">
+                                    <i class="fas fa-camera me-2"></i>Profile Picture
+                                </h5>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="profile_picture" class="form-label">
+                                <i class="fas fa-upload me-2"></i>Upload New Picture
+                            </label>
+                            <input type="file" class="form-control" id="profile_picture" name="profile_picture" 
+                                   accept="image/*">
+                            <div class="form-text">Supported formats: JPG, PNG, GIF (max 5MB)</div>
+                            
+                            {% if user.profile_picture %}
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-check-circle text-success me-1"></i>
+                                        Current picture: {{ user.profile_picture.split('/')[-1] if '/' in user.profile_picture else 'Set' }}
+                                    </small>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Save Changes
+                                    </button>
+                                    <button type="reset" class="btn btn-outline-secondary">
+                                        <i class="fas fa-undo me-2"></i>Reset Form
+                                    </button>
+                                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-danger">
+                                        <i class="fas fa-times me-2"></i>Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Account Settings -->
+            <div class="card mt-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cog me-2"></i>Account Settings
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Change Password</h6>
+                            <p class="text-muted small">Update your account password for better security.</p>
+                            <button class="btn btn-outline-warning btn-sm" disabled>
+                                <i class="fas fa-key me-1"></i>Change Password
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Delete Account</h6>
+                            <p class="text-muted small">Permanently delete your account and all data.</p>
+                            <button class="btn btn-outline-danger btn-sm" disabled>
+                                <i class="fas fa-trash me-1"></i>Delete Account
+                            </button>
+                        </div>
+                    </div>
+                    <div class="alert alert-info mt-3 mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <small>These features are coming soon in future updates.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Bio character counter
+    const bioTextarea = document.getElementById('bio');
+    const bioCounter = document.getElementById('bioCounter');
+    
+    function updateBioCounter() {
+        const currentLength = bioTextarea.value.length;
+        const maxLength = 500;
+        bioCounter.textContent = `${currentLength}/${maxLength} characters`;
+        
+        if (currentLength > maxLength * 0.9) {
+            bioCounter.className = 'form-text text-warning';
+        } else if (currentLength === maxLength) {
+            bioCounter.className = 'form-text text-danger';
+        } else {
+            bioCounter.className = 'form-text text-muted';
+        }
+    }
+    
+    bioTextarea.addEventListener('input', updateBioCounter);
+    updateBioCounter(); // Initial call
+    
+    // Profile completion calculator
+    function calculateCompletion() {
+        let completed = 0;
+        const total = 5;
+        
+        // Required fields (always completed for logged in users)
+        if ('{{ user.username }}') completed++;
+        if ('{{ user.email }}') completed++;
+        
+        // Optional fields
+        if ('{{ user.phone_number }}') completed++;
+        if ('{{ user.bio }}') completed++;
+        if ('{{ user.profile_picture }}') completed++;
+        
+        const percentage = Math.round((completed / total) * 100);
+        
+        document.getElementById('completionPercentage').textContent = percentage + '%';
+        document.getElementById('completionBar').style.width = percentage + '%';
+        
+        // Color coding
+        if (percentage < 50) {
+            document.getElementById('completionBar').className = 'progress-bar bg-danger';
+        } else if (percentage < 80) {
+            document.getElementById('completionBar').className = 'progress-bar bg-warning';
+        } else {
+            document.getElementById('completionBar').className = 'progress-bar bg-success';
+        }
+    }
+    
+    calculateCompletion();
+    
+    // File upload preview
+    document.getElementById('profile_picture').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size too large. Please choose a file smaller than 5MB.');
+                this.value = '';
+                return;
+            }
+            
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file.');
+                this.value = '';
+                return;
+            }
+            
+            // Show file name
+            const fileName = file.name;
+            const helpText = this.parentElement.querySelector('.form-text');
+            helpText.innerHTML = `<i class="fas fa-check text-success me-1"></i>Selected: ${fileName}`;
+        }
+    });
+    
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const phoneNumber = document.getElementById('phone_number').value;
+        
+        // Basic phone number validation
+        if (phoneNumber && !/^[\+]?[\d\s\-\(\)]+$/.test(phoneNumber)) {
+            e.preventDefault();
+            alert('Please enter a valid phone number.');
+            document.getElementById('phone_number').focus();
+            return;
+        }
+    });
+    
+    // Auto-save indication (visual feedback)
+    let saveTimeout;
+    function showSaveIndicator() {
+        clearTimeout(saveTimeout);
+        const submitBtn = document.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+        submitBtn.disabled = true;
+        
+        saveTimeout = setTimeout(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }, 1000);
+    }
+    
+    // Update completion when fields change
+    ['phone_number', 'bio'].forEach(fieldId => {
+        document.getElementById(fieldId).addEventListener('input', () => {
+            setTimeout(calculateCompletion, 100);
+        });
+    });
+</script>
+{% endblock %} 

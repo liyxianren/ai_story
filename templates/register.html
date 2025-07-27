@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Register - User Management System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="mb-0">
+                        <i class="fas fa-user-plus me-2"></i>Create Your Account
+                    </h3>
+                </div>
+                
+                <div class="card-body p-5">
+                    <form method="POST" action="{{ url_for('register') }}" novalidate>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="username" class="form-label">
+                                    <i class="fas fa-user me-2"></i>Username *
+                                </label>
+                                <input type="text" class="form-control" id="username" name="username" 
+                                       required placeholder="Enter username" maxlength="50">
+                                <div class="form-text">Choose a unique username (3-50 characters)</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">
+                                    <i class="fas fa-envelope me-2"></i>Email Address *
+                                </label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       required placeholder="Enter email address">
+                                <div class="form-text">We'll never share your email</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="password" class="form-label">
+                                    <i class="fas fa-lock me-2"></i>Password *
+                                </label>
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       required placeholder="Enter password" minlength="6">
+                                <div class="form-text">Minimum 6 characters</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="confirm_password" class="form-label">
+                                    <i class="fas fa-lock me-2"></i>Confirm Password *
+                                </label>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" 
+                                       required placeholder="Confirm password">
+                                <div class="form-text">Must match your password</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="phone_number" class="form-label">
+                                <i class="fas fa-phone me-2"></i>Phone Number (Optional)
+                            </label>
+                            <input type="tel" class="form-control" id="phone_number" name="phone_number" 
+                                   placeholder="Enter phone number" maxlength="20">
+                            <div class="form-text">Include country code if international</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="bio" class="form-label">
+                                <i class="fas fa-user-edit me-2"></i>Bio (Optional)
+                            </label>
+                            <textarea class="form-control" id="bio" name="bio" rows="3" 
+                                      placeholder="Tell us a bit about yourself..." maxlength="500"></textarea>
+                            <div class="form-text">Brief description about yourself (max 500 characters)</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="terms" required>
+                                <label class="form-check-label" for="terms">
+                                    I agree to the <a href="#" class="text-primary">Terms of Service</a> 
+                                    and <a href="#" class="text-primary">Privacy Policy</a> *
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-user-plus me-2"></i>Create Account
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="card-footer text-center bg-light">
+                    <p class="mb-0">
+                        Already have an account? 
+                        <a href="{{ url_for('login') }}" class="text-primary text-decoration-none fw-bold">
+                            <i class="fas fa-sign-in-alt me-1"></i>Sign In Here
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Password confirmation validation
+    document.getElementById('confirm_password').addEventListener('input', function() {
+        const password = document.getElementById('password').value;
+        const confirmPassword = this.value;
+        
+        if (password !== confirmPassword) {
+            this.setCustomValidity('Passwords do not match');
+            this.classList.add('is-invalid');
+        } else {
+            this.setCustomValidity('');
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+        }
+    });
+    
+    // Username validation
+    document.getElementById('username').addEventListener('input', function() {
+        const username = this.value;
+        if (username.length < 3) {
+            this.setCustomValidity('Username must be at least 3 characters');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+    
+    // Password strength indicator
+    document.getElementById('password').addEventListener('input', function() {
+        const password = this.value;
+        const strengthText = this.parentElement.querySelector('.form-text');
+        
+        if (password.length < 6) {
+            strengthText.textContent = 'Password too short (minimum 6 characters)';
+            strengthText.className = 'form-text text-danger';
+        } else if (password.length < 8) {
+            strengthText.textContent = 'Fair password strength';
+            strengthText.className = 'form-text text-warning';
+        } else {
+            strengthText.textContent = 'Good password strength';
+            strengthText.className = 'form-text text-success';
+        }
+    });
+    
+    // Character counter for bio
+    document.getElementById('bio').addEventListener('input', function() {
+        const currentLength = this.value.length;
+        const maxLength = 500;
+        const counter = this.parentElement.querySelector('.form-text');
+        
+        counter.textContent = `${currentLength}/${maxLength} characters used`;
+        
+        if (currentLength > maxLength * 0.9) {
+            counter.className = 'form-text text-warning';
+        } else {
+            counter.className = 'form-text text-muted';
+        }
+    });
+</script>
+{% endblock %} 

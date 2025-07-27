@@ -1,0 +1,627 @@
+{% extends "base.html" %}
+
+{% block title %}Record Your Story - VoiceVault{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-5 fw-bold mb-3" style="color: var(--warm-primary-dark); font-family: 'Georgia', serif;">
+                    <i class="fas fa-heart me-3" style="color: var(--warm-primary);"></i>
+                    Record Your Story
+                </h1>
+                <p class="lead" style="color: var(--warm-secondary);">
+                    Share your voice, preserve your memories. Your story matters.
+                </p>
+            </div>
+
+            <!-- Recording Interface -->
+            <div class="card" style="border: 2px solid var(--warm-primary-light); background: linear-gradient(145deg, var(--warm-white), #FFF8E1); box-shadow: 0 15px 50px rgba(255, 138, 101, 0.15);">
+                <div class="card-body p-5">
+                    
+                    <!-- Language Selection -->
+                    <div class="mb-4">
+                        <label for="languageSelect" class="form-label fw-bold" style="color: var(--warm-primary-dark);">
+                            <i class="fas fa-language me-2"></i>Choose Your Language
+                        </label>
+                        <select class="form-select" id="languageSelect" style="border: 2px solid var(--warm-neutral); border-radius: 15px; padding: 12px;">
+                            <option value="zh-CN">中文 (Mandarin)</option>
+                            <option value="en-US" selected>English (US)</option>
+                            <option value="es-ES">Español (Spanish)</option>
+                            <option value="fr-FR">Français (French)</option>
+                            <option value="ja-JP">日本語 (Japanese)</option>
+                            <option value="ko-KR">한국어 (Korean)</option>
+                            <option value="ar-SA">العربية (Arabic)</option>
+                            <option value="hi-IN">हिन्दी (Hindi)</option>
+                            <option value="pt-BR">Português (Portuguese)</option>
+                            <option value="ru-RU">Русский (Russian)</option>
+                        </select>
+                    </div>
+
+                    <!-- Microphone Status -->
+                    <div class="text-center mb-4">
+                        <div id="micStatus" class="alert alert-info" style="border-radius: 15px; display: none;">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <span id="micStatusText">Checking microphone...</span>
+                        </div>
+                    </div>
+
+                    <!-- Recording Controls -->
+                    <div class="text-center mb-4">
+                        <div id="recordingButton" class="d-inline-block">
+                            <button id="startRecording" class="btn btn-primary btn-lg" 
+                                    style="border-radius: 50%; width: 120px; height: 120px; font-size: 2.5rem; box-shadow: 0 8px 25px rgba(255, 138, 101, 0.3);">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Recording Controls (hidden initially) -->
+                        <div id="recordingControls" class="d-none">
+                            <button id="pauseRecording" class="btn btn-warning btn-lg me-3" 
+                                    style="border-radius: 50%; width: 80px; height: 80px; font-size: 1.5rem;">
+                                <i class="fas fa-pause"></i>
+                            </button>
+                            <button id="stopRecording" class="btn btn-danger btn-lg" 
+                                    style="border-radius: 50%; width: 80px; height: 80px; font-size: 1.5rem;">
+                                <i class="fas fa-stop"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Recording Status -->
+                    <div class="text-center mb-4">
+                        <div id="recordingStatus" class="d-none">
+                            <div class="d-flex align-items-center justify-content-center mb-3">
+                                <div id="recordingIndicator" class="recording-pulse me-3"></div>
+                                <span class="fw-bold" style="color: var(--warm-primary-dark); font-size: 1.2rem;">
+                                    Recording... <span id="recordingTime">00:00</span>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div id="pausedStatus" class="d-none">
+                            <span class="fw-bold" style="color: var(--warm-warning); font-size: 1.2rem;">
+                                <i class="fas fa-pause me-2"></i>Paused - <span id="pausedTime">00:00</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Audio Visualization -->
+                    <div class="text-center mb-4">
+                        <canvas id="audioVisualizer" width="600" height="100" 
+                                style="border: 2px solid var(--warm-neutral); border-radius: 15px; background: linear-gradient(45deg, #FFF8E1, #FFFFFF); display: none;"></canvas>
+                    </div>
+
+                    <!-- Playback Section -->
+                    <div id="playbackSection" class="d-none">
+                        <div class="card" style="border: 2px solid var(--warm-success); background: linear-gradient(45deg, #E8F5E8, #FFFFFF); border-radius: 20px;">
+                            <div class="card-body p-4">
+                                <h5 class="card-title" style="color: var(--warm-primary-dark);">
+                                    <i class="fas fa-play-circle me-2" style="color: var(--warm-success);"></i>
+                                    Your Recorded Story
+                                </h5>
+                                
+                                <div class="d-flex align-items-center mb-3">
+                                    <button id="playButton" class="btn btn-success me-3" style="border-radius: 50%; width: 60px; height: 60px;">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                    <div class="flex-grow-1">
+                                        <div class="progress" style="height: 8px; border-radius: 10px;">
+                                            <div id="progressBar" class="progress-bar" style="background: var(--warm-success);" role="progressbar"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between mt-1">
+                                            <small id="currentTime" style="color: var(--warm-secondary);">00:00</small>
+                                            <small id="totalTime" style="color: var(--warm-secondary);">00:00</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="text-center">
+                                    <button id="saveRecording" class="btn btn-primary me-3">
+                                        <i class="fas fa-save me-2"></i>Save Story
+                                    </button>
+                                    <button id="discardRecording" class="btn btn-outline-danger me-3">
+                                        <i class="fas fa-trash me-2"></i>Discard
+                                    </button>
+                                    <button id="recordAgain" class="btn btn-outline-primary">
+                                        <i class="fas fa-redo me-2"></i>Record Again
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instructions -->
+                    <div class="mt-4 p-4" style="background: linear-gradient(45deg, var(--warm-background), var(--warm-white)); border-radius: 15px; border: 1px solid var(--warm-neutral);">
+                        <h6 class="fw-bold mb-3" style="color: var(--warm-primary-dark);">
+                            <i class="fas fa-lightbulb me-2" style="color: var(--warm-warning);"></i>
+                            Recording Tips
+                        </h6>
+                        <ul class="mb-0" style="color: var(--warm-secondary);">
+                            <li>Find a quiet space for the best audio quality</li>
+                            <li>Speak clearly and at a comfortable pace</li>
+                            <li>Keep your device close but not too close to avoid distortion</li>
+                            <li>You can pause and resume your recording anytime</li>
+                            <li>Review your recording before saving</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back to Dashboard -->
+            <div class="text-center mt-4">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to My Stories
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Permission Modal -->
+<div class="modal fade" id="permissionModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; border: 2px solid var(--warm-primary-light);">
+            <div class="modal-header" style="background: linear-gradient(45deg, var(--warm-primary), var(--warm-primary-dark)); color: white; border-radius: 18px 18px 0 0;">
+                <h5 class="modal-title">
+                    <i class="fas fa-microphone me-2"></i>Microphone Permission Required
+                </h5>
+            </div>
+            <div class="modal-body text-center p-4">
+                <div class="mb-4">
+                    <i class="fas fa-microphone" style="font-size: 4rem; color: var(--warm-primary);"></i>
+                </div>
+                <h6 class="fw-bold mb-3">We need access to your microphone to record your story</h6>
+                <p class="text-muted mb-4">
+                    Please click "Allow" when your browser asks for microphone permission. 
+                    Your privacy is important to us - we only record when you press the record button.
+                </p>
+                <button id="requestPermission" class="btn btn-primary btn-lg">
+                    <i class="fas fa-microphone me-2"></i>Grant Microphone Access
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px;">
+            <div class="modal-header bg-danger text-white" style="border-radius: 18px 18px 0 0;">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Recording Error
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <i class="fas fa-exclamation-circle text-danger" style="font-size: 3rem;"></i>
+                <h6 class="fw-bold mt-3 mb-3">Something went wrong</h6>
+                <p id="errorMessage" class="text-muted mb-4"></p>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    <i class="fas fa-refresh me-2"></i>Try Again
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+class VoiceRecorder {
+    constructor() {
+        this.mediaRecorder = null;
+        this.audioChunks = [];
+        this.recordedBlob = null;
+        this.audioContext = null;
+        this.analyser = null;
+        this.microphone = null;
+        this.startTime = null;
+        this.pausedDuration = 0;
+        this.isPaused = false;
+        this.timerInterval = null;
+        this.animationFrame = null;
+        
+        this.initializeElements();
+        this.checkBrowserSupport();
+    }
+    
+    initializeElements() {
+        // Buttons
+        this.startBtn = document.getElementById('startRecording');
+        this.pauseBtn = document.getElementById('pauseRecording');
+        this.stopBtn = document.getElementById('stopRecording');
+        this.playBtn = document.getElementById('playButton');
+        this.saveBtn = document.getElementById('saveRecording');
+        this.discardBtn = document.getElementById('discardRecording');
+        this.recordAgainBtn = document.getElementById('recordAgain');
+        this.requestPermissionBtn = document.getElementById('requestPermission');
+        
+        // Status elements
+        this.micStatus = document.getElementById('micStatus');
+        this.micStatusText = document.getElementById('micStatusText');
+        this.recordingStatus = document.getElementById('recordingStatus');
+        this.pausedStatus = document.getElementById('pausedStatus');
+        this.recordingControls = document.getElementById('recordingControls');
+        this.playbackSection = document.getElementById('playbackSection');
+        this.audioVisualizer = document.getElementById('audioVisualizer');
+        
+        // Time elements
+        this.recordingTime = document.getElementById('recordingTime');
+        this.pausedTime = document.getElementById('pausedTime');
+        this.currentTime = document.getElementById('currentTime');
+        this.totalTime = document.getElementById('totalTime');
+        this.progressBar = document.getElementById('progressBar');
+        
+        // Language select
+        this.languageSelect = document.getElementById('languageSelect');
+        
+        this.bindEvents();
+    }
+    
+    bindEvents() {
+        this.startBtn.addEventListener('click', () => this.startRecording());
+        this.pauseBtn.addEventListener('click', () => this.pauseRecording());
+        this.stopBtn.addEventListener('click', () => this.stopRecording());
+        this.playBtn.addEventListener('click', () => this.togglePlayback());
+        this.saveBtn.addEventListener('click', () => this.saveRecording());
+        this.discardBtn.addEventListener('click', () => this.discardRecording());
+        this.recordAgainBtn.addEventListener('click', () => this.recordAgain());
+        this.requestPermissionBtn.addEventListener('click', () => this.requestMicrophonePermission());
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !e.target.matches('input, textarea, select')) {
+                e.preventDefault();
+                if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+                    this.pauseRecording();
+                } else if (this.mediaRecorder && this.mediaRecorder.state === 'paused') {
+                    this.resumeRecording();
+                } else {
+                    this.startRecording();
+                }
+            }
+        });
+    }
+    
+    checkBrowserSupport() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            this.showError('Your browser does not support audio recording. Please use Chrome, Edge, Firefox, or Safari.');
+            return false;
+        }
+        
+        if (!window.MediaRecorder) {
+            this.showError('MediaRecorder is not supported in your browser. Please update to the latest version.');
+            return false;
+        }
+        
+        return true;
+    }
+    
+    async requestMicrophonePermission() {
+        try {
+            this.showStatus('Requesting microphone permission...', 'info');
+            
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                } 
+            });
+            
+            this.setupAudioContext(stream);
+            this.showStatus('Microphone ready! Click the record button to start.', 'success');
+            this.startBtn.disabled = false;
+            
+            // Hide permission modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('permissionModal'));
+            if (modal) modal.hide();
+            
+        } catch (error) {
+            console.error('Microphone permission error:', error);
+            let errorMessage = 'Could not access microphone. ';
+            
+            if (error.name === 'NotAllowedError') {
+                errorMessage += 'Please allow microphone access and try again.';
+            } else if (error.name === 'NotFoundError') {
+                errorMessage += 'No microphone found. Please connect a microphone.';
+            } else {
+                errorMessage += 'Please check your microphone settings.';
+            }
+            
+            this.showError(errorMessage);
+        }
+    }
+    
+    setupAudioContext(stream) {
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        this.analyser = this.audioContext.createAnalyser();
+        this.microphone = this.audioContext.createMediaStreamSource(stream);
+        
+        this.analyser.fftSize = 512;
+        this.microphone.connect(this.analyser);
+        
+        // Store stream for MediaRecorder
+        this.stream = stream;
+    }
+    
+    async startRecording() {
+        try {
+            if (!this.stream) {
+                // Show permission modal
+                const modal = new bootstrap.Modal(document.getElementById('permissionModal'));
+                modal.show();
+                return;
+            }
+            
+            this.audioChunks = [];
+            this.recordedBlob = null;
+            this.startTime = Date.now();
+            this.pausedDuration = 0;
+            this.isPaused = false;
+            
+            // Create MediaRecorder
+            const options = { mimeType: 'audio/webm' };
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                options.mimeType = 'audio/mp4';
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                    options.mimeType = '';
+                }
+            }
+            
+            this.mediaRecorder = new MediaRecorder(this.stream, options);
+            
+            this.mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    this.audioChunks.push(event.data);
+                }
+            };
+            
+            this.mediaRecorder.onstop = () => {
+                const mimeType = this.mediaRecorder.mimeType || 'audio/webm';
+                this.recordedBlob = new Blob(this.audioChunks, { type: mimeType });
+                this.showPlaybackSection();
+            };
+            
+            this.mediaRecorder.start(100); // Collect data every 100ms
+            
+            this.showRecordingUI();
+            this.startTimer();
+            this.startVisualization();
+            
+            this.showStatus('Recording started', 'success');
+            
+        } catch (error) {
+            console.error('Recording start error:', error);
+            this.showError('Failed to start recording: ' + error.message);
+        }
+    }
+    
+    pauseRecording() {
+        if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+            this.mediaRecorder.pause();
+            this.isPaused = true;
+            this.pauseStartTime = Date.now();
+            
+            this.recordingStatus.classList.add('d-none');
+            this.pausedStatus.classList.remove('d-none');
+            
+            this.pauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            this.pauseBtn.onclick = () => this.resumeRecording();
+            
+            this.stopVisualization();
+        }
+    }
+    
+    resumeRecording() {
+        if (this.mediaRecorder && this.mediaRecorder.state === 'paused') {
+            this.mediaRecorder.resume();
+            this.isPaused = false;
+            this.pausedDuration += Date.now() - this.pauseStartTime;
+            
+            this.recordingStatus.classList.remove('d-none');
+            this.pausedStatus.classList.add('d-none');
+            
+            this.pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            this.pauseBtn.onclick = () => this.pauseRecording();
+            
+            this.startVisualization();
+        }
+    }
+    
+    stopRecording() {
+        if (this.mediaRecorder && (this.mediaRecorder.state === 'recording' || this.mediaRecorder.state === 'paused')) {
+            this.mediaRecorder.stop();
+            this.stopTimer();
+            this.stopVisualization();
+            this.hideRecordingUI();
+        }
+    }
+    
+    showRecordingUI() {
+        this.startBtn.classList.add('d-none');
+        this.recordingControls.classList.remove('d-none');
+        this.recordingStatus.classList.remove('d-none');
+        this.audioVisualizer.style.display = 'block';
+        this.playbackSection.classList.add('d-none');
+    }
+    
+    hideRecordingUI() {
+        this.recordingControls.classList.add('d-none');
+        this.recordingStatus.classList.add('d-none');
+        this.pausedStatus.classList.add('d-none');
+        this.audioVisualizer.style.display = 'none';
+    }
+    
+    showPlaybackSection() {
+        this.startBtn.classList.remove('d-none');
+        this.playbackSection.classList.remove('d-none');
+        
+        // Create audio element for playback
+        this.audioElement = new Audio();
+        this.audioElement.src = URL.createObjectURL(this.recordedBlob);
+        
+        this.audioElement.addEventListener('loadedmetadata', () => {
+            this.totalTime.textContent = this.formatTime(this.audioElement.duration);
+        });
+        
+        this.audioElement.addEventListener('timeupdate', () => {
+            const progress = (this.audioElement.currentTime / this.audioElement.duration) * 100;
+            this.progressBar.style.width = progress + '%';
+            this.currentTime.textContent = this.formatTime(this.audioElement.currentTime);
+        });
+        
+        this.audioElement.addEventListener('ended', () => {
+            this.playBtn.innerHTML = '<i class="fas fa-play"></i>';
+        });
+    }
+    
+    togglePlayback() {
+        if (this.audioElement.paused) {
+            this.audioElement.play();
+            this.playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        } else {
+            this.audioElement.pause();
+            this.playBtn.innerHTML = '<i class="fas fa-play"></i>';
+        }
+    }
+    
+    saveRecording() {
+        // TODO: Implement save functionality
+        alert('Save functionality will be implemented next!');
+    }
+    
+    discardRecording() {
+        if (confirm('Are you sure you want to discard this recording?')) {
+            this.recordAgain();
+        }
+    }
+    
+    recordAgain() {
+        if (this.audioElement) {
+            this.audioElement.pause();
+            URL.revokeObjectURL(this.audioElement.src);
+        }
+        
+        this.audioChunks = [];
+        this.recordedBlob = null;
+        this.playbackSection.classList.add('d-none');
+        this.startBtn.classList.remove('d-none');
+        this.recordingTime.textContent = '00:00';
+    }
+    
+    startTimer() {
+        this.timerInterval = setInterval(() => {
+            if (!this.isPaused) {
+                const elapsed = Date.now() - this.startTime - this.pausedDuration;
+                this.recordingTime.textContent = this.formatTime(elapsed / 1000);
+            } else {
+                const elapsed = this.pauseStartTime - this.startTime - this.pausedDuration;
+                this.pausedTime.textContent = this.formatTime(elapsed / 1000);
+            }
+        }, 1000);
+    }
+    
+    stopTimer() {
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+    }
+    
+    startVisualization() {
+        const canvas = this.audioVisualizer;
+        const ctx = canvas.getContext('2d');
+        const bufferLength = this.analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        
+        const draw = () => {
+            this.animationFrame = requestAnimationFrame(draw);
+            
+            this.analyser.getByteFrequencyData(dataArray);
+            
+            ctx.fillStyle = '#FFF8E1';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            const barWidth = (canvas.width / bufferLength) * 2.5;
+            let barHeight;
+            let x = 0;
+            
+            for (let i = 0; i < bufferLength; i++) {
+                barHeight = (dataArray[i] / 255) * canvas.height * 0.8;
+                
+                const gradient = ctx.createLinearGradient(0, canvas.height - barHeight, 0, canvas.height);
+                gradient.addColorStop(0, '#FF8A65');
+                gradient.addColorStop(1, '#E64A19');
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                
+                x += barWidth + 1;
+            }
+        };
+        
+        draw();
+    }
+    
+    stopVisualization() {
+        if (this.animationFrame) {
+            cancelAnimationFrame(this.animationFrame);
+            this.animationFrame = null;
+        }
+    }
+    
+    formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    
+    showStatus(message, type) {
+        this.micStatus.style.display = 'block';
+        this.micStatus.className = `alert alert-${type}`;
+        this.micStatusText.textContent = message;
+        
+        if (type === 'success') {
+            setTimeout(() => {
+                this.micStatus.style.display = 'none';
+            }, 3000);
+        }
+    }
+    
+    showError(message) {
+        document.getElementById('errorMessage').textContent = message;
+        const modal = new bootstrap.Modal(document.getElementById('errorModal'));
+        modal.show();
+    }
+}
+
+// CSS for recording pulse animation
+const style = document.createElement('style');
+style.textContent = `
+    .recording-pulse {
+        width: 15px;
+        height: 15px;
+        background: #E64A19;
+        border-radius: 50%;
+        animation: pulse 1s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.2); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+`;
+document.head.appendChild(style);
+
+// Initialize recorder when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    new VoiceRecorder();
+});
+</script>
+{% endblock %} 
