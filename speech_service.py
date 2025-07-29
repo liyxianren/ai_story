@@ -30,17 +30,28 @@ class SpeechTranscriptionService:
             # Map frontend language code to Google's format
             google_language_code = self.language_mapping.get(language_code, language_code)
             
+            # Detect audio format based on magic bytes
+            encoding = self._detect_audio_encoding(audio_data)
+            logger.info(f"Detected audio encoding: {encoding}")
+            
+            # Prepare configuration based on detected encoding
+            config = {
+                "encoding": encoding,
+                "languageCode": google_language_code,
+                "enableAutomaticPunctuation": True,
+                "enableWordTimeOffsets": False,
+                "maxAlternatives": 1,
+                "model": "latest_long"  # Use latest_long model for better accuracy
+            }
+            
+            # Add sample rate for WAV files (required for LINEAR16)
+            if encoding == "LINEAR16":
+                config["sampleRateHertz"] = self._get_wav_sample_rate(audio_data)
+                logger.info(f"WAV sample rate: {config['sampleRateHertz']}")
+            
             # Prepare request payload
-            # Use WEBM_OPUS encoding for WebM files, which is what browsers typically produce
             request_payload = {
-                "config": {
-                    "encoding": "WEBM_OPUS",
-                    "languageCode": google_language_code,
-                    "enableAutomaticPunctuation": True,
-                    "enableWordTimeOffsets": False,
-                    "maxAlternatives": 1,
-                    "model": "latest_long"  # Use latest_long model for better accuracy
-                },
+                "config": config,
                 "audio": {
                     "content": audio_base64
                 }
@@ -67,17 +78,37 @@ class SpeechTranscriptionService:
             result = response.json()
             logger.info(f"Google API response: {result}")
             
-            # Parse the response
+            # Parse the response - combine all results
             if 'results' in result and len(result['results']) > 0:
-                transcript = result['results'][0]['alternatives'][0]['transcript']
-                confidence = result['results'][0]['alternatives'][0].get('confidence', 0.0)
+                all_transcripts = []
+                all_confidences = []
                 
-                logger.info(f"Transcription successful: {transcript[:50]}...")
+                logger.info(f"Found {len(result['results'])} result segments")
+                
+                # Extract transcript and confidence from each result
+                for i, res in enumerate(result['results']):
+                    if 'alternatives' in res and len(res['alternatives']) > 0:
+                        segment_transcript = res['alternatives'][0]['transcript']
+                        segment_confidence = res['alternatives'][0].get('confidence', 0.0)
+                        
+                        all_transcripts.append(segment_transcript)
+                        all_confidences.append(segment_confidence)
+                        
+                        logger.info(f"Segment {i+1}: '{segment_transcript[:50]}...' (confidence: {segment_confidence:.3f})")
+                
+                # Combine all transcripts
+                combined_transcript = ' '.join(all_transcripts).strip()
+                
+                # Calculate average confidence
+                average_confidence = sum(all_confidences) / len(all_confidences) if all_confidences else 0.0
+                
+                logger.info(f"Combined transcription successful: {combined_transcript[:50]}... (avg confidence: {average_confidence:.3f})")
                 return {
                     'success': True,
-                    'transcript': transcript,
-                    'confidence': confidence,
-                    'language': google_language_code
+                    'transcript': combined_transcript,
+                    'confidence': average_confidence,
+                    'language': google_language_code,
+                    'segments': len(result['results'])
                 }
             else:
                 logger.warning("No transcription results found in API response")
@@ -141,6 +172,56 @@ class SpeechTranscriptionService:
                 'transcript': '',
                 'confidence': 0.0
             }
+    
+    def _detect_audio_encoding(self, audio_data: bytes) -> str:
+        """Detect audio encoding based on magic bytes"""
+        try:
+            # Check for WAV file signature (RIFF...WAVE)
+            if len(audio_data) >= 12:
+                if audio_data[:4] == b'RIFF' and audio_data[8:12] == b'WAVE':
+                    logger.info("Detected WAV file format")
+                    return "LINEAR16"
+            
+            # Check for WebM file signature
+            if len(audio_data) >= 4:
+                if audio_data[:4] == b'\x1a\x45\xdf\xa3':  # EBML header for WebM
+                    logger.info("Detected WebM file format")
+                    return "WEBM_OPUS"
+            
+            # Check for OGG file signature
+            if len(audio_data) >= 4:
+                if audio_data[:4] == b'OggS':
+                    logger.info("Detected OGG file format")
+                    return "OGG_OPUS"
+            
+            # Check for MP3 file signature
+            if len(audio_data) >= 3:
+                if audio_data[:3] == b'ID3' or audio_data[:2] == b'\xff\xfb':
+                    logger.info("Detected MP3 file format")
+                    return "MP3"
+            
+            # Default fallback - assume WebM for browser recordings
+            logger.warning("Could not detect audio format, defaulting to WEBM_OPUS")
+            return "WEBM_OPUS"
+            
+        except Exception as e:
+            logger.error(f"Error detecting audio encoding: {e}")
+            return "WEBM_OPUS"
+    
+    def _get_wav_sample_rate(self, audio_data: bytes) -> int:
+        """Extract sample rate from WAV file header"""
+        try:
+            if len(audio_data) >= 28:
+                # WAV sample rate is stored at bytes 24-27 (little-endian)
+                sample_rate = int.from_bytes(audio_data[24:28], byteorder='little')
+                logger.info(f"Extracted WAV sample rate: {sample_rate}")
+                return sample_rate
+            else:
+                logger.warning("WAV file too short to extract sample rate, using default")
+                return 16000  # Default sample rate
+        except Exception as e:
+            logger.error(f"Error extracting WAV sample rate: {e}")
+            return 16000  # Default fallback
 
 # Global instance
 speech_service = SpeechTranscriptionService() 
