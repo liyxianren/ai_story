@@ -8,6 +8,7 @@ import base64
 import json
 
 from config import Config
+from gemini_service import gemini_service
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -103,13 +104,62 @@ class SpeechTranscriptionService:
                 average_confidence = sum(all_confidences) / len(all_confidences) if all_confidences else 0.0
                 
                 logger.info(f"Combined transcription successful: {combined_transcript[:50]}... (avg confidence: {average_confidence:.3f})")
-                return {
-                    'success': True,
-                    'transcript': combined_transcript,
-                    'confidence': average_confidence,
-                    'language': google_language_code,
-                    'segments': len(result['results'])
-                }
+                
+                # Process transcription with Gemini AI for story polishing
+                logger.info("Polishing story with Gemini AI...")
+                try:
+                    gemini_result = gemini_service.process_transcription(combined_transcript, google_language_code)
+                    
+                    if gemini_result['success']:
+                        # Use polished story as the primary transcript
+                        polished_story = gemini_result['content']
+                        logger.info(f"Story polishing successful: {polished_story[:50]}...")
+                        
+                        # Validation: Ensure raw and polished are different
+                        if polished_story == combined_transcript:
+                            logger.warning("Warning: Polished story is identical to raw transcript")
+                        
+                        return {
+                            'success': True,
+                            'transcript': polished_story,  # Polished version as main transcript
+                            'raw_transcript': combined_transcript,  # Keep original for reference
+                            'confidence': average_confidence,
+                            'language': google_language_code,
+                            'segments': len(result['results']),
+                            'polished': True,
+                            'gemini': gemini_result
+                        }
+                    else:
+                        # Fallback to raw transcript if polishing fails
+                        logger.warning(f"Story polishing failed: {gemini_result.get('error', 'Unknown error')}")
+                        return {
+                            'success': True,
+                            'transcript': combined_transcript,  # Raw transcript as fallback
+                            'raw_transcript': combined_transcript,
+                            'confidence': average_confidence,
+                            'language': google_language_code,
+                            'segments': len(result['results']),
+                            'polished': False,
+                            'gemini': gemini_result
+                        }
+                        
+                except Exception as e:
+                    logger.error(f"Gemini processing failed, using raw transcription: {str(e)}")
+                    return {
+                        'success': True,
+                        'transcript': combined_transcript,  # Raw transcript as fallback
+                        'raw_transcript': combined_transcript,
+                        'confidence': average_confidence,
+                        'language': google_language_code,
+                        'segments': len(result['results']),
+                        'polished': False,
+                        'gemini': {
+                            'success': False,
+                            'error': f"Story polishing unavailable: {str(e)}",
+                            'content': '',
+                            'model': 'gemini-2.5-flash'
+                        }
+                    }
             else:
                 logger.warning("No transcription results found in API response")
                 return {

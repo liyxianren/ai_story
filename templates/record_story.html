@@ -300,21 +300,104 @@
                                 </div>
                                 
                                 <div id="transcriptionResult" class="d-none">
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold" style="color: var(--warm-primary-dark);">转录文本 | Transcribed Text:</label>
-                                        <div class="form-control" id="transcriptionText" 
-                                             style="min-height: 120px; border: 2px solid var(--warm-neutral); border-radius: 15px; background: var(--warm-white); resize: vertical;" 
-                                             contenteditable="true"></div>
+                                    <!-- Polished Story Display -->
+                                    <div class="mb-4">
+                                        <label class="form-label fw-bold" style="color: var(--warm-primary-dark);">
+                                            <i class="fas fa-magic me-2" style="color: var(--warm-accent);"></i>
+                                            润色后的故事 | Your Polished Story:
+                                        </label>
+                                        <div class="card" style="border: 2px solid var(--warm-accent); border-radius: 15px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
+                                            <div class="card-body">
+                                                <div id="polishedStoryText" 
+                                                     style="min-height: 120px; line-height: 1.6; font-size: 1.1rem; color: var(--warm-primary-dark); white-space: pre-wrap;"
+                                                     contenteditable="true"></div>
+                                                <div class="mt-3 p-2" style="background: rgba(255,255,255,0.7); border-radius: 8px; border-top: 1px solid #e9ecef;">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-robot me-1"></i>
+                                                        由 <span id="geminiModelUsed">Gemini AI</span> 润色 | Polished by <span id="geminiModelUsedEn">Gemini AI</span>
+                                                        <span id="polishedIndicator" class="badge bg-success ms-2">
+                                                            <i class="fas fa-check me-1"></i>已润色 | Polished
+                                                        </span>
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div class="form-text mt-2">
                                             <i class="fas fa-edit me-1"></i>
-                                            您可以编辑上面的转录文本 | You can edit the transcription above. 
+                                            您可以直接编辑润色后的故事 | You can edit the polished story directly above.
                                             <span id="confidenceScore"></span>
                                         </div>
                                     </div>
                                     
+                                    <!-- Raw Transcription (Collapsible) -->
+                                    <div class="mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#rawTranscriptionCollapse" aria-expanded="false">
+                                                <i class="fas fa-eye me-2"></i>查看原始转录 | View Raw Transcription
+                                            </button>
+                                        </div>
+                                        <div class="collapse mt-2" id="rawTranscriptionCollapse">
+                                            <div class="card card-body" style="background: #f8f9fa; border: 1px solid #dee2e6;">
+                                                <small class="text-muted mb-2">原始转录文本 | Original Transcribed Text:</small>
+                                                <div id="rawTranscriptionText" style="font-family: monospace; font-size: 0.9rem; color: #6c757d;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+
+                                    
+                                    <!-- Story Polish Chat Interface -->
+                                    <div id="storyPolishChat" class="mb-4">
+                                        <div class="card" style="border: 2px solid var(--warm-accent); border-radius: 15px; background: linear-gradient(135deg, #e8f4fd 0%, #ffffff 100%);">
+                                            <div class="card-header" style="background: linear-gradient(45deg, var(--warm-accent), #4fc3f7); color: white; border-radius: 13px 13px 0 0;">
+                                                <h6 class="card-title mb-0">
+                                                    <i class="fas fa-comments me-2"></i>
+                                                    与AI对话继续润色 | Chat with AI to Polish Further
+                                                </h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <!-- Chat History -->
+                                                <div id="chatHistory" class="mb-3" style="max-height: 300px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 10px; padding: 15px; background: #fafafa;">
+                                                    <div class="text-center text-muted" id="chatPlaceholder">
+                                                        <i class="fas fa-robot mb-2" style="font-size: 2rem; color: var(--warm-accent);"></i>
+                                                        <p class="mb-0">开始与AI对话来改进您的故事<br>Start chatting with AI to improve your story</p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Chat Input -->
+                                                <div class="chat-input-section">
+                                                    <div class="input-group">
+                                                        <textarea id="chatInput" class="form-control" rows="2" 
+                                                                  placeholder="输入您的想法或请求... | Enter your thoughts or requests..."
+                                                                  style="border: 2px solid var(--warm-accent); border-radius: 10px 0 0 10px; resize: none;"></textarea>
+                                                        <button id="sendChatMessage" class="btn btn-primary" style="border-radius: 0 10px 10px 0; background: var(--warm-accent); border-color: var(--warm-accent);">
+                                                            <i class="fas fa-paper-plane"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="form-text mt-1">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-lightbulb me-1"></i>
+                                                            示例：「让故事更生动」「添加对话」「改进结尾」 | Examples: "Make it more vivid", "Add dialogue", "Improve the ending"
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Chat Loading -->
+                                                <div id="chatLoading" class="d-none mt-2">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                                                            <span class="visually-hidden">Loading...</span>
+                                                        </div>
+                                                        <small class="text-muted">AI正在思考... | AI is thinking...</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
                                     <div class="text-center">
-                                        <button id="saveTranscription" class="btn btn-primary me-3">
-                                            <i class="fas fa-save me-2"></i>保存故事和转录 | Save Story & Transcription
+                                        <button id="savePolishedStory" class="btn btn-success btn-lg me-3">
+                                            <i class="fas fa-save me-2"></i>保存润色故事 | Save Polished Story
                                         </button>
                                         <button id="retranscribe" class="btn btn-outline-info">
                                             <i class="fas fa-redo me-2"></i>重新转录 | Transcribe Again
@@ -354,6 +437,8 @@
                     </div>
                 </div>
             </div>
+
+
 
             <!-- Back to Dashboard -->
             <div class="text-center mt-4">
@@ -566,6 +651,8 @@ class VoiceRecorder {
         this.fileDuration = document.getElementById('fileDuration');
         this.uploadProgressBar = document.getElementById('uploadProgressBar');
         
+
+        
         this.bindEvents();
     }
     
@@ -585,8 +672,16 @@ class VoiceRecorder {
         this.uploadMode.addEventListener('change', () => this.switchToUploadMode());
         
         // File upload events
-        this.uploadArea.addEventListener('click', () => this.audioFileInput.click());
-        this.browseFileBtn.addEventListener('click', () => this.audioFileInput.click());
+        this.uploadArea.addEventListener('click', (e) => {
+            // Only trigger if clicking the upload area itself, not nested elements
+            if (e.target === this.uploadArea || e.target.closest('#uploadContent')) {
+                this.audioFileInput.click();
+            }
+        });
+        this.browseFileBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent event bubbling to uploadArea
+            this.audioFileInput.click();
+        });
         this.audioFileInput.addEventListener('change', (e) => this.handleFileSelect(e));
         this.processFileBtn.addEventListener('click', () => this.processUploadedFile());
         this.removeFileBtn.addEventListener('click', () => this.removeUploadedFile());
@@ -609,6 +704,28 @@ class VoiceRecorder {
                 }
             }
         });
+        
+
+        
+        // Chat events
+        this.sendChatBtn = document.getElementById('sendChatMessage');
+        this.chatInput = document.getElementById('chatInput');
+        this.chatHistory = document.getElementById('chatHistory');
+        this.chatPlaceholder = document.getElementById('chatPlaceholder');
+        this.chatLoading = document.getElementById('chatLoading');
+        
+        this.sendChatBtn.addEventListener('click', () => this.sendChatMessage());
+        this.chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.sendChatMessage();
+            }
+        });
+        
+        // Chat system variables
+        this.chatMessages = [];
+        this.currentStoryText = '';
+        this.selectedLanguageCode = 'en-US';
     }
     
     initializeLanguageSelector() {
@@ -964,6 +1081,9 @@ class VoiceRecorder {
             return;
         }
         
+        // Hide playback section for file uploads (only show for recordings)
+        this.playbackSection.classList.add('d-none');
+        
         // Show transcription section and start processing
         this.showTranscriptionSection();
         await this.transcribeUploadedFile();
@@ -1113,15 +1233,68 @@ class VoiceRecorder {
                 chunkCount: chunks.length
             });
             
-            document.getElementById('transcriptionLoading').classList.add('d-none');
-            
-            this.showTranscriptionResult({
-                success: true,
-                transcript: combinedTranscript,
-                confidence: averageConfidence,
-                chunked: true,
-                chunkCount: chunks.length
-            });
+            // Apply Gemini polishing to the combined transcript
+            console.log('✨ 开始Gemini润色 START GEMINI POLISHING...');
+            try {
+                const polishingResponse = await fetch('/api/test-gemini', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: combinedTranscript,
+                        language: language
+                    })
+                });
+                
+                const polishingResult = await polishingResponse.json();
+                console.log('✨ Gemini润色结果 GEMINI POLISHING RESULT:', polishingResult);
+                
+                document.getElementById('transcriptionLoading').classList.add('d-none');
+                
+                if (polishingResult.success && polishingResult.gemini?.success) {
+                    // Both raw transcript and polished version available
+                    this.showTranscriptionResult({
+                        success: true,
+                        transcript: polishingResult.gemini.content,  // Polished version
+                        raw_transcript: combinedTranscript,  // Raw Google output
+                        confidence: averageConfidence,
+                        chunked: true,
+                        chunkCount: chunks.length,
+                        polished: true,
+                        gemini: polishingResult.gemini
+                    });
+                } else {
+                    // Fallback: show raw transcript only
+                    console.log('⚠️ Gemini润色失败，显示原始转录 GEMINI POLISHING FAILED, SHOWING RAW');
+                    this.showTranscriptionResult({
+                        success: true,
+                        transcript: combinedTranscript,  // Raw transcript as main
+                        raw_transcript: combinedTranscript,  // Same as raw
+                        confidence: averageConfidence,
+                        chunked: true,
+                        chunkCount: chunks.length,
+                        polished: false,
+                        gemini: polishingResult.gemini || { success: false, error: 'Polishing failed' }
+                    });
+                }
+                
+            } catch (error) {
+                console.log('💥 Gemini润色异常 GEMINI POLISHING ERROR:', error);
+                document.getElementById('transcriptionLoading').classList.add('d-none');
+                
+                // Fallback: show raw transcript only
+                this.showTranscriptionResult({
+                    success: true,
+                    transcript: combinedTranscript,  // Raw transcript as main
+                    raw_transcript: combinedTranscript,  // Same as raw
+                    confidence: averageConfidence,
+                    chunked: true,
+                    chunkCount: chunks.length,
+                    polished: false,
+                    gemini: { success: false, error: `Polishing error: ${error.message}` }
+                });
+            }
             
         } catch (error) {
             console.error('Chunking failed:', error);
@@ -1849,15 +2022,68 @@ class VoiceRecorder {
             const combinedTranscript = this.combineTranscripts(results);
             const averageConfidence = this.calculateAverageConfidence(results);
             
-            document.getElementById('transcriptionLoading').classList.add('d-none');
-            
-            this.showTranscriptionResult({
-                success: true,
-                transcript: combinedTranscript,
-                confidence: averageConfidence,
-                chunked: true,
-                chunkCount: chunks.length
-            });
+            // Apply Gemini polishing to the combined transcript
+            console.log('✨ 开始录音Gemini润色 START RECORDING GEMINI POLISHING...');
+            try {
+                const polishingResponse = await fetch('/api/test-gemini', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: combinedTranscript,
+                        language: language
+                    })
+                });
+                
+                const polishingResult = await polishingResponse.json();
+                console.log('✨ 录音Gemini润色结果 RECORDING GEMINI POLISHING RESULT:', polishingResult);
+                
+                document.getElementById('transcriptionLoading').classList.add('d-none');
+                
+                if (polishingResult.success && polishingResult.gemini?.success) {
+                    // Both raw transcript and polished version available
+                    this.showTranscriptionResult({
+                        success: true,
+                        transcript: polishingResult.gemini.content,  // Polished version
+                        raw_transcript: combinedTranscript,  // Raw Google output
+                        confidence: averageConfidence,
+                        chunked: true,
+                        chunkCount: chunks.length,
+                        polished: true,
+                        gemini: polishingResult.gemini
+                    });
+                } else {
+                    // Fallback: show raw transcript only
+                    console.log('⚠️ 录音Gemini润色失败，显示原始转录 RECORDING GEMINI POLISHING FAILED, SHOWING RAW');
+                    this.showTranscriptionResult({
+                        success: true,
+                        transcript: combinedTranscript,  // Raw transcript as main
+                        raw_transcript: combinedTranscript,  // Same as raw
+                        confidence: averageConfidence,
+                        chunked: true,
+                        chunkCount: chunks.length,
+                        polished: false,
+                        gemini: polishingResult.gemini || { success: false, error: 'Polishing failed' }
+                    });
+                }
+                
+            } catch (error) {
+                console.log('💥 录音Gemini润色异常 RECORDING GEMINI POLISHING ERROR:', error);
+                document.getElementById('transcriptionLoading').classList.add('d-none');
+                
+                // Fallback: show raw transcript only
+                this.showTranscriptionResult({
+                    success: true,
+                    transcript: combinedTranscript,  // Raw transcript as main
+                    raw_transcript: combinedTranscript,  // Same as raw
+                    confidence: averageConfidence,
+                    chunked: true,
+                    chunkCount: chunks.length,
+                    polished: false,
+                    gemini: { success: false, error: `Polishing error: ${error.message}` }
+                });
+            }
             
             // URL already cleaned up earlier
             
@@ -2030,12 +2256,17 @@ class VoiceRecorder {
                                         'var(--warm-danger)';
         }
         
+        // Handle Gemini AI analysis results
+        this.showGeminiResults(result.gemini);
+        
         document.getElementById('transcriptionResult').classList.remove('d-none');
         
         // Add event listeners for transcription buttons
         document.getElementById('saveTranscription').onclick = () => this.saveStoryWithTranscription();
         document.getElementById('retranscribe').onclick = () => this.transcribeAudio();
     }
+    
+
     
     showTranscriptionError(error) {
         // Ensure transcription section is visible first
@@ -2048,8 +2279,8 @@ class VoiceRecorder {
         if (errorTextElement && errorElement) {
             errorTextElement.textContent = error;
             errorElement.classList.remove('d-none');
-            
-            // Add retry button event listener
+        
+        // Add retry button event listener
             if (retryButton) {
                 retryButton.onclick = () => {
                     errorElement.classList.add('d-none');
@@ -2195,6 +2426,266 @@ class VoiceRecorder {
             }, 3000);
         }
     }
+    
+    // Chat functionality methods
+    async sendChatMessage() {
+        const message = this.chatInput.value.trim();
+        if (!message) return;
+        
+        if (!this.currentStoryText) {
+            this.showError('No story available for chat. Please record and transcribe a story first.');
+            return;
+        }
+        
+        // Clear input and show loading
+        this.chatInput.value = '';
+        this.sendChatBtn.disabled = true;
+        this.chatLoading.classList.remove('d-none');
+        
+        try {
+            // Add user message to chat history
+            this.addChatMessage('user', message);
+            
+            console.log('🤖 === 发送聊天消息 SENDING CHAT MESSAGE ===');
+            console.log('Message:', message);
+            console.log('Current story length:', this.currentStoryText.length);
+            console.log('Chat history length:', this.chatMessages.length);
+            
+            // Prepare chat request
+            const chatData = {
+                message: message,
+                current_story: this.currentStoryText,
+                chat_history: this.chatMessages.slice(-10), // Last 10 messages for context
+                language: this.selectedLanguageCode
+            };
+            
+            console.log('📤 发送聊天API请求 SENDING CHAT API REQUEST:', chatData);
+            
+            const response = await fetch('/api/chat-with-gemini', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(chatData)
+            });
+            
+            console.log('📨 聊天API响应状态 CHAT API RESPONSE STATUS:', response.status);
+            
+            const result = await response.json();
+            
+            console.log('📋 聊天API响应结果 CHAT API RESPONSE:', result);
+            
+            if (result.success) {
+                // Add AI response to chat history
+                this.addChatMessage('assistant', result.gemini_response);
+                
+                // Check if the response contains a revised story
+                if (this.isRevisedStory(result.gemini_response)) {
+                    this.updatePolishedStory(result.gemini_response);
+                }
+                
+                console.log('✅ 聊天成功 CHAT SUCCESS');
+                
+            } else {
+                console.log('❌ 聊天失败 CHAT FAILED:', result.error);
+                this.addChatMessage('system', `Error: ${result.error}`);
+            }
+            
+        } catch (error) {
+            console.log('💥 聊天异常 CHAT ERROR:', error);
+            this.addChatMessage('system', `Network error: ${error.message}`);
+        } finally {
+            this.sendChatBtn.disabled = false;
+            this.chatLoading.classList.add('d-none');
+        }
+    }
+    
+    addChatMessage(role, content) {
+        // Hide placeholder if this is the first message
+        if (this.chatMessages.length === 0) {
+            this.chatPlaceholder.style.display = 'none';
+        }
+        
+        // Add to message history
+        this.chatMessages.push({
+            role: role,
+            content: content,
+            timestamp: new Date().toISOString()
+        });
+        
+        // Create message element
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message mb-3 ${role}`;
+        
+        let avatarIcon, roleLabel, messageClass;
+        if (role === 'user') {
+            avatarIcon = 'fas fa-user';
+            roleLabel = '您 | You';
+            messageClass = 'user-message';
+        } else if (role === 'assistant') {
+            avatarIcon = 'fas fa-robot';
+            roleLabel = 'AI助手 | AI Assistant';
+            messageClass = 'ai-message';
+        } else {
+            avatarIcon = 'fas fa-exclamation-triangle';
+            roleLabel = '系统 | System';
+            messageClass = 'system-message';
+        }
+        
+        messageDiv.innerHTML = `
+            <div class="d-flex ${role === 'user' ? 'justify-content-end' : 'justify-content-start'}">
+                <div class="message-bubble ${messageClass}" style="max-width: 80%; padding: 10px 15px; border-radius: 15px; ${role === 'user' ? 'background: var(--warm-primary); color: white; margin-left: 20%;' : 'background: #f8f9fa; border: 1px solid #dee2e6; margin-right: 20%;'}">
+                    <div class="message-header mb-1">
+                        <small class="text-muted">
+                            <i class="${avatarIcon} me-1"></i>
+                            ${roleLabel}
+                        </small>
+                    </div>
+                    <div class="message-content" style="line-height: 1.5; white-space: pre-wrap;">${content}</div>
+                </div>
+            </div>
+        `;
+        
+        // Add to chat history
+        this.chatHistory.appendChild(messageDiv);
+        
+        // Scroll to bottom
+        this.chatHistory.scrollTop = this.chatHistory.scrollHeight;
+        
+        // Add animation
+        messageDiv.style.opacity = '0';
+        messageDiv.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            messageDiv.style.transition = 'all 0.3s ease';
+            messageDiv.style.opacity = '1';
+            messageDiv.style.transform = 'translateY(0)';
+        }, 50);
+    }
+    
+    isRevisedStory(response) {
+        // Simple heuristic to detect if the response contains a revised story
+        // You can make this more sophisticated based on your needs
+        const storyIndicators = [
+            'here is the revised story',
+            'here\'s the improved version',
+            'revised story:',
+            'improved story:',
+            'new version:',
+            'here\'s the story',
+            'updated story'
+        ];
+        
+        const lowerResponse = response.toLowerCase();
+        return storyIndicators.some(indicator => lowerResponse.includes(indicator)) ||
+               (response.length > 100 && response.includes('.') && !response.startsWith('I think') && !response.startsWith('You could'));
+    }
+    
+    updatePolishedStory(newStoryText) {
+        // Update the current story text
+        this.currentStoryText = newStoryText;
+        
+        // Update the polished story display
+        const polishedStoryElement = document.getElementById('polishedStoryText');
+        if (polishedStoryElement) {
+            polishedStoryElement.textContent = newStoryText;
+            
+            // Add update animation
+            polishedStoryElement.style.transition = 'background-color 0.5s ease';
+            polishedStoryElement.style.backgroundColor = '#fff3cd';
+            setTimeout(() => {
+                polishedStoryElement.style.backgroundColor = '';
+            }, 1500);
+        }
+    }
+    
+    // Modified showTranscriptionResult to handle polished stories
+    showTranscriptionResult(result) {
+        console.log('📋 显示转录结果 SHOWING TRANSCRIPTION RESULT:', result);
+        
+        const transcriptionText = document.getElementById('transcriptionText');
+        const polishedStoryText = document.getElementById('polishedStoryText');
+        const rawTranscriptionText = document.getElementById('rawTranscriptionText');
+        const confidenceScore = document.getElementById('confidenceScore');
+        const geminiModelUsed = document.getElementById('geminiModelUsed');
+        const polishedIndicator = document.getElementById('polishedIndicator');
+        
+        // Determine if we have a polished version
+        let displayText = result.transcript || '';
+        let rawText = result.raw_transcript || '';
+        let isPolished = result.polished || false;
+        
+        // 🔍 DEBUG: 详细调试原始转录问题
+        console.log('🔍 Raw transcript debug:', {
+            'result object keys': Object.keys(result),
+            'result.raw_transcript': result.raw_transcript,
+            'result.raw_transcript type': typeof result.raw_transcript,
+            'result.raw_transcript length': result.raw_transcript ? result.raw_transcript.length : 'undefined',
+            'rawText': rawText,
+            'rawText type': typeof rawText,
+            'rawText length': rawText ? rawText.length : 'undefined',
+            'result.transcript': result.transcript ? result.transcript.substring(0, 50) + '...' : 'undefined'
+        });
+        
+        // Ensure we have actual raw transcript, not polished fallback
+        if (!rawText && result.transcript) {
+            console.warn('⚠️ Warning: No raw transcript available, showing placeholder message');
+        }
+        
+        // Store current story for chat
+        this.currentStoryText = displayText;
+        this.selectedLanguageCode = result.language || 'en-US';
+        
+        // Update the main story display (polished version)
+        if (polishedStoryText) {
+            polishedStoryText.textContent = displayText;
+        }
+        
+        // Update raw transcription (collapsible section)
+        if (rawTranscriptionText) {
+            if (rawText) {
+                rawTranscriptionText.textContent = rawText;
+                rawTranscriptionText.style.fontStyle = 'normal';
+                rawTranscriptionText.style.color = '#6c757d';
+            } else {
+                rawTranscriptionText.textContent = '原始转录不可用 | Raw transcription not available';
+                rawTranscriptionText.style.fontStyle = 'italic';
+                rawTranscriptionText.style.color = '#adb5bd';
+            }
+        }
+        
+        // Update confidence score
+        if (confidenceScore && result.confidence) {
+            const confidence = (result.confidence * 100).toFixed(1);
+            confidenceScore.innerHTML = `<strong>置信度 | Confidence: ${confidence}%</strong>`;
+        }
+        
+        // Update Gemini model info
+        if (geminiModelUsed && result.gemini?.model) {
+            geminiModelUsed.textContent = result.gemini.model;
+            document.getElementById('geminiModelUsedEn').textContent = result.gemini.model;
+        }
+        
+        // Update polished indicator
+        if (polishedIndicator) {
+            if (isPolished) {
+                polishedIndicator.className = 'badge bg-success ms-2';
+                polishedIndicator.innerHTML = '<i class="fas fa-check me-1"></i>已润色 | Polished';
+            } else {
+                polishedIndicator.className = 'badge bg-warning ms-2';
+                polishedIndicator.innerHTML = '<i class="fas fa-exclamation me-1"></i>未润色 | Not Polished';
+            }
+        }
+        
+
+        
+        // Show the transcription result section
+        document.getElementById('transcriptionResult').classList.remove('d-none');
+        
+        console.log('✅ 转录结果显示完成 TRANSCRIPTION RESULT DISPLAY COMPLETE');
+        console.log('Story available for chat:', !!this.currentStoryText);
+    }
+
+
     
     showError(message) {
         document.getElementById('errorMessage').textContent = message;

@@ -304,11 +304,16 @@ def transcribe_audio():
         
         if result['success']:
             # TODO: Save transcription to database
+            # Return complete result including raw_transcript for proper display
             return jsonify({
                 'success': True,
                 'transcript': result['transcript'],
+                'raw_transcript': result.get('raw_transcript'),  # 原始转录
                 'confidence': result['confidence'],
-                'language': result['language']
+                'language': result['language'],
+                'polished': result.get('polished', False),  # 是否经过润色
+                'gemini': result.get('gemini', {}),  # Gemini处理结果
+                'segments': result.get('segments', 0)  # 音频分段数
             })
         else:
             return jsonify({
@@ -321,6 +326,160 @@ def transcribe_audio():
             'success': False,
             'error': f'Transcription failed: {str(e)}'
         }), 500
+
+@app.route('/api/test-gemini', methods=['POST'])
+@login_required
+def test_gemini():
+    """Test Gemini AI with custom text input"""
+    try:
+        # Get text and language from request
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'No JSON data provided'}), 400
+        
+        text = data.get('text', '').strip()
+        language = data.get('language', 'en-US')
+        
+        if not text:
+            return jsonify({'success': False, 'error': 'No text provided'}), 400
+        
+        # Import gemini service
+        from gemini_service import gemini_service
+        
+        # Process text with Gemini
+        result = gemini_service.process_transcription(text, language)
+        
+        return jsonify({
+            'success': True,
+            'input_text': text,
+            'language': language,
+            'gemini': result
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Gemini test failed: {str(e)}'
+        }), 500
+
+@app.route('/api/chat-with-gemini', methods=['POST'])
+@login_required
+def chat_with_gemini():
+    """Chat with Gemini for story polishing and improvement"""
+    try:
+        # Get request data
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'No JSON data provided'}), 400
+        
+        user_message = data.get('message', '').strip()
+        current_story = data.get('current_story', '').strip()
+        chat_history = data.get('chat_history', [])
+        language = data.get('language', 'en-US')
+        
+        if not user_message:
+            return jsonify({'success': False, 'error': 'No message provided'}), 400
+        
+        if not current_story:
+            return jsonify({'success': False, 'error': 'No current story provided'}), 400
+        
+        # Import gemini service
+        from gemini_service import gemini_service
+        
+        # Create conversational prompt for story improvement
+        conversation_prompt = _create_chat_prompt(user_message, current_story, chat_history, language)
+        
+        # Process with Gemini
+        result = gemini_service.process_transcription(conversation_prompt, language)
+        
+        if result['success']:
+            return jsonify({
+                'success': True,
+                'user_message': user_message,
+                'gemini_response': result['content'],
+                'model': result['model'],
+                'language': language,
+                'timestamp': datetime.now().isoformat()
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': result.get('error', 'Failed to get response from Gemini')
+            }), 500
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Chat failed: {str(e)}'
+        }), 500
+
+def _create_chat_prompt(user_message: str, current_story: str, chat_history: list, language: str) -> str:
+    """Create a conversational prompt for story improvement chat"""
+    
+    # Determine language for response
+    if language.startswith('zh') or language.startswith('cmn'):
+        language_instruction = "请用中文回应。"
+        system_prompt = """你是一个专业的故事编辑和写作导师。用户正在和你对话来改进他们的故事。你的任务是：
+
+🎯 **对话目标**：
+- 帮助用户改进和润色他们的故事
+- 提供具体、可行的建议
+- 根据用户的要求进行修改
+- 保持鼓励和支持的语调
+
+📝 **当前故事**：
+{current_story}
+
+💬 **对话历史**：
+{chat_history_text}
+
+👤 **用户最新消息**：
+{user_message}
+
+请根据用户的消息提供帮助。如果用户要求修改故事，请提供修改后的版本。如果用户寻求建议，请给出具体的改进建议。保持对话自然友好。
+
+{language_instruction}"""
+    else:
+        language_instruction = "Please respond in English."
+        system_prompt = """You are a professional story editor and writing mentor. The user is chatting with you to improve their story. Your tasks are:
+
+🎯 **Conversation Goals**:
+- Help the user improve and polish their story
+- Provide specific, actionable suggestions
+- Make modifications based on user requests
+- Maintain an encouraging and supportive tone
+
+📝 **Current Story**:
+{current_story}
+
+💬 **Chat History**:
+{chat_history_text}
+
+👤 **User's Latest Message**:
+{user_message}
+
+Please provide help based on the user's message. If the user requests story modifications, provide the revised version. If the user seeks advice, give specific improvement suggestions. Keep the conversation natural and friendly.
+
+{language_instruction}"""
+    
+    # Format chat history
+    chat_history_text = ""
+    if chat_history:
+        for i, chat in enumerate(chat_history[-5:]):  # Only include last 5 exchanges
+            role = chat.get('role', 'unknown')
+            content = chat.get('content', '')
+            chat_history_text += f"{role.title()}: {content}\n"
+    else:
+        chat_history_text = "No previous conversation."
+    
+    return system_prompt.format(
+        current_story=current_story,
+        chat_history_text=chat_history_text,
+        user_message=user_message,
+        language_instruction=language_instruction
+    )
 
 if __name__ == '__main__':
     # Create upload folder for profile pictures
