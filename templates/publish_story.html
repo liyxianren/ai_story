@@ -4,7 +4,7 @@
 
 {% block extra_css %}
 <style>
-/* 发布页面现代化样式 */
+/* Publish Page Modern Styles */
 .publish-container {
     background: linear-gradient(135deg, rgba(255, 248, 225, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
     border-radius: 24px;
@@ -215,7 +215,7 @@
     font-weight: 600;
 }
 
-/* 响应式设计 */
+/* Responsive Design */
 @media (max-width: 768px) {
     .publish-container {
         padding: 24px;
@@ -339,8 +339,8 @@
                                             <p class="mb-2" style="font-size: 1rem;">Story content will be automatically retrieved from the recording page</p>
                                             <p class="mb-0" style="font-size: 0.9rem;">Story content will be automatically loaded from recording page</p>
                                             <small class="d-block mt-3" style="opacity: 0.6;">
-                                                语言: <span id="storyLanguage" class="fw-semibold">未知</span> | 
-                                                字数: <span id="wordCount" class="fw-semibold">0</span>
+                                                Language: <span id="storyLanguage" class="fw-semibold">Unknown</span> | 
+                                                Word Count: <span id="wordCount" class="fw-semibold">0</span>
                                             </small>
                                         </div>
                                     </div>
@@ -354,17 +354,17 @@
                             <div class="mb-3">
                                 <label for="storyDescription" class="form-label fw-bold" style="color: var(--warm-primary-dark); font-size: 1.1rem;">
                                     <i class="fas fa-align-justify me-2" style="color: var(--warm-accent);"></i>
-                                    故事简介 | Story Description
+                                    Story Description
                                 </label>
                                 <textarea class="form-control form-control-modern" id="storyDescription" name="description" 
-                                          rows="4" placeholder="描述你的故事主要内容和亮点... | Describe the main content and highlights of your story..." style="resize: vertical;"></textarea>
+                                          rows="4" placeholder="Describe the main content and highlights of your story..." style="resize: vertical;"></textarea>
                                 <div class="d-flex align-items-center mt-3">
                                     <button type="button" class="btn-modern-outline" id="generateDescriptionBtn" style="padding: 10px 20px; font-size: 0.9rem;">
-                                        <i class="fas fa-magic me-2"></i>AI 自动生成简介 | AI Generate Description
+                                        <i class="fas fa-magic me-2"></i>AI Generate Description
                                     </button>
                                     <small class="text-muted ms-3" style="opacity: 0.7;">
                                         <i class="fas fa-lightbulb me-1" style="color: var(--warm-accent);"></i>
-                                        使用AI根据故事内容自动生成吸引人的简介
+                                        Use AI to automatically generate an engaging description based on story content
                                     </small>
                                 </div>
                             </div>
@@ -373,12 +373,12 @@
                         <!-- Story Type Selection Card -->
                         <div class="modern-card">
                             <div class="card-header-modern card-header-info">
-                                <i class="fas fa-bookmark me-2"></i>故事类型 | Story Type
+                                <i class="fas fa-bookmark me-2"></i>Story Type
                             </div>
                             
                             <p style="color: var(--warm-secondary); margin-bottom: 20px; opacity: 0.8;">
                                 <i class="fas fa-tags me-2" style="color: var(--warm-info);"></i>
-                                选择最适合您故事的类型 | Choose the type that best fits your story
+                                Choose the type that best fits your story
                             </p>
                             
                             <!-- Story Types -->
@@ -397,7 +397,7 @@
                                         </div>
                                     </div>
                                     <p class="mb-0" style="color: var(--warm-primary-dark); font-weight: 500;">
-                                        正在加载故事类型... | Loading story types...
+                                        Loading story types...
                                     </p>
                                 </div>
                             </div>
@@ -409,7 +409,7 @@
                         <!-- Cover Image Card -->
                         <div class="modern-card">
                             <div class="card-header-modern card-header-warning">
-                                <i class="fas fa-image me-2"></i>故事封面 | Story Cover
+                                <i class="fas fa-image me-2"></i>Story Cover
                             </div>
                             
                             <!-- Image Upload Area -->
@@ -426,13 +426,13 @@
                                             <i class="fas fa-cloud-upload-alt" style="font-size: 1.5rem; color: white;"></i>
                                         </div>
                                         <p style="color: var(--warm-primary-dark); font-weight: 500; margin-bottom: 8px;">
-                                            点击上传故事封面图片
+                                            Click to upload story cover image
                                         </p>
                                         <p style="color: var(--warm-secondary); font-size: 0.9rem; margin-bottom: 0; opacity: 0.8;">
                                             Click to upload story cover image
                                         </p>
                                         <small style="color: var(--warm-secondary); opacity: 0.6; margin-top: 8px; display: block;">
-                                            支持 JPG, PNG, WebP 格式，最大 5MB<br>
+                                            Supports JPG, PNG, WebP formats, maximum 5MB<br>
                                             Support JPG, PNG, WebP formats, max 5MB
                                         </small>
                                     </div>
@@ -445,14 +445,14 @@
                         <!-- Publishing Options Card -->
                         <div class="modern-card">
                             <div class="card-header-modern card-header-success">
-                                <i class="fas fa-cog me-2"></i>发布设置 | Publishing Settings
+                                <i class="fas fa-cog me-2"></i>Publishing Settings
                             </div>
                             
                             <!-- Publishing Status -->
                             <div class="mb-4">
                                 <label class="form-label fw-bold" style="color: var(--warm-primary-dark); font-size: 1.1rem; margin-bottom: 16px;">
                                     <i class="fas fa-toggle-on me-2" style="color: var(--warm-success);"></i>
-                                    发布状态 | Publishing Status
+                                    Publishing Status
                                 </label>
                                 <div class="form-check form-check-modern">
                                     <input class="form-check-input" type="radio" name="status" id="statusPending" value="pending">
@@ -460,8 +460,8 @@
                                         <div class="d-flex align-items-center">
                                             <i class="fas fa-clock me-2" style="color: var(--warm-info);"></i>
                                             <div>
-                                                <div class="fw-semibold">提交审核 | Submit for Review</div>
-                                                <small style="color: var(--warm-secondary); opacity: 0.8;">提交给管理员审核后发布 | Submit to admin for review before publishing</small>
+                                                <div class="fw-semibold">Submit for Review</div>
+                                                <small style="color: var(--warm-secondary); opacity: 0.8;">Submit to admin for review before publishing</small>
                                             </div>
                                         </div>
                                     </label>
@@ -473,19 +473,19 @@
                             <div class="mb-3">
                                 <label class="form-label fw-bold" style="color: var(--warm-primary-dark); font-size: 1.1rem; margin-bottom: 16px;">
                                     <i class="fas fa-chart-bar me-2" style="color: var(--warm-accent);"></i>
-                                    故事统计 | Story Statistics
+                                    Story Statistics
                                 </label>
                                 <div class="row">
                                     <div class="col-6">
                                         <div class="stats-card">
                                             <div style="color: var(--warm-primary); font-weight: bold; font-size: 1.5rem;" id="displayWordCount">0</div>
-                                            <small style="color: var(--warm-secondary); opacity: 0.8;">字数 | Words</small>
+                                            <small style="color: var(--warm-secondary); opacity: 0.8;">Words</small>
                                         </div>
                                     </div>
                                     <div class="col-6">
                                         <div class="stats-card">
                                             <div style="color: var(--warm-info); font-weight: bold; font-size: 1.5rem;" id="readingTime">0</div>
-                                            <small style="color: var(--warm-secondary); opacity: 0.8;">阅读分钟 | Read Time</small>
+                                            <small style="color: var(--warm-secondary); opacity: 0.8;">Read Time</small>
                                         </div>
                                     </div>
                                 </div>
@@ -496,10 +496,10 @@
                         <div class="modern-card">
                             <div class="d-grid gap-3">
                                 <button type="submit" class="btn-modern-primary" style="font-size: 1.1rem; padding: 18px 32px;">
-                                    <i class="fas fa-paper-plane me-2"></i>发布故事 | Publish Story
+                                    <i class="fas fa-paper-plane me-2"></i>Publish Story
                                 </button>
                                 <button type="button" class="btn-modern-outline" onclick="window.history.back()" style="padding: 14px 24px;">
-                                    <i class="fas fa-times me-2"></i>取消 | Cancel
+                                    <i class="fas fa-times me-2"></i>Cancel
                                 </button>
                             </div>
                         </div>
@@ -516,8 +516,8 @@
         <div class="modal-content">
             <div class="modal-body text-center py-4">
                 <div class="spinner-border text-primary mb-3" role="status"></div>
-                <h5 id="loadingMessage">正在处理...</h5>
-                <p class="text-muted mb-0">请稍候，不要关闭页面</p>
+                <h5 id="loadingMessage">Processing...</h5>
+                <p class="text-muted mb-0">Please wait, do not close this page</p>
             </div>
         </div>
     </div>
@@ -553,8 +553,8 @@ function loadStoryFromSession() {
             const content = data.polished_content || data.transcription || '';
             const isPolished = !!data.polished_content;
             const badge = isPolished ? 
-                '<span class="badge bg-success mb-2"><i class="fas fa-magic me-1"></i>AI润色版本 | AI Polished</span>' : 
-                '<span class="badge bg-warning text-dark mb-2"><i class="fas fa-microphone me-1"></i>原始转录 | Raw Transcription</span>';
+                '<span class="badge bg-success mb-2"><i class="fas fa-magic me-1"></i>AI Polished</span>' : 
+                '<span class="badge bg-warning text-dark mb-2"><i class="fas fa-microphone me-1"></i>Raw Transcription</span>';
             
             contentPreview.innerHTML = `
                 <div class="p-3">
@@ -571,12 +571,12 @@ function loadStoryFromSession() {
         
         if (storyContent) storyContent.value = data.polished_content || data.transcription || '';
         if (languageCode) languageCode.value = data.language || 'zh-CN';
-        if (languageName) languageName.value = data.language_name || '中文';
+        if (languageName) languageName.value = data.language_name || 'Chinese';
         
         // Update language display
         const storyLanguage = document.getElementById('storyLanguage');
         if (storyLanguage) {
-            storyLanguage.textContent = data.language_name || '中文';
+            storyLanguage.textContent = data.language_name || 'Chinese';
         }
         
         // Calculate and display word count
@@ -620,16 +620,16 @@ async function loadStoryTypes() {
             renderStoryTypes(data.story_types);
         } else {
             document.getElementById('storyTypes').innerHTML = 
-                '<div class="alert alert-warning">加载故事类型失败，请刷新页面重试</div>';
+                '<div class="alert alert-warning">Failed to load story types, please refresh and try again</div>';
         }
     } catch (error) {
         console.error('Failed to load story types:', error);
         document.getElementById('storyTypes').innerHTML = 
-            '<div class="alert alert-danger">网络错误，无法加载故事类型</div>';
+            '<div class="alert alert-danger">Network error, unable to load story types</div>';
     }
 }
 
-// Render story types - 现代化设计
+// Render story types - Modern Design
 function renderStoryTypes(storyTypes) {
     const container = document.getElementById('storyTypes');
     container.innerHTML = '';
@@ -666,12 +666,12 @@ function renderStoryTypes(storyTypes) {
     // Add click handlers for story type cards
     container.querySelectorAll('input[type="radio"]').forEach(radio => {
         radio.addEventListener('change', function() {
-            // 重置所有卡片样式
+            // Reset all card styles
             container.querySelectorAll('.story-type-card-modern').forEach(card => {
                 card.classList.remove('selected');
             });
             
-            // 高亮选中的卡片
+            // Highlight selected card
             const selectedCard = container.querySelector(`label[for="${this.id}"] .story-type-card-modern`);
             if (selectedCard) {
                 selectedCard.classList.add('selected');
@@ -687,7 +687,7 @@ function previewImage(input) {
         
         // Validate file size (5MB max)
         if (file.size > 5 * 1024 * 1024) {
-            alert('图片文件过大，请选择小于5MB的图片');
+                            alert('Image file too large, please select an image smaller than 5MB');
             input.value = '';
             return;
         }
@@ -711,7 +711,7 @@ function previewImage(input) {
                             border-color: rgba(239, 68, 68, 0.3);
                             color: #dc2626;
                         ">
-                            <i class="fas fa-times me-1"></i>移除 | Remove
+                            <i class="fas fa-times me-1"></i>Remove
                         </button>
                     </div>
                 </div>
@@ -735,13 +735,13 @@ function removeImage() {
             <i class="fas fa-cloud-upload-alt" style="font-size: 1.5rem; color: white;"></i>
         </div>
         <p style="color: var(--warm-primary-dark); font-weight: 500; margin-bottom: 8px;">
-            点击上传故事封面图片
+                                Click to upload story cover image
         </p>
         <p style="color: var(--warm-secondary); font-size: 0.9rem; margin-bottom: 0; opacity: 0.8;">
             Click to upload story cover image
         </p>
         <small style="color: var(--warm-secondary); opacity: 0.6; margin-top: 8px; display: block;">
-            支持 JPG, PNG, WebP 格式，最大 5MB<br>
+                            Supports JPG, PNG, WebP formats, maximum 5MB<br>
             Support JPG, PNG, WebP formats, max 5MB
         </small>
     `;
@@ -751,13 +751,13 @@ function removeImage() {
 document.getElementById('generateDescriptionBtn').addEventListener('click', async function() {
     const content = document.getElementById('storyContent').value;
     if (!content.trim()) {
-        alert('请先确保故事内容已加载');
+        alert('Please ensure story content is loaded first');
         return;
     }
     
     const btn = this;
     const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 生成中...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
     btn.disabled = true;
     
     try {
@@ -774,11 +774,11 @@ document.getElementById('generateDescriptionBtn').addEventListener('click', asyn
         if (data.success) {
             document.getElementById('storyDescription').value = data.description;
         } else {
-            alert('生成简介失败: ' + data.error);
+            alert('Failed to generate description: ' + data.error);
         }
     } catch (error) {
         console.error('Error generating description:', error);
-        alert('网络错误，请稍后重试');
+        alert('Network error, please try again later');
     } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
@@ -797,13 +797,13 @@ function setupFormValidation() {
         const content = document.getElementById('storyContent').value.trim();
         
         if (!title) {
-            alert('请输入故事标题');
+            alert('Please enter story title');
             document.getElementById('storyTitle').focus();
             return;
         }
         
         if (!content) {
-            alert('故事内容不能为空，请从录制页面获取内容');
+            alert('Story content cannot be empty, please get content from recording page');
             return;
         }
         
@@ -811,7 +811,7 @@ function setupFormValidation() {
         const selectedType = document.querySelector('input[name="story_type"]:checked');
         
         if (!selectedType) {
-            alert('请为您的故事选择一个类型！');
+            alert('Please select a type for your story!');
             return;
         }
         
@@ -846,7 +846,7 @@ function setupFormValidation() {
         } catch (error) {
             hideLoadingModal();
             console.error('Error publishing story:', error);
-            alert('网络错误，请稍后重试');
+            alert('Network error, please try again later');
         }
     });
 }

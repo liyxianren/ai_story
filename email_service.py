@@ -50,7 +50,7 @@ class EmailService:
                 return False
             
             # Email subject
-            subject = "故事传承 - 密码重置请求 / Password Reset Request"
+            subject = "StoryKeeper - Password Reset Request"
             
             # Email body (HTML template)
             html_body = self._get_password_reset_template(username, reset_url)
@@ -79,7 +79,7 @@ class EmailService:
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>密码重置 - 故事传承平台</title>
+            <title>Password Reset - StoryKeeper Platform</title>
             <style>
                 body {
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -178,25 +178,25 @@ class EmailService:
         <body>
             <div class="email-container">
                 <div class="header">
-                    <div class="logo">📖 故事传承</div>
+                    <div class="logo">📖 StoryKeeper</div>
                     <div class="subtitle">AI Storytelling Platform</div>
                 </div>
                 
                 <div class="content">
-                    <div class="greeting">你好 {{ username }}，</div>
+                    <div class="greeting">Hello {{ username }},</div>
                     
                     <div class="message">
-                        我们收到了您的密码重置请求。如果这是您发起的操作，请点击下面的按钮来重置您的密码：
+                        We received your password reset request. If this was initiated by you, please click the button below to reset your password:
                     </div>
                     
                     <div style="text-align: center;">
                         <a href="{{ reset_url }}" class="reset-button">
-                            🔑 重置我的密码
+                            🔑 Reset My Password
                         </a>
                     </div>
                     
                     <div class="message">
-                        如果上面的按钮无法点击，请复制以下链接到您的浏览器中：
+                        If the above button doesn't work, please copy and paste the following link into your browser:
                     </div>
                     
                     <div class="url-fallback">
@@ -205,9 +205,9 @@ class EmailService:
                     
                     <div class="warning">
                         <span class="warning-icon">⚠️</span>
-                        <strong>安全提醒：</strong>
+                        <strong>Security Reminder:</strong>
                         <ul style="margin: 10px 0; padding-left: 20px;">
-                            <li>此链接将在 <strong>15分钟</strong> 后过期</li>
+                            <li>This link will expire in <strong>15 minutes</strong></li>
                             <li>如果您没有请求密码重置，请忽略此邮件</li>
                             <li>请勿将此链接分享给任何人</li>
                         </ul>

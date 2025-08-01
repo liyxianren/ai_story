@@ -4,7 +4,7 @@
 
 {% block extra_css %}
 <style>
-    /* 故事珍藏馆样式 */
+    /* Story Library Styles */
     .story-library-hero {
         background: linear-gradient(135deg, #fef3c7 0%, #ffffff 100%);
         position: relative;
@@ -410,7 +410,7 @@
         <div class="animate-fade-in-up">
             <div class="filters-container">
                 <button class="category-filter active" data-category="all">
-                    全部故事
+                    All Stories
                 </button>
                 {% for category in categories %}
                 <button class="category-filter" data-category="{{ category }}">
@@ -460,7 +460,7 @@
                                 <span>{{ story.created_at.strftime('%Y-%m-%d') }}</span>
                             </div>
                             
-                            <p class="story-excerpt">{{ story.description or '暂无摘要' }}</p>
+                            <p class="story-excerpt">{{ story.description or 'No summary available' }}</p>
                             
                             <div class="story-footer">
                                 <div class="story-stats">
@@ -468,7 +468,7 @@
                                     <span><i class="fa-regular fa-heart me-1"></i>{{ story.like_count or 0 }}</span>
                                 </div>
                                 <a href="{{ url_for('story_detail', story_id=story.id) }}" class="story-link">
-                                    阅读完整故事
+                                    Read Full Story
                                     <i class="fa-solid fa-arrow-right ms-1" style="font-size: 0.75rem;"></i>
                                 </a>
                             </div>
