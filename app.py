@@ -186,6 +186,13 @@ def register():
             flash('Username, email, and password are required!', 'error')
             return render_template('register.html')
         
+        # Email format validation
+        import re
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, email):
+            flash('Please enter a valid email address!', 'error')
+            return render_template('register.html')
+        
         if password != confirm_password:
             flash('Passwords do not match!', 'error')
             return render_template('register.html')
@@ -198,10 +205,16 @@ def register():
             connection = get_db_connection()
             cursor = connection.cursor()
             
-            # Check if username or email already exists
-            cursor.execute("SELECT id FROM users WHERE username = %s OR email = %s", (username, email))
+            # Check if username already exists
+            cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
             if cursor.fetchone():
-                flash('Username or email already exists!', 'error')
+                flash('This username is already taken! Please choose a different username.', 'error')
+                return render_template('register.html')
+            
+            # Check if email already exists
+            cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
+            if cursor.fetchone():
+                flash('This email address is already registered! Please use a different email or try logging in.', 'error')
                 return render_template('register.html')
             
             # Hash password
