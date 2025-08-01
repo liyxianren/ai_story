@@ -1411,6 +1411,7 @@ class VoiceRecorder {
         // Chat system variables
         this.chatMessages = [];
         this.currentStoryText = '';
+        this.originalTranscription = '';  // Store raw transcription for publishing
         this.selectedLanguageCode = 'en-US';
         
         // Initialize language selector
@@ -3404,9 +3405,17 @@ class VoiceRecorder {
             console.warn('⚠️ Warning: No raw transcript available, showing placeholder message');
         }
         
-        // Store current story for chat
-        this.currentStoryText = displayText;
+        // Store current story for chat and publishing
+        this.currentStoryText = displayText;  // This is the polished content
+        this.originalTranscription = rawText || displayText;  // Store raw transcription
         this.selectedLanguageCode = result.language || 'en-US';
+        
+        // Debug logging for publishing
+        console.log('📝 Story content for publishing:', {
+            polished: displayText ? displayText.substring(0, 50) + '...' : 'none',
+            raw: rawText ? rawText.substring(0, 50) + '...' : 'none',
+            isPolished: isPolished
+        });
         
         // Update the main story display (polished version)
         if (polishedStoryText) {

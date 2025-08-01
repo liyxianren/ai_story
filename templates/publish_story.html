@@ -537,10 +537,31 @@ function loadStoryFromSession() {
     if (storyData) {
         const data = JSON.parse(storyData);
         
+        // Debug logging for story data
+        console.log('📖 Story data from session:', {
+            hasPolishedContent: !!data.polished_content,
+            hasTranscription: !!data.transcription,
+            polishedLength: data.polished_content ? data.polished_content.length : 0,
+            transcriptionLength: data.transcription ? data.transcription.length : 0,
+            language: data.language,
+            languageName: data.language_name
+        });
+        
         // Update content preview
         const contentPreview = document.getElementById('storyContentPreview');
         if (contentPreview) {
-            contentPreview.innerHTML = `<div class="p-3">${data.polished_content || data.transcription || ''}</div>`;
+            const content = data.polished_content || data.transcription || '';
+            const isPolished = !!data.polished_content;
+            const badge = isPolished ? 
+                '<span class="badge bg-success mb-2"><i class="fas fa-magic me-1"></i>AI润色版本 | AI Polished</span>' : 
+                '<span class="badge bg-warning text-dark mb-2"><i class="fas fa-microphone me-1"></i>原始转录 | Raw Transcription</span>';
+            
+            contentPreview.innerHTML = `
+                <div class="p-3">
+                    ${badge}
+                    <div class="mt-2" style="line-height: 1.6; font-size: 0.95rem;">${content}</div>
+                </div>
+            `;
         }
         
         // Set hidden form fields
