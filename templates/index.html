@@ -101,7 +101,7 @@
         animation: slideInRight 0.8s ease-out 0.2s both;
     }
     
-    /* 英雄区域样式 */
+    /* Hero Section Styles */
     .hero-section {
         background: linear-gradient(to bottom, var(--color-neutral-light), #fff);
         padding: 5rem 0;
@@ -109,7 +109,7 @@
         overflow: hidden;
     }
     
-    /* 背景装饰球体 */
+    /* Background Decorative Blobs */
     .hero-section .blob {
         position: absolute;
         border-radius: 50%;
@@ -152,7 +152,7 @@
         background: linear-gradient(to top, #fff, transparent);
     }
     
-    /* 故事卡片悬停效果 */
+    /* Story Card Hover Effects */
     .story-card {
         background: #fff;
         border-radius: var(--rounded-xl);
@@ -180,7 +180,7 @@
         transform: scale(1.1);
     }
     
-    /* 按钮样式 */
+    /* Button Styles */
     .btn-primary {
         background-color: var(--color-primary);
         border-color: var(--color-primary);
@@ -224,7 +224,7 @@
         transform: scale(1.05);
     }
     
-    /* 行动召唤区域样式 */
+    /* Call-to-Action Section Styles */
     .cta-section {
         background-color: var(--color-neutral-light);
         position: relative;
@@ -237,7 +237,7 @@
         overflow: hidden;
     }
     
-    /* 响应式调整 */
+    /* Responsive Adjustments */
     @media (max-width: 768px) {
         .hero-section {
             padding: 2rem 0;
@@ -253,7 +253,7 @@
 {% block content %}
 <!-- Hero Section -->
 <section class="hero-section">
-    <!-- 背景装饰球体 -->
+    <!-- Background Decorative Blobs -->
     <div class="blob blob-1 animate-blob"></div>
     <div class="blob blob-2 animate-blob animation-delay-2000"></div>
     <div class="blob blob-3 animate-blob animation-delay-4000"></div>
@@ -313,7 +313,7 @@
         </div>
     </div>
     
-    <!-- 渐变遮罩 -->
+    <!-- Gradient Overlay -->
     <div class="gradient-overlay"></div>
 </section>
 
@@ -395,11 +395,11 @@
                 <div class="story-card">
                     <div class="position-relative" style="height: 200px; overflow: hidden;">
                         <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-                             alt="奶奶的中秋节记忆" 
+                             alt="Grandma's Mid-Autumn Festival Memories" 
                              class="story-card-image">
                         <div class="position-absolute top-0 start-0 m-3">
                             <span class="badge text-white px-3 py-2 rounded-pill" style="background-color: var(--color-primary); font-size: 0.75rem;">
-                                节日传统
+                                Holiday Traditions
                             </span>
                         </div>
                     </div>
@@ -436,11 +436,11 @@
                 <div class="story-card">
                     <div class="position-relative" style="height: 200px; overflow: hidden;">
                         <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-                             alt="山村小学的老校长" 
+                             alt="The Old Principal of Mountain Village School" 
                              class="story-card-image">
                         <div class="position-absolute top-0 start-0 m-3">
                             <span class="badge text-white px-3 py-2 rounded-pill" style="background-color: var(--color-primary); font-size: 0.75rem;">
-                                人物记忆
+                                Character Memories
                             </span>
                         </div>
                     </div>
@@ -477,11 +477,11 @@
                 <div class="story-card">
                     <div class="position-relative" style="height: 200px; overflow: hidden;">
                         <img src="https://images.unsplash.com/photo-1586953208448-b95a79798f07?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-                             alt="爷爷的抗战往事" 
+                             alt="Grandpa's War Stories" 
                              class="story-card-image">
                         <div class="position-absolute top-0 start-0 m-3">
                             <span class="badge text-white px-3 py-2 rounded-pill" style="background-color: var(--color-primary); font-size: 0.75rem;">
-                                历史记忆
+                                Historical Memories
                             </span>
                         </div>
                     </div>
@@ -555,8 +555,8 @@
                                         <div class="d-flex align-items-center">
                                             <i class="fa-solid fa-shield-alt me-3 fs-5" style="color: var(--color-primary);"></i>
                                             <div>
-                                                <h6 class="mb-0 fw-bold">隐私保护</h6>
-                                                <small class="text-muted">您的故事安全无忧</small>
+                                                <h6 class="mb-0 fw-bold">Privacy Protection</h6>
+                                                <small class="text-muted">Your stories are safe and secure</small>
                                             </div>
                                         </div>
                                     </div>
@@ -564,8 +564,8 @@
                                         <div class="d-flex align-items-center">
                                             <i class="fa-solid fa-cloud me-3 fs-5" style="color: var(--color-primary);"></i>
                                             <div>
-                                                <h6 class="mb-0 fw-bold">云端保存</h6>
-                                                <small class="text-muted">永久保存，随时访问</small>
+                                                <h6 class="mb-0 fw-bold">Cloud Storage</h6>
+                                                <small class="text-muted">Permanent storage, access anytime</small>
                                             </div>
                                         </div>
                                     </div>
@@ -615,7 +615,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, index * 200);
     });
     
-    // 故事卡片悬停效果增强
+            // Enhanced story card hover effects
     document.querySelectorAll('.story-card').forEach(card => {
         card.addEventListener('mouseenter', function() {
             this.style.transform = 'translateY(-8px)';
