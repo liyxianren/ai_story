@@ -2,6 +2,198 @@
 
 {% block title %}Record Your Story - VoiceVault{% endblock %}
 
+{% block extra_css %}
+<style>
+/* Modern Audio Player Animations */
+@keyframes audioWave {
+    0%, 100% { height: 12px; opacity: 0.6; }
+    50% { height: 16px; opacity: 1; }
+}
+
+@keyframes audioWave2 {
+    0%, 100% { height: 16px; opacity: 0.8; }
+    50% { height: 20px; opacity: 1; }
+}
+
+@keyframes audioWave3 {
+    0%, 100% { height: 10px; opacity: 0.5; }
+    50% { height: 14px; opacity: 0.8; }
+}
+
+@keyframes audioWave4 {
+    0%, 100% { height: 14px; opacity: 0.7; }
+    50% { height: 18px; opacity: 1; }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+}
+
+/* Static styling - animations removed */
+.audio-wave div:nth-child(1) { height: 12px; opacity: 0.6; }
+.audio-wave div:nth-child(2) { height: 16px; opacity: 0.8; }
+.audio-wave div:nth-child(3) { height: 10px; opacity: 0.5; }
+.audio-wave div:nth-child(4) { height: 14px; opacity: 0.7; }
+
+.recorded-story-container {
+    /* No animations */
+}
+
+.transcription-container {
+    /* No animations */
+}
+
+.chat-container {
+    /* No animations */
+}
+
+/* Button styling - no animations */
+.btn-modern-primary {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-modern-secondary {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Progress bar styling - no animations */
+.progress-bar {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .recorded-story-container,
+    .transcription-container,
+    .chat-container {
+        padding: 24px !important;
+        margin: 0 -15px;
+        border-radius: 20px !important;
+    }
+    
+    .action-buttons,
+    .transcription-actions {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+    
+    .secondary-actions {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+    
+    .btn-modern-outline {
+        text-align: center !important;
+    }
+    
+    .play-btn-modern {
+        width: 64px !important;
+        height: 64px !important;
+        font-size: 1.3rem !important;
+    }
+    
+    .audio-player-container,
+    .story-content-container,
+    .chat-history-container,
+    .chat-input-container {
+        padding: 20px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .recorded-story-container,
+    .transcription-container,
+    .chat-container {
+        padding: 20px !important;
+    }
+    
+    .btn-modern-primary,
+    .btn-modern-secondary {
+        padding: 14px 20px !important;
+        font-size: 0.9rem !important;
+    }
+    
+    .btn-modern-outline {
+        padding: 10px 16px !important;
+        font-size: 0.85rem !important;
+    }
+}
+
+/* Loading states */
+.btn-loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Focus states for accessibility */
+.btn-modern-primary:focus,
+.btn-modern-secondary:focus,
+.btn-modern-outline:focus,
+.play-btn-modern:focus {
+    outline: 2px solid var(--warm-primary);
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .recorded-story-container {
+        border: 3px solid var(--warm-primary) !important;
+        background: white !important;
+    }
+    
+    .audio-player-container {
+        border: 2px solid var(--warm-secondary) !important;
+        background: white !important;
+    }
+}
+
+/* Reduced motion support - no animations to disable */
+@media (prefers-reduced-motion: reduce) {
+    /* All animations already removed */
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
@@ -240,40 +432,239 @@
 
                     <!-- Playback Section -->
                     <div id="playbackSection" class="d-none">
-                        <div class="card" style="border: 2px solid var(--warm-success); background: linear-gradient(45deg, #E8F5E8, #FFFFFF); border-radius: 20px;">
-                            <div class="card-body p-4">
-                                <h5 class="card-title" style="color: var(--warm-primary-dark);">
-                                    <i class="fas fa-play-circle me-2" style="color: var(--warm-success);"></i>
+                        <div class="recorded-story-container" style="
+                            background: linear-gradient(135deg, rgba(255, 248, 225, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
+                            border: 2px solid rgba(217, 119, 6, 0.2);
+                            border-radius: 24px;
+                            padding: 32px;
+                            box-shadow: 0 20px 60px rgba(217, 119, 6, 0.08), 0 8px 25px rgba(0, 0, 0, 0.06);
+                            backdrop-filter: blur(10px);
+                            position: relative;
+                            overflow: hidden;
+                        ">
+                            <!-- Decorative background elements -->
+                            <div style="
+                                position: absolute;
+                                top: -20px;
+                                right: -20px;
+                                width: 120px;
+                                height: 120px;
+                                background: linear-gradient(45deg, rgba(217, 119, 6, 0.1), rgba(251, 191, 36, 0.1));
+                                border-radius: 50%;
+                                z-index: 0;
+                            "></div>
+                            <div style="
+                                position: absolute;
+                                bottom: -30px;
+                                left: -30px;
+                                width: 80px;
+                                height: 80px;
+                                background: linear-gradient(45deg, rgba(16, 163, 74, 0.1), rgba(34, 197, 94, 0.1));
+                                border-radius: 50%;
+                                z-index: 0;
+                            "></div>
+                            
+                            <!-- Content -->
+                            <div style="position: relative; z-index: 1;">
+                                <!-- Header -->
+                                <div class="text-center mb-4">
+                                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="
+                                        width: 64px;
+                                        height: 64px;
+                                        background: linear-gradient(45deg, var(--warm-success), #22c55e);
+                                        border-radius: 20px;
+                                        box-shadow: 0 8px 25px rgba(34, 197, 94, 0.25);
+                                    ">
+                                        <i class="fas fa-microphone" style="font-size: 1.8rem; color: white;"></i>
+                                    </div>
+                                    <h5 style="
+                                        color: var(--warm-primary-dark);
+                                        font-family: 'Georgia', serif;
+                                        font-weight: 600;
+                                        font-size: 1.5rem;
+                                        margin-bottom: 8px;
+                                        letter-spacing: -0.02em;
+                                    ">
                                     Your Recorded Story
                                 </h5>
-                                
-                                <div class="d-flex align-items-center mb-3">
-                                    <button id="playButton" class="btn btn-success me-3" style="border-radius: 50%; width: 60px; height: 60px;">
-                                        <i class="fas fa-play"></i>
+                                    <p style="
+                                        color: var(--warm-secondary);
+                                        font-size: 0.95rem;
+                                        margin-bottom: 0;
+                                        opacity: 0.8;
+                                    ">
+                                        Ready to transform your voice into text
+                                    </p>
+                                </div>
+
+                                <!-- Audio Player -->
+                                <div class="audio-player-container mb-4" style="
+                                    background: rgba(255, 255, 255, 0.7);
+                                    border: 1px solid rgba(217, 119, 6, 0.15);
+                                    border-radius: 20px;
+                                    padding: 24px;
+                                    backdrop-filter: blur(5px);
+                                ">
+                                    <div class="d-flex align-items-center">
+                                        <!-- Play Button -->
+                                        <button id="playButton" class="play-btn-modern me-4" style="
+                                            width: 72px;
+                                            height: 72px;
+                                            border-radius: 50%;
+                                            border: none;
+                                            background: linear-gradient(45deg, var(--warm-success), #22c55e);
+                                            color: white;
+                                            font-size: 1.5rem;
+                                            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.3);
+                                            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            position: relative;
+                                            overflow: hidden;
+                                        " onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 12px 35px rgba(34, 197, 94, 0.4)'" 
+                                           onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 8px 25px rgba(34, 197, 94, 0.3)'">
+                                            <i class="fas fa-play" style="margin-left: 3px;"></i>
                                     </button>
-                                    <div class="flex-grow-1">
-                                        <div class="progress" style="height: 8px; border-radius: 10px;">
-                                            <div id="progressBar" class="progress-bar" style="background: var(--warm-success);" role="progressbar"></div>
+                                        
+                                        <!-- Progress Area -->
+                                        <div class="flex-grow-1" style="min-width: 0;">
+                                            <!-- Waveform-style progress bar -->
+                                            <div class="progress-container mb-2" style="position: relative;">
+                                                <div class="progress" style="
+                                                    height: 12px;
+                                                    border-radius: 8px;
+                                                    background: rgba(217, 119, 6, 0.1);
+                                                    overflow: hidden;
+                                                    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+                                                ">
+                                                    <div id="progressBar" class="progress-bar" style="
+                                                        background: linear-gradient(90deg, var(--warm-success), #22c55e);
+                                                        border-radius: 8px;
+                                                        transition: width 0.1s ease;
+                                                        box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+                                                    " role="progressbar"></div>
                                         </div>
-                                        <div class="d-flex justify-content-between mt-1">
-                                            <small id="currentTime" style="color: var(--warm-secondary);">00:00</small>
-                                            <small id="totalTime" style="color: var(--warm-secondary);">00:00</small>
+                                        </div>
+                                            
+                                            <!-- Time Display -->
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span id="currentTime" style="
+                                                    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+                                                    color: var(--warm-primary-dark);
+                                                    font-size: 0.9rem;
+                                                    font-weight: 600;
+                                                ">00:00</span>
+                                                
+                                                <div class="audio-status" style="
+                                                    display: flex;
+                                                    align-items: center;
+                                                    gap: 8px;
+                                                    color: var(--warm-secondary);
+                                                    font-size: 0.85rem;
+                                                ">
+                                                    <div class="audio-wave" style="
+                                                        display: flex;
+                                                        align-items: center;
+                                                        gap: 2px;
+                                                    ">
+                                                        <div style="width: 3px; height: 12px; background: var(--warm-success); border-radius: 2px; opacity: 0.6;"></div>
+                                                        <div style="width: 3px; height: 16px; background: var(--warm-success); border-radius: 2px; opacity: 0.8;"></div>
+                                                        <div style="width: 3px; height: 10px; background: var(--warm-success); border-radius: 2px; opacity: 0.5;"></div>
+                                                        <div style="width: 3px; height: 14px; background: var(--warm-success); border-radius: 2px; opacity: 0.7;"></div>
+                                    </div>
+                                                    <span>Audio Ready</span>
+                                </div>
+
+                                                <span id="totalTime" style="
+                                                    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+                                                    color: var(--warm-secondary);
+                                                    font-size: 0.9rem;
+                                                    font-weight: 500;
+                                                ">Infinity:NaN</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="text-center">
-                                    <button id="startTranscription" class="btn btn-success btn-lg me-3" style="background: linear-gradient(45deg, #4CAF50, #2E7D32); border: none; border-radius: 25px; padding: 12px 24px; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);">
-                                        <i class="fas fa-magic me-2"></i>开始Google识别 | Start Google Recognition
+                                <!-- Action Buttons -->
+                                <div class="action-buttons" style="
+                                    display: grid;
+                                    grid-template-columns: 1fr 1fr;
+                                    gap: 16px;
+                                    margin-bottom: 20px;
+                                ">
+                                    <!-- Primary Action -->
+                                    <button id="startTranscription" class="btn-modern-primary" style="
+                                        background: linear-gradient(135deg, var(--warm-success) 0%, #22c55e 100%);
+                                        border: none;
+                                        border-radius: 16px;
+                                        padding: 16px 24px;
+                                        color: white;
+                                        font-weight: 600;
+                                        font-size: 1rem;
+                                        box-shadow: 0 8px 25px rgba(34, 197, 94, 0.25);
+                                        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                                        position: relative;
+                                        overflow: hidden;
+                                    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 35px rgba(34, 197, 94, 0.35)'" 
+                                       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(34, 197, 94, 0.25)'">
+                                        <i class="fas fa-magic me-2"></i>
+                                        <span>开始Google识别 | Start Google Recognition</span>
                                     </button>
-                                    <button id="saveRecording" class="btn btn-primary me-3">
-                                        <i class="fas fa-save me-2"></i>仅保存录音 | Save Audio Only
+                                    
+                                    <!-- Save Audio -->
+                                    <button id="saveRecording" class="btn-modern-secondary" style="
+                                        background: linear-gradient(135deg, var(--warm-primary) 0%, var(--warm-primary-light) 100%);
+                                        border: none;
+                                        border-radius: 16px;
+                                        padding: 16px 24px;
+                                        color: white;
+                                        font-weight: 600;
+                                        font-size: 1rem;
+                                        box-shadow: 0 8px 25px rgba(217, 119, 6, 0.25);
+                                        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                                    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 35px rgba(217, 119, 6, 0.35)'" 
+                                       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(217, 119, 6, 0.25)'">
+                                        <i class="fas fa-save me-2"></i>
+                                        <span>仅保存录音 | Save Audio Only</span>
                                     </button>
-                                    <button id="discardRecording" class="btn btn-outline-danger me-3">
-                                        <i class="fas fa-trash me-2"></i>丢弃 | Discard
+                                </div>
+                                
+                                <!-- Secondary Actions -->
+                                <div class="secondary-actions" style="
+                                    display: flex;
+                                    justify-content: center;
+                                    gap: 12px;
+                                    flex-wrap: wrap;
+                                ">
+                                    <button id="discardRecording" class="btn-modern-outline" style="
+                                        background: rgba(239, 68, 68, 0.1);
+                                        border: 2px solid rgba(239, 68, 68, 0.2);
+                                        border-radius: 12px;
+                                        padding: 12px 20px;
+                                        color: #dc2626;
+                                        font-weight: 500;
+                                        font-size: 0.9rem;
+                                        transition: all 0.3s ease;
+                                    " onmouseover="this.style.background='rgba(239, 68, 68, 0.15)'; this.style.borderColor='rgba(239, 68, 68, 0.3)'" 
+                                       onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.borderColor='rgba(239, 68, 68, 0.2)'">
+                                        <i class="fas fa-trash me-2"></i>
+                                        丢弃 | Discard
                                     </button>
-                                    <button id="recordAgain" class="btn btn-outline-primary">
-                                        <i class="fas fa-redo me-2"></i>重新录制 | Record Again
+                                    <button id="recordAgain" class="btn-modern-outline" style="
+                                        background: rgba(217, 119, 6, 0.1);
+                                        border: 2px solid rgba(217, 119, 6, 0.2);
+                                        border-radius: 12px;
+                                        padding: 12px 20px;
+                                        color: var(--warm-primary-dark);
+                                        font-weight: 500;
+                                        font-size: 0.9rem;
+                                        transition: all 0.3s ease;
+                                    " onmouseover="this.style.background='rgba(217, 119, 6, 0.15)'; this.style.borderColor='rgba(217, 119, 6, 0.3)'" 
+                                       onmouseout="this.style.background='rgba(217, 119, 6, 0.1)'; this.style.borderColor='rgba(217, 119, 6, 0.2)'">
+                                        <i class="fas fa-redo me-2"></i>
+                                        重新录制 | Record Again
                                     </button>
                                 </div>
                             </div>
@@ -282,12 +673,70 @@
 
                     <!-- Transcription Section -->
                     <div id="transcriptionSection" class="d-none mt-4">
-                        <div class="card" style="border: 2px solid var(--warm-info); background: linear-gradient(45deg, #E3F2FD, #FFFFFF); border-radius: 20px;">
-                            <div class="card-body p-4">
-                                <h5 class="card-title" style="color: var(--warm-primary-dark);">
-                                    <i class="fas fa-file-alt me-2" style="color: var(--warm-info);"></i>
+                        <div class="transcription-container" style="
+                            background: linear-gradient(135deg, rgba(224, 242, 254, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
+                            border: 2px solid rgba(14, 165, 233, 0.2);
+                            border-radius: 24px;
+                            padding: 32px;
+                            box-shadow: 0 20px 60px rgba(14, 165, 233, 0.08), 0 8px 25px rgba(0, 0, 0, 0.06);
+                            backdrop-filter: blur(10px);
+                            position: relative;
+                            overflow: hidden;
+                        ">
+                            <!-- Decorative background elements -->
+                            <div style="
+                                position: absolute;
+                                top: -20px;
+                                right: -20px;
+                                width: 120px;
+                                height: 120px;
+                                background: linear-gradient(45deg, rgba(14, 165, 233, 0.1), rgba(56, 189, 248, 0.1));
+                                border-radius: 50%;
+                                z-index: 0;
+                            "></div>
+                            <div style="
+                                position: absolute;
+                                bottom: -30px;
+                                left: -30px;
+                                width: 80px;
+                                height: 80px;
+                                background: linear-gradient(45deg, rgba(168, 85, 247, 0.1), rgba(192, 132, 252, 0.1));
+                                border-radius: 50%;
+                                z-index: 0;
+                            "></div>
+                            
+                            <!-- Content -->
+                            <div style="position: relative; z-index: 1;">
+                                <!-- Header -->
+                                <div class="text-center mb-4">
+                                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="
+                                        width: 64px;
+                                        height: 64px;
+                                        background: linear-gradient(45deg, var(--warm-info), #38bdf8);
+                                        border-radius: 20px;
+                                        box-shadow: 0 8px 25px rgba(14, 165, 233, 0.25);
+                                    ">
+                                        <i class="fas fa-file-alt" style="font-size: 1.8rem; color: white;"></i>
+                                    </div>
+                                    <h5 style="
+                                        color: var(--warm-primary-dark);
+                                        font-family: 'Georgia', serif;
+                                        font-weight: 600;
+                                        font-size: 1.5rem;
+                                        margin-bottom: 8px;
+                                        letter-spacing: -0.02em;
+                                    ">
                                     故事转录 | Story Transcription
                                 </h5>
+                                    <p style="
+                                        color: var(--warm-secondary);
+                                        font-size: 0.95rem;
+                                        margin-bottom: 0;
+                                        opacity: 0.8;
+                                    ">
+                                        Transform your voice into beautiful text
+                                    </p>
+                                </div>
                                 
                                 <div id="transcriptionLoading" class="text-center py-4 d-none">
                                     <div class="spinner-border" style="color: var(--warm-info);" role="status">
@@ -302,35 +751,105 @@
                                 <div id="transcriptionResult" class="d-none">
                                     <!-- Polished Story Display -->
                                     <div class="mb-4">
-                                        <label class="form-label fw-bold" style="color: var(--warm-primary-dark);">
-                                            <i class="fas fa-magic me-2" style="color: var(--warm-accent);"></i>
-                                            润色后的故事 | Your Polished Story:
-                                        </label>
-                                        <div class="card" style="border: 2px solid var(--warm-accent); border-radius: 15px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
-                                            <div class="card-body">
-                                                <div id="polishedStoryText" 
-                                                     style="min-height: 120px; line-height: 1.6; font-size: 1.1rem; color: var(--warm-primary-dark); white-space: pre-wrap;"
-                                                     contenteditable="true"></div>
-                                                <div class="mt-3 p-2" style="background: rgba(255,255,255,0.7); border-radius: 8px; border-top: 1px solid #e9ecef;">
-                                                    <small class="text-muted">
-                                                        <i class="fas fa-robot me-1"></i>
-                                                        由 <span id="geminiModelUsed">Gemini AI</span> 润色 | Polished by <span id="geminiModelUsedEn">Gemini AI</span>
-                                                        <span id="polishedIndicator" class="badge bg-success ms-2">
-                                                            <i class="fas fa-check me-1"></i>已润色 | Polished
-                                                        </span>
-                                                    </small>
+                                        <div class="story-content-container" style="
+                                            background: rgba(255, 255, 255, 0.7);
+                                            border: 1px solid rgba(217, 119, 6, 0.15);
+                                            border-radius: 20px;
+                                            padding: 24px;
+                                            backdrop-filter: blur(5px);
+                                            margin-bottom: 20px;
+                                        ">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="d-inline-flex align-items-center justify-content-center me-3" style="
+                                                    width: 48px;
+                                                    height: 48px;
+                                                    background: linear-gradient(45deg, var(--warm-accent), #f59e0b);
+                                                    border-radius: 16px;
+                                                    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.25);
+                                                ">
+                                                    <i class="fas fa-magic" style="font-size: 1.2rem; color: rgb(70, 0, 247);"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 style="
+                                                        color: var(--warm-primary-dark);
+                                                        font-weight: 600;
+                                                        margin-bottom: 4px;
+                                                        font-size: 1.1rem;
+                                                    ">
+                                                        润色后的故事 | Your Polished Story
+                                                    </h6>
+                                                    <p style="
+                                                        color: var(--warm-secondary);
+                                                        font-size: 0.85rem;
+                                                        margin-bottom: 0;
+                                                        opacity: 0.8;
+                                                    ">
+                                                        <i class="fas fa-edit me-1"></i>
+                                                        您可以直接编辑润色后的故事 | You can edit the polished story directly
+                                                    </p>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="form-text mt-2">
-                                            <i class="fas fa-edit me-1"></i>
-                                            您可以直接编辑润色后的故事 | You can edit the polished story directly above.
-                                            <span id="confidenceScore"></span>
+                                            
+                                            <div class="story-text-area" style="
+                                                background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+                                                border: 2px solid rgba(217, 119, 6, 0.1);
+                                                border-radius: 16px;
+                                                padding: 20px;
+                                                margin-bottom: 16px;
+                                            ">
+                                                <div id="polishedStoryText" 
+                                                     style="
+                                                        min-height: 120px; 
+                                                        line-height: 1.6; 
+                                                        font-size: 1.1rem; 
+                                                        color: var(--warm-primary-dark); 
+                                                        white-space: pre-wrap;
+                                                        border: none;
+                                                        outline: none;
+                                                        font-family: 'Georgia', serif;
+                                                     "
+                                                     contenteditable="true"></div>
+                                            </div>
+                                            
+                                            <div class="story-meta" style="
+                                                background: rgba(255,255,255,0.7); 
+                                                border-radius: 12px; 
+                                                padding: 12px 16px;
+                                                border: 1px solid rgba(217, 119, 6, 0.1);
+                                            ">
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <small class="text-muted d-flex align-items-center">
+                                                        <i class="fas fa-robot me-2" style="color: var(--warm-accent);"></i>
+                                                        由 <span id="geminiModelUsed" class="fw-semibold">Gemini AI</span> 润色 | Polished by <span id="geminiModelUsedEn" class="fw-semibold">Gemini AI</span>
+                                                    </small>
+                                                    <span id="polishedIndicator" class="badge" style="
+                                                        background: linear-gradient(45deg, var(--warm-success), #22c55e);
+                                                        color: white;
+                                                        padding: 6px 12px;
+                                                        border-radius: 8px;
+                                                        font-size: 0.75rem;
+                                                        font-weight: 500;
+                                                    ">
+                                                            <i class="fas fa-check me-1"></i>已润色 | Polished
+                                                        </span>
+                                                </div>
+                                                <div id="confidenceScore" class="mt-1"></div>
+                                            </div>
                                         </div>
                                         
                                         <!-- Publish Story Button -->
-                                        <div class="mt-3 text-center">
-                                            <button id="publishStoryBtn" class="btn btn-primary btn-lg" onclick="goToPublish()" style="display: none;">
+                                        <div class="text-center">
+                                            <button id="publishStoryBtn" class="btn-modern-primary" onclick="goToPublish()" style="
+                                                background: linear-gradient(135deg, var(--warm-primary) 0%, var(--warm-primary-light) 100%);
+                                                border: none;
+                                                border-radius: 16px;
+                                                padding: 16px 32px;
+                                                color: white;
+                                                font-weight: 600;
+                                                font-size: 1rem;
+                                                box-shadow: 0 8px 25px rgba(217, 119, 6, 0.25);
+                                                display: none;
+                                            ">
                                                 <i class="fas fa-paper-plane me-2"></i>
                                                 发布我的故事 | Publish My Story
                                             </button>
@@ -360,70 +879,225 @@
                                     
                                     <!-- Story Polish Chat Interface -->
                                     <div id="storyPolishChat" class="mb-4">
-                                        <div class="card" style="border: 2px solid var(--warm-accent); border-radius: 15px; background: linear-gradient(135deg, #e8f4fd 0%, #ffffff 100%);">
-                                            <div class="card-header" style="background: linear-gradient(45deg, var(--warm-accent), #4fc3f7); color: white; border-radius: 13px 13px 0 0;">
-                                                <h6 class="card-title mb-0">
-                                                    <i class="fas fa-comments me-2"></i>
+                                        <div class="chat-container" style="
+                                            background: linear-gradient(135deg, rgba(232, 244, 253, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
+                                            border: 2px solid rgba(245, 158, 11, 0.2);
+                                            border-radius: 24px;
+                                            padding: 32px;
+                                            box-shadow: 0 20px 60px rgba(245, 158, 11, 0.08), 0 8px 25px rgba(0, 0, 0, 0.06);
+                                            backdrop-filter: blur(10px);
+                                            position: relative;
+                                            overflow: hidden;
+                                        ">
+                                            <!-- Decorative background elements -->
+                                            <div style="
+                                                position: absolute;
+                                                top: -20px;
+                                                right: -20px;
+                                                width: 120px;
+                                                height: 120px;
+                                                background: linear-gradient(45deg, rgba(245, 158, 11, 0.1), rgba(251, 191, 36, 0.1));
+                                                border-radius: 50%;
+                                                z-index: 0;
+                                            "></div>
+                                            <div style="
+                                                position: absolute;
+                                                bottom: -30px;
+                                                left: -30px;
+                                                width: 80px;
+                                                height: 80px;
+                                                background: linear-gradient(45deg, rgba(79, 195, 247, 0.1), rgba(129, 140, 248, 0.1));
+                                                border-radius: 50%;
+                                                z-index: 0;
+                                            "></div>
+                                            
+                                            <!-- Content -->
+                                            <div style="position: relative; z-index: 1;">
+                                                <!-- Header -->
+                                                <div class="text-center mb-4">
+                                                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="
+                                                        width: 64px;
+                                                        height: 64px;
+                                                        background: linear-gradient(45deg, var(--warm-accent), #4fc3f7);
+                                                        border-radius: 20px;
+                                                        box-shadow: 0 8px 25px rgba(245, 158, 11, 0.25);
+                                                    ">
+                                                        <i class="fas fa-comments" style="font-size: 1.8rem; color: white;"></i>
+                                                    </div>
+                                                    <h5 style="
+                                                        color: var(--warm-primary-dark);
+                                                        font-family: 'Georgia', serif;
+                                                        font-weight: 600;
+                                                        font-size: 1.5rem;
+                                                        margin-bottom: 8px;
+                                                        letter-spacing: -0.02em;
+                                                    ">
                                                     与AI对话继续润色 | Chat with AI to Polish Further
-                                                </h6>
+                                                    </h5>
+                                                    <p style="
+                                                        color: var(--warm-secondary);
+                                                        font-size: 0.95rem;
+                                                        margin-bottom: 0;
+                                                        opacity: 0.8;
+                                                    ">
+                                                        Collaborate with AI to perfect your story
+                                                    </p>
                                             </div>
-                                            <div class="card-body">
+                                                
                                                 <!-- Chat History -->
-                                                <div id="chatHistory" class="mb-3" style="max-height: 300px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 10px; padding: 15px; background: #fafafa;">
-                                                    <div class="text-center text-muted" id="chatPlaceholder">
-                                                        <i class="fas fa-robot mb-2" style="font-size: 2rem; color: var(--warm-accent);"></i>
-                                                        <p class="mb-0">开始与AI对话来改进您的故事<br>Start chatting with AI to improve your story</p>
+                                                <div class="chat-history-container mb-4" style="
+                                                    background: rgba(255, 255, 255, 0.7);
+                                                    border: 1px solid rgba(245, 158, 11, 0.15);
+                                                    border-radius: 20px;
+                                                    padding: 24px;
+                                                    backdrop-filter: blur(5px);
+                                                ">
+                                                    <div id="chatHistory" style="
+                                                        max-height: 300px; 
+                                                        overflow-y: auto; 
+                                                        border-radius: 16px; 
+                                                        padding: 20px; 
+                                                        background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+                                                        border: 2px solid rgba(245, 158, 11, 0.1);
+                                                    ">
+                                                                                                            <div class="text-center text-muted" id="chatPlaceholder">
+                                                            <div class="d-inline-flex align-items-center justify-content-center mb-3" style="
+                                                                width: 56px;
+                                                                height: 56px;
+                                                                background: linear-gradient(45deg, var(--warm-primary), var(--warm-primary-light));
+                                                                border-radius: 18px;
+                                                                box-shadow: 0 6px 20px rgba(217, 119, 6, 0.25);
+                                                            ">
+                                                                <i class="fas fa-robot" style="font-size: 1.5rem; color: white;"></i>
+                                                            </div>
+                                                            <p class="mb-0" style="color: var(--warm-secondary); font-size: 0.95rem;">
+                                                                开始与AI对话来改进您的故事<br>Start chatting with AI to improve your story
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 
                                                 <!-- Chat Input -->
-                                                <div class="chat-input-section">
-                                                    <div class="input-group">
+                                                <div class="chat-input-container" style="
+                                                    background: rgba(255, 255, 255, 0.7);
+                                                    border: 1px solid rgba(245, 158, 11, 0.15);
+                                                    border-radius: 20px;
+                                                    padding: 20px;
+                                                    backdrop-filter: blur(5px);
+                                                ">
+                                                    <div class="input-group" style="border-radius: 16px; overflow: hidden;">
                                                         <textarea id="chatInput" class="form-control" rows="2" 
                                                                   placeholder="输入您的想法或请求... | Enter your thoughts or requests..."
-                                                                  style="border: 2px solid var(--warm-accent); border-radius: 10px 0 0 10px; resize: none;"></textarea>
-                                                        <button id="sendChatMessage" class="btn btn-primary" style="border-radius: 0 10px 10px 0; background: var(--warm-accent); border-color: var(--warm-accent);">
+                                                                  style="
+                                                                    border: 2px solid rgba(245, 158, 11, 0.2); 
+                                                                    border-radius: 16px 0 0 16px; 
+                                                                    resize: none;
+                                                                    background: white;
+                                                                    font-size: 0.95rem;
+                                                                    padding: 12px 16px;
+                                                                  "></textarea>
+                                                        <button id="sendChatMessage" class="btn" style="
+                                                            border-radius: 0 16px 16px 0; 
+                                                            background: linear-gradient(45deg, var(--warm-accent), #4fc3f7); 
+                                                            border: 2px solid rgba(245, 158, 11, 0.2);
+                                                            border-left: none;
+                                                            color: white;
+                                                            padding: 12px 20px;
+                                                            font-size: 1.1rem;
+                                                        ">
                                                             <i class="fas fa-paper-plane"></i>
                                                         </button>
                                                     </div>
-                                                    <div class="form-text mt-1">
+                                                    <div class="form-text mt-2" style="padding-left: 4px;">
                                                         <small class="text-muted">
-                                                            <i class="fas fa-lightbulb me-1"></i>
+                                                            <i class="fas fa-lightbulb me-1" style="color: var(--warm-accent);"></i>
                                                             示例：「让故事更生动」「添加对话」「改进结尾」 | Examples: "Make it more vivid", "Add dialogue", "Improve the ending"
                                                         </small>
                                                     </div>
                                                 </div>
                                                 
                                                 <!-- Chat Loading -->
-                                                <div id="chatLoading" class="d-none mt-2">
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                                                <div id="chatLoading" class="d-none mt-3">
+                                                    <div class="d-flex align-items-center justify-content-center" style="
+                                                        background: rgba(245, 158, 11, 0.1);
+                                                        border: 1px solid rgba(245, 158, 11, 0.2);
+                                                        border-radius: 16px;
+                                                        padding: 16px;
+                                                    ">
+                                                        <div class="spinner-border spinner-border-sm me-3" style="color: var(--warm-accent);" role="status">
                                                             <span class="visually-hidden">Loading...</span>
                                                         </div>
-                                                        <small class="text-muted">AI正在思考... | AI is thinking...</small>
+                                                        <small style="color: var(--warm-primary-dark); font-weight: 500;">AI正在思考... | AI is thinking...</small>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                     
-                                    <div class="text-center">
-                                        <button id="savePolishedStory" class="btn btn-success btn-lg me-3">
-                                            <i class="fas fa-save me-2"></i>保存润色故事 | Save Polished Story
+                                    <!-- Action Buttons -->
+                                    <div class="transcription-actions" style="
+                                        display: grid;
+                                        grid-template-columns: 1fr 1fr;
+                                        gap: 16px;
+                                        margin-top: 24px;
+                                    ">
+                                        <button id="savePolishedStory" class="btn-modern-primary" style="
+                                            background: linear-gradient(135deg, var(--warm-success) 0%, #22c55e 100%);
+                                            border: none;
+                                            border-radius: 16px;
+                                            padding: 16px 24px;
+                                            color: white;
+                                            font-weight: 600;
+                                            font-size: 1rem;
+                                            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.25);
+                                        ">
+                                            <i class="fas fa-save me-2"></i>
+                                            <span>保存润色故事 | Save Polished Story</span>
                                         </button>
-                                        <button id="retranscribe" class="btn btn-outline-info">
-                                            <i class="fas fa-redo me-2"></i>重新转录 | Transcribe Again
+                                        <button id="retranscribe" class="btn-modern-outline" style="
+                                            background: rgba(14, 165, 233, 0.1);
+                                            border: 2px solid rgba(14, 165, 233, 0.2);
+                                            border-radius: 16px;
+                                            padding: 16px 24px;
+                                            color: var(--warm-info);
+                                            font-weight: 600;
+                                            font-size: 1rem;
+                                        ">
+                                            <i class="fas fa-redo me-2"></i>
+                                            <span>重新转录 | Transcribe Again</span>
                                         </button>
                                     </div>
                                 </div>
                                 
                                 <div id="transcriptionError" class="d-none">
-                                    <div class="alert alert-danger" role="alert">
-                                        <i class="fas fa-exclamation-triangle me-2"></i>
-                                        <span id="transcriptionErrorText">转录失败，请重试 | Transcription failed. Please try again.</span>
+                                    <div class="error-container" style="
+                                        background: rgba(239, 68, 68, 0.1);
+                                        border: 2px solid rgba(239, 68, 68, 0.2);
+                                        border-radius: 20px;
+                                        padding: 24px;
+                                        text-align: center;
+                                    ">
+                                        <div class="d-inline-flex align-items-center justify-content-center mb-3" style="
+                                            width: 56px;
+                                            height: 56px;
+                                            background: linear-gradient(45deg, #dc2626, #ef4444);
+                                            border-radius: 18px;
+                                            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.25);
+                                        ">
+                                            <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem; color: white;"></i>
                                     </div>
-                                    <div class="text-center">
-                                        <button id="retryTranscription" class="btn btn-outline-danger">
+                                        <p style="color: #dc2626; font-weight: 500; margin-bottom: 20px; font-size: 1rem;">
+                                            <span id="transcriptionErrorText">转录失败，请重试 | Transcription failed. Please try again.</span>
+                                        </p>
+                                        <button id="retryTranscription" class="btn-modern-outline" style="
+                                            background: rgba(239, 68, 68, 0.1);
+                                            border: 2px solid rgba(239, 68, 68, 0.3);
+                                            border-radius: 16px;
+                                            padding: 12px 24px;
+                                            color: #dc2626;
+                                            font-weight: 500;
+                                            font-size: 0.95rem;
+                                        ">
                                             <i class="fas fa-redo me-2"></i>重试 | Try Again
                                         </button>
                                     </div>

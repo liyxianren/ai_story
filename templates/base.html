@@ -12,8 +12,8 @@
     
     <style>
         :root {
-            /* 故事传承网站 - 温暖怀旧风格 */
-            --color-primary: #d97706; /* 琥珀色作为主色调 */
+            /* 故事传承网站 - 现代化amber主题 */
+            --color-primary: #d97706; /* 琥珀色主色调 */
             --color-primary-light: #fbbf24;
             --color-primary-dark: #92400e;
             --color-secondary: #7f1d1d;
@@ -28,25 +28,32 @@
             --warm-secondary: #7f1d1d;
             --warm-neutral: #fef3c7;
             --warm-background: #FFF8E1;
-            --warm-success: #81C784;
-            --warm-info: #64B5F6;
-            --warm-warning: #FFB74D;
+            --warm-success: #16a34a;
+            --warm-info: #0ea5e9;
+            --warm-warning: #ea580c;
             --warm-white: #FEFEFE;
+            
+            /* 字体系统 */
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+            --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
         }
         
         body {
             background: linear-gradient(135deg, var(--warm-background) 0%, #FFF3E0 100%);
             min-height: 100vh;
             font-family: 'Georgia', 'Times New Roman', serif;
-            color: #5D4037;
+            color: #78350f;
             line-height: 1.6;
         }
         
+        /* 现代化导航栏 */
         .navbar {
-            background: rgba(254, 243, 199, 0.8) !important;
-            backdrop-filter: blur(4px);
+            background: rgba(254, 243, 199, 0.85) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             box-shadow: 0 2px 20px rgba(217, 119, 6, 0.15);
             border-bottom: 1px solid rgba(217, 119, 6, 0.1);
+            transition: all 0.3s ease;
         }
         
         .navbar-brand {
@@ -54,14 +61,21 @@
             font-family: Georgia, Cambria, "Times New Roman", Times, serif;
             font-size: 1.4rem;
             font-weight: bold;
+            transition: color 0.3s ease;
         }
         
+        .navbar-brand:hover {
+            color: #d97706 !important;
+        }
+        
+        /* 现代化卡片设计 */
         .card {
             background: var(--warm-white);
             border: 1px solid var(--warm-primary-light);
             border-radius: 20px;
             box-shadow: 0 10px 40px rgba(141, 110, 99, 0.12);
             transition: all 0.3s ease;
+            overflow: hidden;
         }
         
         .card:hover {
@@ -69,24 +83,23 @@
             transform: translateY(-3px);
         }
         
+        /* 现代化按钮设计 */
         .btn-primary {
-            background-color: var(--color-primary);
-            border-color: var(--color-primary);
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            border: none;
             color: #fff;
             font-weight: 500;
-            border-radius: 9999px;
+            border-radius: 50px;
+            padding: 12px 24px;
             transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            box-shadow: 0 4px 15px rgba(217, 119, 6, 0.2);
         }
         
         .btn-primary:hover {
-            background-color: var(--color-primary-dark);
-            border-color: var(--color-primary-dark);
+            background: linear-gradient(135deg, var(--color-primary-dark) 0%, #7c2d12 100%);
             color: #fff;
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(217, 119, 6, 0.3);
         }
         
         .btn-outline-primary {
@@ -94,94 +107,186 @@
             border: 2px solid var(--color-primary);
             color: var(--color-primary);
             font-weight: 500;
-            border-radius: 9999px;
+            border-radius: 50px;
+            padding: 10px 24px;
             transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
         }
         
         .btn-outline-primary:hover {
-            background-color: var(--color-primary);
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
             border-color: var(--color-primary);
             color: #fff;
-            transform: scale(1.05);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(217, 119, 6, 0.3);
         }
         
+        /* 现代化表单控件 */
         .form-control {
             border-radius: 15px;
-            border: 2px solid var(--warm-neutral);
+            border: 2px solid #fde68a;
             padding: 14px 18px;
             transition: all 0.3s ease;
             font-family: 'Segoe UI', sans-serif;
+            background: rgba(255, 255, 255, 0.8);
         }
         
         .form-control:focus {
             border-color: var(--warm-primary);
-            box-shadow: 0 0 0 0.2rem rgba(255, 138, 101, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(217, 119, 6, 0.25);
+            background: #fff;
         }
         
+        /* 现代化警告框 */
         .alert {
             border-radius: 15px;
             border: none;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
         
         .alert-success {
-            background: var(--warm-success);
+            background: linear-gradient(135deg, var(--warm-success) 0%, #15803d 100%);
             color: white;
         }
         
         .alert-danger {
-            background: #EF5350;
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
             color: white;
         }
         
-        .hero-section {
-            padding: 100px 0;
+        .alert-info {
+            background: linear-gradient(135deg, var(--warm-info) 0%, #0284c7 100%);
+            color: white;
         }
         
-        .feature-icon {
-            font-size: 3.5rem;
-            color: var(--warm-primary);
-            margin-bottom: 1.5rem;
+        /* 导航链接现代化样式 */
+        .nav-link {
+            color: #6b7280 !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.5rem !important;
+            border-radius: 8px;
+            margin: 0 4px;
         }
         
+        .nav-link:hover {
+            color: #374151 !important;
+            background: rgba(217, 119, 6, 0.1);
+            border-bottom-color: #fbbf24;
+        }
+        
+        .nav-link.active {
+            color: #111827 !important;
+            background: rgba(217, 119, 6, 0.15);
+            border-bottom-color: var(--color-primary);
+        }
+        
+        /* 标题样式 */
         h1, h2, h3, h4, h5, h6 {
             color: var(--warm-primary-dark);
             font-family: 'Georgia', serif;
         }
         
+        /* 工具类 */
         .text-primary {
             color: var(--warm-primary) !important;
         }
         
         .bg-primary {
-            background-color: var(--warm-primary) !important;
+            background: linear-gradient(135deg, var(--warm-primary) 0%, var(--warm-primary-dark) 100%) !important;
         }
         
         .border-primary {
             border-color: var(--warm-primary) !important;
         }
         
-        .nav-link {
-            color: #6b7280 !important;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            border-bottom: 2px solid transparent;
-            padding-bottom: 0.5rem !important;
+        /* 现代化动画 */
+        @keyframes blob {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        .animate-blob {
+            animation: blob 7s infinite;
+        }
+
+        .animation-delay-2000 {
+            animation-delay: 2s;
+        }
+
+        .animation-delay-4000 {
+            animation-delay: 4s;
         }
         
-        .nav-link:hover {
-            color: #374151 !important;
-            border-bottom-color: #fbbf24;
+        /* 全局增强样式 */
+        .img-fluid {
+            transition: transform 0.3s ease;
         }
         
-        .nav-link.active {
-            color: #111827 !important;
-            border-bottom-color: var(--color-primary);
+        .img-fluid:hover {
+            transform: scale(1.02);
+        }
+        
+        /* 文本截断工具类 */
+        .text-truncate-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .text-truncate-3 {
+            display: -webkit-box;
+            
+            
+            : 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        /* 阴影工具类 */
+        .shadow-warm {
+            box-shadow: 0 10px 40px rgba(141, 110, 99, 0.12) !important;
+        }
+        
+        .shadow-warm-lg {
+            box-shadow: 0 15px 50px rgba(141, 110, 99, 0.18) !important;
+        }
+        
+        /* 渐变背景工具类 */
+        .bg-gradient-warm {
+            background: linear-gradient(135deg, var(--warm-background) 0%, #FFF3E0 100%) !important;
+        }
+        
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%) !important;
+        }
+        
+        /* 响应式优化 */
+        @media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+            
+            .btn-primary, .btn-outline-primary {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+            
+            .display-4 {
+                font-size: 2rem !important;
+            }
+            
+            .fs-5 {
+                font-size: 1rem !important;
+            }
         }
     </style>
+    
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <!-- Navigation -->
@@ -192,15 +297,20 @@
                 <span>故事传承</span>
             </a>
             
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="box-shadow: none;">
+                <i class="fa-solid fa-bars" style="color: var(--color-primary); font-size: 1.2rem;"></i>
             </button>
             
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}">
+                        <a class="nav-link active" href="{{ url_for('index') }}">
                             首页
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('story_library') }}">
+                            故事库
                         </a>
                     </li>
                     
@@ -211,8 +321,8 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('dashboard') }}">
-                                故事库
+                            <a class="nav-link" href="{{ url_for('my_stories') }}">
+                                我的故事
                             </a>
                         </li>
                         <li class="nav-item">
@@ -250,15 +360,17 @@
             <div class="container mt-5 pt-4">
                 {% for category, message in messages %}
                     <div class="alert alert-{{ 'danger' if category == 'error' else 'success' if category == 'success' else 'info' }} alert-dismissible fade show" role="alert">
-                        {% if category == 'success' %}
-                            <i class="fas fa-check-circle me-2"></i>
-                        {% elif category == 'error' %}
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                        {% else %}
-                            <i class="fas fa-info-circle me-2"></i>
-                        {% endif %}
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        <div class="d-flex align-items-center">
+                            {% if category == 'success' %}
+                                <i class="fas fa-check-circle me-3"></i>
+                            {% elif category == 'error' %}
+                                <i class="fas fa-exclamation-triangle me-3"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle me-3"></i>
+                            {% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 {% endfor %}
             </div>
@@ -271,14 +383,73 @@
     </main>
 
     <!-- Footer -->
-    <footer class="py-4 mt-5" style="background-color: #78350f; color: #fef3c7;">
-        <div class="container text-center">
-            <p class="mb-0">
-                <i class="fa-solid fa-book-open me-2"></i>
-                故事传承 - 记录每一个珍贵的记忆 | 
-                <i class="fa-solid fa-heart mx-2" style="color: #fbbf24;"></i>
-                每个故事都值得被珍藏
-            </p>
+    <footer class="py-5 mt-5" style="background: linear-gradient(135deg, #78350f 0%, #92400e 100%); color: #fef3c7;">
+        <div class="container">
+            <div class="row g-4 mb-4">
+                <div class="col-lg-3 col-md-6">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fa-solid fa-book-open me-2" style="color: #fbbf24; font-size: 1.5rem;"></i>
+                        <span class="fw-bold fs-5" style="color: #fff; font-family: Georgia, serif;">故事传承</span>
+                    </div>
+                    <p class="mb-3" style="color: #fde68a;">
+                        记录和传承那些珍贵的口口相传的故事，连接过去与未来。
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-decoration-none" style="color: #fbbf24; transition: color 0.3s ease;">
+                            <i class="fa-brands fa-weixin fs-5"></i>
+                        </a>
+                        <a href="#" class="text-decoration-none" style="color: #fbbf24; transition: color 0.3s ease;">
+                            <i class="fa-brands fa-weibo fs-5"></i>
+                        </a>
+                        <a href="#" class="text-decoration-none" style="color: #fbbf24; transition: color 0.3s ease;">
+                            <i class="fa-brands fa-qq fs-5"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="text-white mb-3">快速链接</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="{{ url_for('index') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">首页</a></li>
+                        {% if current_user.is_authenticated %}
+                            <li class="mb-2"><a href="{{ url_for('record_story') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">记录故事</a></li>
+                            <li class="mb-2"><a href="{{ url_for('my_stories') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">我的故事</a></li>
+                            <li class="mb-2"><a href="{{ url_for('profile') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">个人中心</a></li>
+                        {% endif %}
+                        <li class="mb-2"><a href="{{ url_for('story_library') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">故事库</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="text-white mb-3">故事分类</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">家族历史</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">地方传说</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">传统技艺</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">人物记忆</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="text-white mb-3">关于我们</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">项目介绍</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">使用帮助</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">隐私政策</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">联系我们</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <hr style="border-color: #92400e; opacity: 0.5;">
+            <div class="text-center pt-3">
+                <p class="mb-0" style="color: #fbbf24;">
+                    <i class="fa-solid fa-book-open me-2"></i>
+                    © 2025 故事传承 - 记录每一个珍贵的记忆 | 
+                    <i class="fa-solid fa-heart mx-2" style="color: #fbbf24;"></i>
+                    每个故事都值得被珍藏
+                </p>
+            </div>
         </div>
     </footer>
 
@@ -298,6 +469,25 @@
             });
         }, 5000);
         
+        // Add hover effects to footer links
+        document.addEventListener('DOMContentLoaded', function() {
+            const footerLinks = document.querySelectorAll('footer a');
+            footerLinks.forEach(link => {
+                link.addEventListener('mouseenter', function() {
+                    this.style.color = '#fff';
+                });
+                link.addEventListener('mouseleave', function() {
+                    if (this.style.color !== '#fbbf24') {
+                        this.style.color = '#fde68a';
+                    }
+                });
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+    
+    <script>
         // 语言切换功能
         function changeLanguage(languageCode) {
             // 显示加载状态

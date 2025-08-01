@@ -2,19 +2,285 @@
 
 {% block title %}发布故事 - AI故事平台{% endblock %}
 
+{% block extra_css %}
+<style>
+/* 发布页面现代化样式 */
+.publish-container {
+    background: linear-gradient(135deg, rgba(255, 248, 225, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 20px 60px rgba(217, 119, 6, 0.08), 0 8px 25px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.publish-container::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(45deg, rgba(217, 119, 6, 0.1), rgba(251, 191, 36, 0.1));
+    border-radius: 50%;
+    z-index: 0;
+}
+
+.publish-container::after {
+    content: '';
+    position: absolute;
+    bottom: -30px;
+    left: -30px;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(45deg, rgba(16, 163, 74, 0.1), rgba(34, 197, 94, 0.1));
+    border-radius: 50%;
+    z-index: 0;
+}
+
+.publish-header {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.publish-icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(45deg, var(--warm-primary), var(--warm-primary-light));
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(217, 119, 6, 0.25);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.modern-card {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(217, 119, 6, 0.15);
+    border-radius: 20px;
+    padding: 24px;
+    backdrop-filter: blur(5px);
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 1;
+}
+
+.card-header-modern {
+    background: linear-gradient(135deg, var(--warm-primary) 0%, var(--warm-primary-light) 100%);
+    color: white;
+    border-radius: 16px 16px 0 0;
+    padding: 16px 20px;
+    margin: -24px -24px 20px -24px;
+    font-weight: 600;
+}
+
+.card-header-info {
+    background: linear-gradient(135deg, var(--warm-info) 0%, #38bdf8 100%);
+}
+
+.card-header-warning {
+    background: linear-gradient(135deg, var(--warm-accent) 0%, #f59e0b 100%);
+}
+
+.card-header-success {
+    background: linear-gradient(135deg, var(--warm-success) 0%, #22c55e 100%);
+}
+
+.form-control-modern {
+    border: 2px solid rgba(217, 119, 6, 0.2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    background: rgba(255, 255, 255, 0.8);
+    transition: all 0.3s ease;
+}
+
+.form-control-modern:focus {
+    border-color: var(--warm-primary);
+    box-shadow: 0 0 0 0.2rem rgba(217, 119, 6, 0.25);
+    background: white;
+}
+
+.btn-modern-primary {
+    background: linear-gradient(135deg, var(--warm-primary) 0%, var(--warm-primary-light) 100%);
+    border: none;
+    border-radius: 16px;
+    padding: 16px 32px;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    box-shadow: 0 8px 25px rgba(217, 119, 6, 0.25);
+    transition: all 0.3s ease;
+}
+
+.btn-modern-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(217, 119, 6, 0.35);
+    color: white;
+}
+
+.btn-modern-outline {
+    background: rgba(217, 119, 6, 0.1);
+    border: 2px solid rgba(217, 119, 6, 0.2);
+    border-radius: 12px;
+    padding: 12px 24px;
+    color: var(--warm-primary-dark);
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-modern-outline:hover {
+    background: rgba(217, 119, 6, 0.15);
+    border-color: rgba(217, 119, 6, 0.3);
+    color: var(--warm-primary-dark);
+    transform: translateY(-1px);
+}
+
+.story-type-card-modern {
+    background: rgba(255, 255, 255, 0.8);
+    border: 2px solid rgba(217, 119, 6, 0.15);
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.story-type-card-modern:hover {
+    border-color: rgba(217, 119, 6, 0.3);
+    background: rgba(255, 248, 225, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(217, 119, 6, 0.15);
+}
+
+.story-type-card-modern.selected {
+    border-color: var(--warm-primary);
+    background: linear-gradient(135deg, rgba(255, 248, 225, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
+    box-shadow: 0 8px 25px rgba(217, 119, 6, 0.25);
+}
+
+.upload-area-modern {
+    background: linear-gradient(135deg, rgba(224, 242, 254, 0.5) 0%, rgba(255, 255, 255, 0.8) 100%);
+    border: 2px dashed rgba(14, 165, 233, 0.3);
+    border-radius: 20px;
+    padding: 32px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.upload-area-modern:hover {
+    border-color: rgba(14, 165, 233, 0.5);
+    background: linear-gradient(135deg, rgba(224, 242, 254, 0.7) 0%, rgba(255, 255, 255, 0.9) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.15);
+}
+
+.stats-card {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(217, 119, 6, 0.15);
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+    backdrop-filter: blur(5px);
+}
+
+.form-check-modern {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(217, 119, 6, 0.15);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+.form-check-modern:hover {
+    background: rgba(255, 248, 225, 0.8);
+    border-color: rgba(217, 119, 6, 0.3);
+}
+
+.form-check-modern input:checked + label {
+    color: var(--warm-primary-dark);
+    font-weight: 600;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .publish-container {
+        padding: 24px;
+        margin: 0 -15px 24px -15px;
+        border-radius: 20px;
+    }
+    
+    .modern-card {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .card-header-modern {
+        margin: -20px -20px 16px -20px;
+        padding: 14px 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .publish-container {
+        padding: 20px;
+    }
+    
+    .modern-card {
+        padding: 16px;
+    }
+    
+    .card-header-modern {
+        margin: -16px -16px 12px -16px;
+        padding: 12px 14px;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-4">
     <div class="row justify-content-center">
         <div class="col-lg-10">
-            <!-- Page Header -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h1 class="h3 mb-0">📖 发布我的故事</h1>
-                    <p class="text-muted">完善故事信息，分享给更多读者</p>
-                </div>
-                <div>
-                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left"></i> 返回
+            <!-- Modern Page Header -->
+            <div class="publish-container">
+                <div class="publish-header">
+                    <div class="publish-icon">
+                        <i class="fas fa-paper-plane" style="font-size: 1.8rem; color: white;"></i>
+                    </div>
+                    <h1 style="
+                        color: var(--warm-primary-dark);
+                        font-family: 'Georgia', serif;
+                        font-weight: 600;
+                        font-size: 2rem;
+                        margin-bottom: 8px;
+                        letter-spacing: -0.02em;
+                    ">
+                        发布我的故事 | Publish My Story
+                    </h1>
+                    <p style="
+                        color: var(--warm-secondary);
+                        font-size: 1rem;
+                        margin-bottom: 24px;
+                        opacity: 0.8;
+                    ">
+                        完善故事信息，分享给更多读者 | Complete story details and share with readers
+                    </p>
+                    <a href="{{ url_for('dashboard') }}" class="btn-modern-outline">
+                        <i class="fas fa-arrow-left me-2"></i>返回仪表板 | Back to Dashboard
                     </a>
                 </div>
             </div>
@@ -25,72 +291,114 @@
                     <!-- Left Column - Story Content -->
                     <div class="col-lg-8">
                         <!-- Story Content Card -->
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0"><i class="fas fa-book-open"></i> 故事内容</h5>
+                        <div class="modern-card">
+                            <div class="card-header-modern">
+                                <i class="fas fa-book-open me-2"></i>故事内容 | Story Content
                             </div>
-                            <div class="card-body">
-                                <!-- Story Title -->
-                                <div class="mb-3">
-                                    <label for="storyTitle" class="form-label">
-                                        <i class="fas fa-heading"></i> 故事标题 <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="text" class="form-control" id="storyTitle" name="title" 
-                                           placeholder="给你的故事起个吸引人的标题..." required maxlength="255">
-                                    <div class="form-text">标题将显示在故事列表中，建议简洁有吸引力</div>
+                            
+                            <!-- Story Title -->
+                            <div class="mb-4">
+                                <label for="storyTitle" class="form-label fw-bold" style="color: var(--warm-primary-dark); font-size: 1.1rem;">
+                                    <i class="fas fa-heading me-2" style="color: var(--warm-primary);"></i>
+                                    故事标题 | Story Title <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control form-control-modern" id="storyTitle" name="title" 
+                                       placeholder="给你的故事起个吸引人的标题... | Give your story an attractive title..." required maxlength="255">
+                                <div class="form-text mt-2" style="color: var(--warm-secondary); opacity: 0.8;">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    标题将显示在故事列表中，建议简洁有吸引力 | Title will be displayed in story list, keep it concise and attractive
                                 </div>
+                            </div>
 
-                                <!-- Story Content Preview -->
-                                <div class="mb-3">
-                                    <label class="form-label">
-                                        <i class="fas fa-align-left"></i> 故事内容预览
-                                    </label>
-                                    <div id="storyContentPreview" class="form-control" style="height: 300px; overflow-y: auto; background-color: #f8f9fa;">
-                                        <div class="text-muted text-center py-5">
-                                            <i class="fas fa-file-alt fa-3x mb-3"></i>
-                                            <p>故事内容将从录制页面自动获取</p>
-                                            <small>语言: <span id="storyLanguage">未知</span> | 字数: <span id="wordCount">0</span></small>
+                            <!-- Story Content Preview -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold" style="color: var(--warm-primary-dark); font-size: 1.1rem;">
+                                    <i class="fas fa-align-left me-2" style="color: var(--warm-info);"></i>
+                                    故事内容预览 | Story Content Preview
+                                </label>
+                                <div class="story-preview-container" style="
+                                    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+                                    border: 2px solid rgba(14, 165, 233, 0.2);
+                                    border-radius: 16px;
+                                    padding: 20px;
+                                    min-height: 300px;
+                                    overflow-y: auto;
+                                    backdrop-filter: blur(5px);
+                                ">
+                                    <div id="storyContentPreview">
+                                        <div class="text-center py-5" style="color: var(--warm-secondary); opacity: 0.7;">
+                                            <div class="d-inline-flex align-items-center justify-content-center mb-3" style="
+                                                width: 56px;
+                                                height: 56px;
+                                                background: linear-gradient(45deg, var(--warm-info), #38bdf8);
+                                                border-radius: 18px;
+                                                box-shadow: 0 6px 20px rgba(14, 165, 233, 0.2);
+                                            ">
+                                                <i class="fas fa-file-alt" style="font-size: 1.5rem; color: white;"></i>
+                                            </div>
+                                            <p class="mb-2" style="font-size: 1rem;">故事内容将从录制页面自动获取</p>
+                                            <p class="mb-0" style="font-size: 0.9rem;">Story content will be automatically loaded from recording page</p>
+                                            <small class="d-block mt-3" style="opacity: 0.6;">
+                                                语言: <span id="storyLanguage" class="fw-semibold">未知</span> | 
+                                                字数: <span id="wordCount" class="fw-semibold">0</span>
+                                            </small>
                                         </div>
                                     </div>
-                                    <input type="hidden" id="storyContent" name="content" required>
-                                    <input type="hidden" id="languageCode" name="language">
-                                    <input type="hidden" id="languageName" name="language_name">
                                 </div>
+                                <input type="hidden" id="storyContent" name="content" required>
+                                <input type="hidden" id="languageCode" name="language">
+                                <input type="hidden" id="languageName" name="language_name">
+                            </div>
 
-                                <!-- Auto-generate Description -->
-                                <div class="mb-3">
-                                    <label for="storyDescription" class="form-label">
-                                        <i class="fas fa-align-justify"></i> 故事简介
-                                    </label>
-                                    <textarea class="form-control" id="storyDescription" name="description" 
-                                              rows="4" placeholder="描述你的故事主要内容和亮点..."></textarea>
-                                    <div class="mt-2">
-                                        <button type="button" class="btn btn-outline-info btn-sm" id="generateDescriptionBtn">
-                                            <i class="fas fa-magic"></i> AI 自动生成简介
-                                        </button>
-                                        <small class="form-text text-muted ms-2">使用AI根据故事内容自动生成吸引人的简介</small>
-                                    </div>
+                            <!-- Auto-generate Description -->
+                            <div class="mb-3">
+                                <label for="storyDescription" class="form-label fw-bold" style="color: var(--warm-primary-dark); font-size: 1.1rem;">
+                                    <i class="fas fa-align-justify me-2" style="color: var(--warm-accent);"></i>
+                                    故事简介 | Story Description
+                                </label>
+                                <textarea class="form-control form-control-modern" id="storyDescription" name="description" 
+                                          rows="4" placeholder="描述你的故事主要内容和亮点... | Describe the main content and highlights of your story..." style="resize: vertical;"></textarea>
+                                <div class="d-flex align-items-center mt-3">
+                                    <button type="button" class="btn-modern-outline" id="generateDescriptionBtn" style="padding: 10px 20px; font-size: 0.9rem;">
+                                        <i class="fas fa-magic me-2"></i>AI 自动生成简介 | AI Generate Description
+                                    </button>
+                                    <small class="text-muted ms-3" style="opacity: 0.7;">
+                                        <i class="fas fa-lightbulb me-1" style="color: var(--warm-accent);"></i>
+                                        使用AI根据故事内容自动生成吸引人的简介
+                                    </small>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Story Type Selection Card -->
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-header bg-info text-white">
-                                <h5 class="mb-0"><i class="fas fa-bookmark"></i> 故事类型</h5>
+                        <div class="modern-card">
+                            <div class="card-header-modern card-header-info">
+                                <i class="fas fa-bookmark me-2"></i>故事类型 | Story Type
                             </div>
-                            <div class="card-body">
-                                <p class="text-muted mb-3">选择最适合您故事的类型</p>
-                                
-                                <!-- Story Types -->
-                                <div id="storyTypes">
-                                    <!-- Story types will be loaded dynamically -->
-                                    <div class="text-center py-4">
-                                        <div class="spinner-border text-primary" role="status">
+                            
+                            <p style="color: var(--warm-secondary); margin-bottom: 20px; opacity: 0.8;">
+                                <i class="fas fa-tags me-2" style="color: var(--warm-info);"></i>
+                                选择最适合您故事的类型 | Choose the type that best fits your story
+                            </p>
+                            
+                            <!-- Story Types -->
+                            <div id="storyTypes">
+                                <!-- Story types will be loaded dynamically -->
+                                <div class="text-center py-4">
+                                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="
+                                        width: 48px;
+                                        height: 48px;
+                                        background: linear-gradient(45deg, var(--warm-info), #38bdf8);
+                                        border-radius: 16px;
+                                        box-shadow: 0 6px 20px rgba(14, 165, 233, 0.25);
+                                    ">
+                                        <div class="spinner-border spinner-border-sm" style="color: white;" role="status">
                                             <span class="visually-hidden">Loading...</span>
                                         </div>
-                                        <p class="mt-2">正在加载故事类型...</p>
                                     </div>
+                                    <p class="mb-0" style="color: var(--warm-primary-dark); font-weight: 500;">
+                                        正在加载故事类型... | Loading story types...
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -99,71 +407,85 @@
                     <!-- Right Column - Story Settings -->
                     <div class="col-lg-4">
                         <!-- Cover Image Card -->
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-header bg-warning text-white">
-                                <h5 class="mb-0"><i class="fas fa-image"></i> 故事封面</h5>
+                        <div class="modern-card">
+                            <div class="card-header-modern card-header-warning">
+                                <i class="fas fa-image me-2"></i>故事封面 | Story Cover
                             </div>
-                            <div class="card-body">
-                                <!-- Image Upload Area -->
-                                <div class="mb-3">
-                                    <div id="imageUploadArea" class="border-2 border-dashed border-secondary rounded p-4 text-center" 
-                                         style="min-height: 200px; cursor: pointer;" onclick="document.getElementById('coverImage').click()">
-                                        <div id="imagePreview">
-                                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-                                            <p class="text-muted">点击上传故事封面图片</p>
-                                            <small class="text-muted">支持 JPG, PNG, WebP 格式，最大 5MB</small>
+                            
+                            <!-- Image Upload Area -->
+                            <div class="mb-3">
+                                <div id="imageUploadArea" class="upload-area-modern" onclick="document.getElementById('coverImage').click()">
+                                    <div id="imagePreview">
+                                        <div class="d-inline-flex align-items-center justify-content-center mb-3" style="
+                                            width: 56px;
+                                            height: 56px;
+                                            background: linear-gradient(45deg, var(--warm-info), #38bdf8);
+                                            border-radius: 18px;
+                                            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.2);
+                                        ">
+                                            <i class="fas fa-cloud-upload-alt" style="font-size: 1.5rem; color: white;"></i>
                                         </div>
+                                        <p style="color: var(--warm-primary-dark); font-weight: 500; margin-bottom: 8px;">
+                                            点击上传故事封面图片
+                                        </p>
+                                        <p style="color: var(--warm-secondary); font-size: 0.9rem; margin-bottom: 0; opacity: 0.8;">
+                                            Click to upload story cover image
+                                        </p>
+                                        <small style="color: var(--warm-secondary); opacity: 0.6; margin-top: 8px; display: block;">
+                                            支持 JPG, PNG, WebP 格式，最大 5MB<br>
+                                            Support JPG, PNG, WebP formats, max 5MB
+                                        </small>
                                     </div>
-                                    <input type="file" id="coverImage" name="cover_image" accept="image/jpeg,image/png,image/webp" 
-                                           style="display: none;" onchange="previewImage(this)">
                                 </div>
+                                <input type="file" id="coverImage" name="cover_image" accept="image/jpeg,image/png,image/webp" 
+                                       style="display: none;" onchange="previewImage(this)">
                             </div>
                         </div>
 
                         <!-- Publishing Options Card -->
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-header bg-success text-white">
-                                <h5 class="mb-0"><i class="fas fa-cog"></i> 发布设置</h5>
+                        <div class="modern-card">
+                            <div class="card-header-modern card-header-success">
+                                <i class="fas fa-cog me-2"></i>发布设置 | Publishing Settings
                             </div>
-                            <div class="card-body">
-                                <!-- Publishing Status -->
-                                <div class="mb-3">
-                                    <label class="form-label">发布状态</label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="status" id="statusDraft" value="draft" checked>
-                                        <label class="form-check-label" for="statusDraft">
-                                            <i class="fas fa-edit text-warning"></i> 保存为草稿
-                                        </label>
-                                        <small class="form-text text-muted d-block">暂时保存，稍后继续编辑</small>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="status" id="statusPending" value="pending">
-                                        <label class="form-check-label" for="statusPending">
-                                            <i class="fas fa-clock text-info"></i> 提交审核
-                                        </label>
-                                        <small class="form-text text-muted d-block">提交给管理员审核后发布</small>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="status" id="statusPrivate" value="private">
-                                        <label class="form-check-label" for="statusPrivate">
-                                            <i class="fas fa-lock text-secondary"></i> 私人收藏
-                                        </label>
-                                        <small class="form-text text-muted d-block">仅自己可见</small>
-                                    </div>
+                            
+                            <!-- Publishing Status -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold" style="color: var(--warm-primary-dark); font-size: 1.1rem; margin-bottom: 16px;">
+                                    <i class="fas fa-toggle-on me-2" style="color: var(--warm-success);"></i>
+                                    发布状态 | Publishing Status
+                                </label>
+                                <div class="form-check form-check-modern">
+                                    <input class="form-check-input" type="radio" name="status" id="statusPending" value="pending">
+                                    <label class="form-check-label w-100" for="statusPending">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-clock me-2" style="color: var(--warm-info);"></i>
+                                            <div>
+                                                <div class="fw-semibold">提交审核 | Submit for Review</div>
+                                                <small style="color: var(--warm-secondary); opacity: 0.8;">提交给管理员审核后发布 | Submit to admin for review before publishing</small>
+                                            </div>
+                                        </div>
+                                    </label>
                                 </div>
+                                
+                               
 
-                                <!-- Story Stats -->
-                                <div class="row text-center">
-                                    <div class="col">
-                                        <div class="border rounded p-2">
-                                            <div class="text-primary fw-bold" id="displayWordCount">0</div>
-                                            <small class="text-muted">字数</small>
+                            <!-- Story Stats -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="color: var(--warm-primary-dark); font-size: 1.1rem; margin-bottom: 16px;">
+                                    <i class="fas fa-chart-bar me-2" style="color: var(--warm-accent);"></i>
+                                    故事统计 | Story Statistics
+                                </label>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="stats-card">
+                                            <div style="color: var(--warm-primary); font-weight: bold; font-size: 1.5rem;" id="displayWordCount">0</div>
+                                            <small style="color: var(--warm-secondary); opacity: 0.8;">字数 | Words</small>
                                         </div>
                                     </div>
-                                    <div class="col">
-                                        <div class="border rounded p-2">
-                                            <div class="text-info fw-bold" id="readingTime">0</div>
-                                            <small class="text-muted">阅读分钟</small>
+                                    <div class="col-6">
+                                        <div class="stats-card">
+                                            <div style="color: var(--warm-info); font-weight: bold; font-size: 1.5rem;" id="readingTime">0</div>
+                                            <small style="color: var(--warm-secondary); opacity: 0.8;">阅读分钟 | Read Time</small>
                                         </div>
                                     </div>
                                 </div>
@@ -171,16 +493,14 @@
                         </div>
 
                         <!-- Action Buttons -->
-                        <div class="card shadow-sm">
-                            <div class="card-body">
-                                <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-primary btn-lg">
-                                        <i class="fas fa-paper-plane"></i> 发布故事
-                                    </button>
-                                    <button type="button" class="btn btn-outline-secondary" onclick="window.history.back()">
-                                        <i class="fas fa-times"></i> 取消
-                                    </button>
-                                </div>
+                        <div class="modern-card">
+                            <div class="d-grid gap-3">
+                                <button type="submit" class="btn-modern-primary" style="font-size: 1.1rem; padding: 18px 32px;">
+                                    <i class="fas fa-paper-plane me-2"></i>发布故事 | Publish Story
+                                </button>
+                                <button type="button" class="btn-modern-outline" onclick="window.history.back()" style="padding: 14px 24px;">
+                                    <i class="fas fa-times me-2"></i>取消 | Cancel
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -288,20 +608,31 @@ async function loadStoryTypes() {
     }
 }
 
-// Render story types - 简化为8个故事类型选1个
+// Render story types - 现代化设计
 function renderStoryTypes(storyTypes) {
     const container = document.getElementById('storyTypes');
     container.innerHTML = '';
     
     const typesHTML = storyTypes.map((type, index) => `
-        <div class="col-md-6 col-lg-4 mb-3">
+        <div class="col-md-6 col-xl-4 mb-3">
             <div class="form-check">
-                <input class="form-check-input" type="radio" name="story_type" value="${type.id}" id="type${type.id}" ${index === 0 ? 'checked' : ''}>
+                <input class="form-check-input" type="radio" name="story_type" value="${type.id}" id="type${type.id}" ${index === 0 ? 'checked' : ''} style="display: none;">
                 <label class="form-check-label w-100" for="type${type.id}">
-                    <div class="card story-type-card ${index === 0 ? 'selected' : ''}" style="cursor: pointer; transition: all 0.3s ease;">
-                        <div class="card-body text-center py-3">
-                            <h6 class="card-title mb-1">${type.name}</h6>
-                            <small class="text-muted">${type.description}</small>
+                    <div class="story-type-card-modern ${index === 0 ? 'selected' : ''}">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="d-inline-flex align-items-center justify-content-center me-3" style="
+                                width: 40px;
+                                height: 40px;
+                                background: linear-gradient(45deg, var(--warm-primary), var(--warm-primary-light));
+                                border-radius: 12px;
+                                box-shadow: 0 4px 15px rgba(217, 119, 6, 0.2);
+                            ">
+                                <i class="fas fa-bookmark" style="font-size: 1rem; color: white;"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1" style="color: var(--warm-primary-dark); font-weight: 600;">${type.name}</h6>
+                                <small style="color: var(--warm-secondary); opacity: 0.8; line-height: 1.3;">${type.description}</small>
+                            </div>
                         </div>
                     </div>
                 </label>
@@ -315,18 +646,14 @@ function renderStoryTypes(storyTypes) {
     container.querySelectorAll('input[type="radio"]').forEach(radio => {
         radio.addEventListener('change', function() {
             // 重置所有卡片样式
-            container.querySelectorAll('.story-type-card').forEach(card => {
+            container.querySelectorAll('.story-type-card-modern').forEach(card => {
                 card.classList.remove('selected');
-                card.style.borderColor = '#dee2e6';
-                card.style.backgroundColor = '#fff';
             });
             
             // 高亮选中的卡片
-            const selectedCard = container.querySelector(`label[for="${this.id}"] .story-type-card`);
+            const selectedCard = container.querySelector(`label[for="${this.id}"] .story-type-card-modern`);
             if (selectedCard) {
                 selectedCard.classList.add('selected');
-                selectedCard.style.borderColor = '#007bff';
-                selectedCard.style.backgroundColor = '#f8f9ff';
             }
         });
     });
@@ -347,12 +674,25 @@ function previewImage(input) {
         const reader = new FileReader();
         reader.onload = function(e) {
             document.getElementById('imagePreview').innerHTML = `
-                <img src="${e.target.result}" class="img-fluid rounded" style="max-height: 200px;">
-                <div class="mt-2">
-                    <small class="text-muted">${file.name}</small>
-                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeImage()">
-                        <i class="fas fa-times"></i> 移除
-                    </button>
+                <div class="uploaded-image-container">
+                    <img src="${e.target.result}" class="img-fluid" style="
+                        max-height: 200px; 
+                        border-radius: 16px; 
+                        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+                        margin-bottom: 16px;
+                    ">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <small style="color: var(--warm-primary-dark); font-weight: 500;">${file.name}</small>
+                        <button type="button" class="btn-modern-outline" onclick="removeImage()" style="
+                            padding: 6px 12px; 
+                            font-size: 0.8rem;
+                            background: rgba(239, 68, 68, 0.1);
+                            border-color: rgba(239, 68, 68, 0.3);
+                            color: #dc2626;
+                        ">
+                            <i class="fas fa-times me-1"></i>移除 | Remove
+                        </button>
+                    </div>
                 </div>
             `;
         };
@@ -364,9 +704,25 @@ function previewImage(input) {
 function removeImage() {
     document.getElementById('coverImage').value = '';
     document.getElementById('imagePreview').innerHTML = `
-        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-        <p class="text-muted">点击上传故事封面图片</p>
-        <small class="text-muted">支持 JPG, PNG, WebP 格式，最大 5MB</small>
+        <div class="d-inline-flex align-items-center justify-content-center mb-3" style="
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(45deg, var(--warm-info), #38bdf8);
+            border-radius: 18px;
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.2);
+        ">
+            <i class="fas fa-cloud-upload-alt" style="font-size: 1.5rem; color: white;"></i>
+        </div>
+        <p style="color: var(--warm-primary-dark); font-weight: 500; margin-bottom: 8px;">
+            点击上传故事封面图片
+        </p>
+        <p style="color: var(--warm-secondary); font-size: 0.9rem; margin-bottom: 0; opacity: 0.8;">
+            Click to upload story cover image
+        </p>
+        <small style="color: var(--warm-secondary); opacity: 0.6; margin-top: 8px; display: block;">
+            支持 JPG, PNG, WebP 格式，最大 5MB<br>
+            Support JPG, PNG, WebP formats, max 5MB
+        </small>
     `;
 }
 
@@ -459,9 +815,9 @@ function setupFormValidation() {
                 // Clear session storage
                 sessionStorage.removeItem('recordedStory');
                 
-                // Redirect to dashboard with success message
+                // Redirect to my stories with success message
                 sessionStorage.setItem('publishSuccess', '故事发布成功！');
-                window.location.href = '/dashboard';
+                window.location.href = '/my_stories';
             } else {
                 hideLoadingModal();
                 alert('发布失败: ' + result.error);
@@ -485,32 +841,5 @@ function hideLoadingModal() {
 }
 </script>
 
-<style>
-.tag-group .form-check-label {
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-right: 0.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.tag-group .form-check-label:hover {
-    transform: translateY(-1px);
-    shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-#imageUploadArea {
-    transition: all 0.3s ease;
-}
-
-#imageUploadArea:hover {
-    border-color: var(--bs-primary) !important;
-    background-color: rgba(var(--bs-primary-rgb), 0.05);
-}
-
-.form-check-input:checked + .form-check-label {
-    background-color: var(--bs-secondary) !important;
-    color: white !important;
-    border-color: var(--bs-secondary) !important;
-}
-</style>
+<!-- Modern publish page styles are in the extra_css block above -->
 {% endblock %}

@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block title %}编辑故事 - {{ story.title }} - 故事传承{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="card border-0 shadow-warm mb-4">
+                <div class="card-body text-center py-5">
+                    <h1 class="h2 mb-3">
+                        <i class="fas fa-edit me-3" style="color: var(--color-primary);"></i>
+                        编辑故事
+                    </h1>
+                    <p class="text-muted mb-0">修改您的故事内容，保存后将重新提交审核</p>
+                </div>
+            </div>
+
+            <!-- Edit Form -->
+            <div class="card border-0 shadow-warm">
+                <div class="card-body p-4">
+                    <form id="editStoryForm" enctype="multipart/form-data">
+                        <!-- Story Title -->
+                        <div class="mb-4">
+                            <label for="storyTitle" class="form-label fw-semibold">
+                                <i class="fas fa-heading me-2 text-primary"></i>故事标题
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="storyTitle" name="title" 
+                                   value="{{ story.title }}" required maxlength="255"
+                                   placeholder="为您的故事起一个吸引人的标题...">
+                        </div>
+
+                        <!-- Story Content -->
+                        <div class="mb-4">
+                            <label for="storyContent" class="form-label fw-semibold">
+                                <i class="fas fa-book-open me-2 text-primary"></i>故事内容
+                            </label>
+                            <textarea class="form-control" id="storyContent" name="content" rows="15" required
+                                      placeholder="在这里写下您的故事...">{{ story.content }}</textarea>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                <span id="wordCount">0</span> 字 | 预计阅读时间: <span id="readingTime">0</span> 分钟
+                            </div>
+                        </div>
+
+                        <!-- Story Description -->
+                        <div class="mb-4">
+                            <label for="storyDescription" class="form-label fw-semibold">
+                                <i class="fas fa-align-left me-2 text-primary"></i>故事简介
+                            </label>
+                            <textarea class="form-control" id="storyDescription" name="description" rows="3"
+                                      placeholder="简要描述您的故事内容...">{{ story.description or '' }}</textarea>
+                            <div class="form-text">
+                                <span id="descriptionCount">{{ (story.description or '')|length }}</span> / 500 字符
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Story Type -->
+                            <div class="col-md-6 mb-4">
+                                <label for="storyType" class="form-label fw-semibold">
+                                    <i class="fas fa-tags me-2 text-primary"></i>故事类型
+                                </label>
+                                <select class="form-select" id="storyType" name="story_type">
+                                    <option value="">选择故事类型...</option>
+                                    {% for type in story_types %}
+                                    <option value="{{ type.id }}" 
+                                            {% if story.tags and type.name in story.tags %}selected{% endif %}>
+                                        {{ type.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Cover Image -->
+                            <div class="col-md-6 mb-4">
+                                <label for="coverImage" class="form-label fw-semibold">
+                                    <i class="fas fa-image me-2 text-primary"></i>封面图片
+                                </label>
+                                <input type="file" class="form-control" id="coverImage" name="cover_image" 
+                                       accept="image/*">
+                                <div class="form-text">支持 JPG, PNG, GIF 格式，建议尺寸 600x400</div>
+                                
+                                {% if story.image_path %}
+                                <div class="mt-3">
+                                    <small class="text-muted d-block mb-2">当前封面：</small>
+                                    <img src="{{ story.image_path }}" alt="当前封面" 
+                                         class="img-thumbnail" style="max-width: 200px; max-height: 120px; object-fit: cover;">
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Status Warning -->
+                        {% if story.status in ['published', 'rejected'] %}
+                        <div class="alert alert-warning" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>注意：</strong>由于您的故事当前状态为 
+                            <span class="badge bg-{% if story.status == 'published' %}success{% else %}danger{% endif %}">
+                                {% if story.status == 'published' %}已发布{% else %}已拒绝{% endif %}
+                            </span>，
+                            保存修改后将重新提交给管理员审核。
+                        </div>
+                        {% endif %}
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between pt-4 border-top">
+                            <a href="{{ url_for('my_stories') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>返回我的故事
+                            </a>
+                            
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-primary" onclick="previewStory()">
+                                    <i class="fas fa-eye me-2"></i>预览
+                                </button>
+                                <button type="submit" class="btn btn-primary" id="saveButton">
+                                    <i class="fas fa-save me-2"></i>保存修改
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye me-2"></i>故事预览
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="previewContent">
+                    <h3 id="previewTitle" class="mb-3"></h3>
+                    <div id="previewDescription" class="text-muted mb-4"></div>
+                    <div id="previewText" style="line-height: 1.8;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="document.getElementById('saveButton').click();">
+                    确认保存
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const titleInput = document.getElementById('storyTitle');
+    const contentTextarea = document.getElementById('storyContent');
+    const descriptionTextarea = document.getElementById('storyDescription');
+    const wordCountSpan = document.getElementById('wordCount');
+    const readingTimeSpan = document.getElementById('readingTime');
+    const descCountSpan = document.getElementById('descriptionCount');
+    const form = document.getElementById('editStoryForm');
+    
+    // Update word count and reading time
+    function updateStats() {
+        const content = contentTextarea.value;
+        const wordCount = content.length;
+        const readingTime = Math.max(1, Math.ceil(wordCount / 200));
+        
+        wordCountSpan.textContent = wordCount;
+        readingTimeSpan.textContent = readingTime;
+    }
+    
+    // Update description count
+    function updateDescriptionCount() {
+        const desc = descriptionTextarea.value;
+        descCountSpan.textContent = desc.length;
+        
+        if (desc.length > 500) {
+            descCountSpan.style.color = '#dc3545';
+            descriptionTextarea.style.borderColor = '#dc3545';
+        } else {
+            descCountSpan.style.color = '';
+            descriptionTextarea.style.borderColor = '';
+        }
+    }
+    
+    // Initial stats
+    updateStats();
+    updateDescriptionCount();
+    
+    // Event listeners
+    contentTextarea.addEventListener('input', updateStats);
+    descriptionTextarea.addEventListener('input', updateDescriptionCount);
+    
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const saveButton = document.getElementById('saveButton');
+        const originalText = saveButton.innerHTML;
+        
+        // Validate
+        if (!titleInput.value.trim() || !contentTextarea.value.trim()) {
+            alert('请填写故事标题和内容');
+            return;
+        }
+        
+        if (descriptionTextarea.value.length > 500) {
+            alert('故事简介不能超过500字符');
+            return;
+        }
+        
+        // Show loading
+        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>保存中...';
+        saveButton.disabled = true;
+        
+        // Submit form
+        const formData = new FormData(form);
+        
+        fetch(`/api/update_story/{{ story.id }}`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                if (data.status_changed) {
+                    window.location.href = "{{ url_for('my_stories') }}";
+                } else {
+                    // Just show success, stay on page
+                    saveButton.innerHTML = '<i class="fas fa-check me-2"></i>已保存';
+                    setTimeout(() => {
+                        saveButton.innerHTML = originalText;
+                    }, 2000);
+                }
+            } else {
+                alert('保存失败：' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('网络错误，请重试');
+        })
+        .finally(() => {
+            saveButton.disabled = false;
+            if (saveButton.innerHTML.includes('保存中')) {
+                saveButton.innerHTML = originalText;
+            }
+        });
+    });
+});
+
+function previewStory() {
+    const title = document.getElementById('storyTitle').value;
+    const content = document.getElementById('storyContent').value;
+    const description = document.getElementById('storyDescription').value;
+    
+    if (!title || !content) {
+        alert('请填写故事标题和内容后再预览');
+        return;
+    }
+    
+    document.getElementById('previewTitle').textContent = title;
+    document.getElementById('previewDescription').textContent = description || '暂无简介';
+    document.getElementById('previewText').innerHTML = content.replace(/\n/g, '<br>');
+    
+    const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

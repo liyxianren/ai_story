@@ -1,0 +1,411 @@
+{% extends "base.html" %}
+
+{% block title %}故事管理 - 故事传承{% endblock %}
+
+{% block content %}
+<!-- Admin Header -->
+<div class="bg-gradient-primary text-white py-4 mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="h3 mb-0 text-white">
+                    <i class="fas fa-book me-3"></i>
+                    故事管理
+                </h1>
+                <p class="mb-0 mt-2 opacity-75">审核和管理用户提交的故事</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="d-flex justify-content-md-end gap-2">
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-left me-2"></i>返回面板
+                    </a>
+                    <a href="{{ url_for('admin_logout') }}" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-sign-out-alt me-2"></i>退出
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Status Tabs -->
+    <div class="card border-0 shadow-warm mb-4">
+        <div class="card-header bg-light border-0">
+            <ul class="nav nav-tabs card-header-tabs" id="statusTabs">
+                <li class="nav-item">
+                    <a class="nav-link {% if current_status == 'pending' %}active{% endif %}" 
+                       href="{{ url_for('admin_stories', status='pending') }}">
+                        <i class="fas fa-clock me-2"></i>待审核
+                        {% if status_counts.get('pending', 0) > 0 %}
+                            <span class="badge bg-warning ms-2">{{ status_counts.get('pending', 0) }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if current_status == 'published' %}active{% endif %}" 
+                       href="{{ url_for('admin_stories', status='published') }}">
+                        <i class="fas fa-check-circle me-2"></i>已发布
+                        {% if status_counts.get('published', 0) > 0 %}
+                            <span class="badge bg-success ms-2">{{ status_counts.get('published', 0) }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if current_status == 'rejected' %}active{% endif %}" 
+                       href="{{ url_for('admin_stories', status='rejected') }}">
+                        <i class="fas fa-times-circle me-2"></i>已拒绝
+                        {% if status_counts.get('rejected', 0) > 0 %}
+                            <span class="badge bg-danger ms-2">{{ status_counts.get('rejected', 0) }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if current_status == 'draft' %}active{% endif %}" 
+                       href="{{ url_for('admin_stories', status='draft') }}">
+                        <i class="fas fa-edit me-2"></i>草稿
+                        {% if status_counts.get('draft', 0) > 0 %}
+                            <span class="badge bg-secondary ms-2">{{ status_counts.get('draft', 0) }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Batch Actions (only for pending stories) -->
+        {% if current_status == 'pending' and stories %}
+        <div class="card-body border-bottom">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="selectAll">
+                    <label class="form-check-label" for="selectAll">
+                        全选
+                    </label>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-success btn-sm" onclick="batchAction('approve')" disabled id="batchApprove">
+                        <i class="fas fa-check me-2"></i>批量通过
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="batchAction('reject')" disabled id="batchReject">
+                        <i class="fas fa-times me-2"></i>批量拒绝
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Stories List -->
+        <div class="card-body">
+            {% if stories %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                {% if current_status == 'pending' %}
+                                <th width="30px">
+                                    <input type="checkbox" class="form-check-input" id="selectAllTable">
+                                </th>
+                                {% endif %}
+                                <th>标题</th>
+                                <th>作者</th>
+                                <th>字数</th>
+                                <th>标签</th>
+                                <th>
+                                    {% if current_status == 'published' %}
+                                        浏览量
+                                    {% else %}
+                                        提交时间
+                                    {% endif %}
+                                </th>
+                                <th width="200px">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for story in stories %}
+                            <tr>
+                                {% if current_status == 'pending' %}
+                                <td>
+                                    <input type="checkbox" class="form-check-input story-checkbox" 
+                                           value="{{ story.id }}">
+                                </td>
+                                {% endif %}
+                                <td>
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <a href="{{ url_for('admin_story_detail', story_id=story.id) }}" 
+                                               class="text-decoration-none">
+                                                {{ story.title }}
+                                            </a>
+                                        </h6>
+                                        {% if story.description %}
+                                        <small class="text-muted">
+                                            {{ story.description[:100] }}{% if story.description|length > 100 %}...{% endif %}
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <span class="fw-semibold">{{ story.author }}</span>
+                                        <br>
+                                        <small class="text-muted">{{ story.author_email }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ story.word_count or 0 }} 字</span>
+                                </td>
+                                <td>
+                                    {% if story.tags %}
+                                        {% for tag in story.tags.split(',')[:2] %}
+                                        <span class="badge bg-secondary me-1">{{ tag.strip() }}</span>
+                                        {% endfor %}
+                                        {% if story.tags.split(',')|length > 2 %}
+                                        <span class="text-muted">...</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <small class="text-muted">无标签</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if current_status == 'published' %}
+                                        <i class="fas fa-eye me-1"></i>{{ story.view_count or 0 }}
+                                        <br>
+                                        <small class="text-muted">{{ story.created_at.strftime('%m-%d') }}</small>
+                                    {% else %}
+                                        <small class="text-muted">
+                                            {{ story.created_at.strftime('%Y-%m-%d') }}
+                                            <br>
+                                            {{ story.created_at.strftime('%H:%M') }}
+                                        </small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        {% if current_status == 'pending' %}
+                                            <button class="btn btn-success" 
+                                                    onclick="approveStory({{ story.id }})">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-danger" 
+                                                    onclick="rejectStory({{ story.id }})">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        {% endif %}
+                                        <a href="{{ url_for('admin_story_detail', story_id=story.id) }}" 
+                                           class="btn btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if current_status == 'published' %}
+                                        <a href="{{ url_for('story_detail', story_id=story.id) }}" 
+                                           class="btn btn-outline-primary" target="_blank">
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if total_pages > 1 %}
+                <nav aria-label="故事分页" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin_stories', status=current_status, page=page-1) }}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% for p in range(1, total_pages + 1) %}
+                            {% if p == page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ p }}</span>
+                            </li>
+                            {% elif p <= 3 or p >= total_pages - 2 or (p >= page - 1 and p <= page + 1) %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin_stories', status=current_status, page=p) }}">{{ p }}</a>
+                            </li>
+                            {% elif p == 4 or p == total_pages - 3 %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page < total_pages %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin_stories', status=current_status, page=page+1) }}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+                <!-- Stats -->
+                <div class="text-center text-muted mt-3">
+                    <small>
+                        显示第 {{ ((page - 1) * 20) + 1 }} - {{ min(page * 20, total_count) }} 项，
+                        共 {{ total_count }} 项
+                    </small>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox" style="font-size: 4rem; color: #d1d5db;"></i>
+                    <h4 class="text-muted mt-3">
+                        {% if current_status == 'pending' %}
+                            暂无待审核的故事
+                        {% elif current_status == 'published' %}
+                            暂无已发布的故事
+                        {% elif current_status == 'rejected' %}
+                            暂无被拒绝的故事
+                        {% else %}
+                            暂无{{ current_status }}状态的故事
+                        {% endif %}
+                    </h4>
+                    <p class="text-muted">请检查其他状态或等待用户提交新故事</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Select all functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAll = document.getElementById('selectAll');
+    const selectAllTable = document.getElementById('selectAllTable');
+    const checkboxes = document.querySelectorAll('.story-checkbox');
+    const batchApprove = document.getElementById('batchApprove');
+    const batchReject = document.getElementById('batchReject');
+
+    function updateBatchButtons() {
+        const checkedBoxes = document.querySelectorAll('.story-checkbox:checked');
+        const hasSelection = checkedBoxes.length > 0;
+        
+        if (batchApprove) batchApprove.disabled = !hasSelection;
+        if (batchReject) batchReject.disabled = !hasSelection;
+    }
+
+    // Select all checkboxes functionality
+    [selectAll, selectAllTable].forEach(checkbox => {
+        if (checkbox) {
+            checkbox.addEventListener('change', function() {
+                checkboxes.forEach(cb => {
+                    cb.checked = this.checked;
+                });
+                updateBatchButtons();
+            });
+        }
+    });
+
+    // Individual checkboxes
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const checkedCount = document.querySelectorAll('.story-checkbox:checked').length;
+            const allSelected = checkedCount === checkboxes.length;
+            
+            if (selectAll) selectAll.checked = allSelected;
+            if (selectAllTable) selectAllTable.checked = allSelected;
+            
+            updateBatchButtons();
+        });
+    });
+});
+
+// Individual story actions
+function approveStory(storyId) {
+    if (confirm('确认通过这个故事的审核吗？')) {
+        fetch(`/admin/api/approve_story/${storyId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('故事审核通过！');
+                location.reload();
+            } else {
+                alert('操作失败: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('网络错误，请重试');
+        });
+    }
+}
+
+function rejectStory(storyId) {
+    if (confirm('确认拒绝这个故事吗？')) {
+        fetch(`/admin/api/reject_story/${storyId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('故事已被拒绝');
+                location.reload();
+            } else {
+                alert('操作失败: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('网络错误，请重试');
+        });
+    }
+}
+
+// Batch actions
+function batchAction(action) {
+    const checkedBoxes = document.querySelectorAll('.story-checkbox:checked');
+    const storyIds = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+    
+    if (storyIds.length === 0) {
+        alert('请选择要操作的故事');
+        return;
+    }
+    
+    const actionText = action === 'approve' ? '通过' : '拒绝';
+    if (confirm(`确认${actionText}选中的 ${storyIds.length} 个故事吗？`)) {
+        fetch('/admin/api/batch_action', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: action,
+                story_ids: storyIds
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('操作失败: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('网络错误，请重试');
+        });
+    }
+}
+</script>
+{% endblock %}

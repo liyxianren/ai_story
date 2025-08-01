@@ -2,7 +2,7 @@
 
 {% block title %}注册 - 故事传承{% endblock %}
 
-{% block content %}
+{% block extra_css %}
 <style>
     .register-section {
         background: linear-gradient(135deg, var(--color-neutral-light) 0%, #fff 100%);
@@ -159,7 +159,9 @@
         border-radius: 2px;
     }
 </style>
+{% endblock %}
 
+{% block content %}
 <section class="register-section d-flex align-items-center">
     <!-- 背景装饰球体 -->
     <div class="blob blob-1"></div>

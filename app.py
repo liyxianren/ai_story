@@ -5,6 +5,7 @@ import bcrypt
 import os
 from datetime import datetime
 import secrets
+from functools import wraps
 from speech_service import speech_service
 from gemini_service import gemini_service
 from image_service import image_service
@@ -12,6 +13,9 @@ from image_service import image_service
 app = Flask(__name__)
 # Use a fixed secret key for development to maintain sessions across restarts
 app.secret_key = 'your-fixed-secret-key-for-development-only'  # Fixed key for development
+
+# Add built-in functions to Jinja2 environment
+app.jinja_env.globals.update(min=min, max=max)
 
 # Configure Flask-Login
 login_manager = LoginManager()
@@ -73,6 +77,56 @@ def load_user(user_id):
 def get_db_connection():
     """Get database connection"""
     return pymysql.connect(**DB_CONFIG)
+
+# Admin authentication
+ADMIN_USERNAME = 'admin'
+ADMIN_PASSWORD = 'happystory'
+
+def admin_required(f):
+    """Decorator to require admin authentication"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('admin_logged_in'):
+            return redirect(url_for('admin_login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def verify_admin_credentials(username, password):
+    """Verify admin credentials"""
+    return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
+
+def _get_user_friendly_error(error_msg):
+    """Convert technical Google API errors to user-friendly messages"""
+    error_lower = error_msg.lower()
+    
+    if 'single channel' in error_lower and 'mono' in error_lower:
+        return '音频文件必须是单声道（单轨道）格式。请使用录音软件将音频转换为单声道，或重新录制时选择单声道模式。'
+    
+    elif 'invalid_argument' in error_lower:
+        if 'sample rate' in error_lower:
+            return '音频采样率不支持。请使用16kHz或48kHz采样率的音频文件。'
+        elif 'encoding' in error_lower:
+            return '音频格式不支持。请使用WAV、MP3或FLAC格式的音频文件。'
+        else:
+            return '音频文件格式有问题。请检查文件是否完整，格式是否正确（建议使用WAV格式）。'
+    
+    elif 'quota_exceeded' in error_lower or 'quota' in error_lower:
+        return '语音识别服务暂时超出配额限制，请稍后再试。'
+    
+    elif 'unauthenticated' in error_lower:
+        return '语音识别服务认证失败，请联系管理员。'
+    
+    elif 'too large' in error_lower or 'size' in error_lower:
+        return '音频文件太大。请使用小于25MB的音频文件，或者压缩音频质量。'
+    
+    elif 'duration' in error_lower:
+        return '音频时长超出限制。请使用时长少于60分钟的音频文件。'
+    
+    elif 'network' in error_lower or 'connection' in error_lower:
+        return '网络连接问题，请检查网络连接后重试。'
+    
+    else:
+        return f'语音识别失败：{error_msg}。请检查音频文件质量，或稍后重试。'
 
 @app.route('/')
 def index():
@@ -184,11 +238,70 @@ def login():
     
     return render_template('login.html')
 
+@app.route('/my_stories')
+@login_required
+def my_stories():
+    """用户的故事管理页面 - User's story management page"""
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        
+        # 获取当前用户的所有故事
+        cursor.execute("""
+            SELECT 
+                s.id,
+                s.title,
+                s.description,
+                s.content,
+                s.status,
+                s.image_path,
+                s.created_at,
+                s.updated_at,
+                s.view_count,
+                s.like_count,
+                GROUP_CONCAT(t.name) as categories
+            FROM stories s
+            LEFT JOIN story_tags st ON s.id = st.story_id
+            LEFT JOIN tags t ON st.tag_id = t.id
+            WHERE s.user_id = %s
+            GROUP BY s.id, s.title, s.description, s.content, s.status, s.image_path, s.created_at, s.updated_at, s.view_count, s.like_count
+            ORDER BY s.created_at DESC
+        """, (current_user.id,))
+        
+        stories = cursor.fetchall()
+        
+        # 计算统计数据 - 三种状态：待审核、通过审核、未通过审核
+        stats = {
+            'total': len(stories),
+            'published': len([s for s in stories if s['status'] == 'published']),
+            'pending': len([s for s in stories if s['status'] == 'pending']),
+            'rejected': len([s for s in stories if s['status'] == 'rejected']),
+            'total_views': sum(s['view_count'] or 0 for s in stories)
+        }
+        
+        cursor.close()
+        connection.close()
+        
+        return render_template('my_stories.html', 
+                             user=current_user, 
+                             stories=stories, 
+                             stats=stats)
+        
+    except Exception as e:
+        print(f"Error fetching user stories: {e}")
+        # 如果出错，返回空数据
+        stats = {'total': 0, 'published': 0, 'pending': 0, 'rejected': 0, 'total_views': 0}
+        return render_template('my_stories.html', 
+                             user=current_user, 
+                             stories=[], 
+                             stats=stats)
+
+# 保持向后兼容性的dashboard重定向
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    """Storytelling dashboard - main hub for voice preservation"""
-    return render_template('storytelling_dashboard.html', user=current_user)
+    """重定向到我的故事页面 - Redirect to my stories page"""
+    return redirect(url_for('my_stories'))
 
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
@@ -319,9 +432,14 @@ def transcribe_audio():
                 'segments': result.get('segments', 0)  # 音频分段数
             })
         else:
+            # Provide user-friendly error messages for common Google API errors
+            error_msg = result['error']
+            user_friendly_error = _get_user_friendly_error(error_msg)
+            
             return jsonify({
                 'success': False,
-                'error': result['error']
+                'error': user_friendly_error,
+                'technical_error': error_msg  # Keep technical error for debugging
             }), 500
             
     except Exception as e:
@@ -421,16 +539,29 @@ def chat_with_gemini():
 def _create_chat_prompt(user_message: str, current_story: str, chat_history: list, language: str) -> str:
     """Create a conversational prompt for story improvement chat"""
     
+    # Check if this is just a greeting or casual conversation
+    casual_patterns = ['hello', 'hi', 'hey', '你好', '嗨', '问好', 'how are you', '怎么样', '如何']
+    is_casual = any(pattern.lower() in user_message.lower() for pattern in casual_patterns)
+    
     # Determine language for response
     if language.startswith('zh') or language.startswith('cmn'):
         language_instruction = "请用中文回应。"
-        system_prompt = """你是一个专业的故事编辑和写作导师。用户正在和你对话来改进他们的故事。你的任务是：
+        if is_casual:
+            system_prompt = """你是一个友好的AI助手和故事编辑。用户刚刚向你打招呼。
 
-🎯 **对话目标**：
-- 帮助用户改进和润色他们的故事
-- 提供具体、可行的建议
-- 根据用户的要求进行修改
-- 保持鼓励和支持的语调
+👤 **用户消息**：{user_message}
+
+请自然地回应用户的问候，并询问他们是否需要帮助改进故事，或者有其他问题。保持友好和对话的语调。
+
+{language_instruction}"""
+        else:
+            system_prompt = """你是一个专业的故事编辑和写作导师。用户正在和你对话。根据用户的消息判断他们需要什么：
+
+🎯 **对话模式**：
+- 如果用户想改进故事：提供具体建议和修改版本
+- 如果用户只是聊天：自然对话，询问是否需要故事帮助
+- 如果用户有问题：回答问题并提供帮助
+- 如果用户想讨论：参与讨论并适时引导到故事改进
 
 📝 **当前故事**：
 {current_story}
@@ -441,18 +572,27 @@ def _create_chat_prompt(user_message: str, current_story: str, chat_history: lis
 👤 **用户最新消息**：
 {user_message}
 
-请根据用户的消息提供帮助。如果用户要求修改故事，请提供修改后的版本。如果用户寻求建议，请给出具体的改进建议。保持对话自然友好。
+根据用户的具体需求回应。不要强制将所有对话都转向故事润色。如果用户只是想聊天或问候，就正常对话。
 
 {language_instruction}"""
     else:
         language_instruction = "Please respond in English."
-        system_prompt = """You are a professional story editor and writing mentor. The user is chatting with you to improve their story. Your tasks are:
+        if is_casual:
+            system_prompt = """You are a friendly AI assistant and story editor. The user just greeted you.
 
-🎯 **Conversation Goals**:
-- Help the user improve and polish their story
-- Provide specific, actionable suggestions
-- Make modifications based on user requests
-- Maintain an encouraging and supportive tone
+👤 **User Message**: {user_message}
+
+Please respond naturally to their greeting and ask if they need help improving their story or have any other questions. Keep it friendly and conversational.
+
+{language_instruction}"""
+        else:
+            system_prompt = """You are a professional story editor and writing mentor. The user is chatting with you. Based on their message, determine what they need:
+
+🎯 **Conversation Modes**:
+- If user wants story improvement: Provide specific suggestions and revised versions
+- If user is just chatting: Have natural conversation, ask if they need story help
+- If user has questions: Answer questions and provide assistance
+- If user wants discussion: Engage in discussion and guide toward story improvement when appropriate
 
 📝 **Current Story**:
 {current_story}
@@ -463,7 +603,7 @@ def _create_chat_prompt(user_message: str, current_story: str, chat_history: lis
 👤 **User's Latest Message**:
 {user_message}
 
-Please provide help based on the user's message. If the user requests story modifications, provide the revised version. If the user seeks advice, give specific improvement suggestions. Keep the conversation natural and friendly.
+Respond based on the user's specific needs. Don't force every conversation toward story polishing. If they just want to chat or greet, have a normal conversation.
 
 {language_instruction}"""
     
@@ -493,6 +633,117 @@ Please provide help based on the user's message. If the user requests story modi
 def publish_story():
     """Story publishing page"""
     return render_template('publish_story.html')
+
+@app.route('/story/<int:story_id>')
+def story_detail(story_id):
+    """故事详情页面 - Story detail page"""
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        
+        # 获取故事详情和作者信息
+        cursor.execute("""
+            SELECT 
+                s.id, s.title, s.content, s.description, s.language_name,
+                s.image_path, s.image_original_name, s.reading_time, s.word_count,
+                s.status, s.view_count, s.like_count, s.created_at, s.updated_at, s.published_at,
+                u.username as author, u.bio as author_bio,
+                GROUP_CONCAT(t.name) as categories
+            FROM stories s
+            JOIN users u ON s.user_id = u.id
+            LEFT JOIN story_tags st ON s.id = st.story_id
+            LEFT JOIN tags t ON st.tag_id = t.id
+            WHERE s.id = %s AND s.status = 'published'
+            GROUP BY s.id, s.title, s.content, s.description, s.language_name,
+                     s.image_path, s.image_original_name, s.reading_time, s.word_count,
+                     s.status, s.view_count, s.like_count, s.created_at, s.updated_at, s.published_at,
+                     u.username, u.bio
+        """, (story_id,))
+        
+        story = cursor.fetchone()
+        
+        if not story:
+            flash('故事不存在或暂未发布', 'error')
+            return redirect(url_for('story_library'))
+        
+        # 更新浏览次数
+        cursor.execute("UPDATE stories SET view_count = view_count + 1 WHERE id = %s", (story_id,))
+        connection.commit()
+        story['view_count'] = (story['view_count'] or 0) + 1
+        
+        # 获取相关故事推荐（同标签或同作者）
+        cursor.execute("""
+            SELECT s.id, s.title, s.image_path, s.view_count, s.like_count
+            FROM stories s
+            WHERE s.id != %s AND s.status = 'published'
+            ORDER BY s.view_count DESC, s.created_at DESC
+            LIMIT 3
+        """, (story_id,))
+        
+        related_stories = cursor.fetchall()
+        
+        cursor.close()
+        connection.close()
+        
+        return render_template('story_detail.html', 
+                             story=story, 
+                             related_stories=related_stories)
+        
+    except Exception as e:
+        print(f"Error fetching story detail: {e}")
+        flash('获取故事详情失败', 'error')
+        return redirect(url_for('story_library'))
+
+@app.route('/story_library')
+def story_library():
+    """Story library page showing all published stories"""
+    try:
+        connection = pymysql.connect(**DB_CONFIG)
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        
+        # Get all published stories with user info and tags
+        cursor.execute("""
+            SELECT 
+                s.id,
+                s.title,
+                s.description,
+                s.image_path,
+                s.created_at,
+                s.view_count,
+                s.like_count,
+                u.username as author,
+                GROUP_CONCAT(t.name) as categories
+            FROM stories s
+            JOIN users u ON s.user_id = u.id
+            LEFT JOIN story_tags st ON s.id = st.story_id
+            LEFT JOIN tags t ON st.tag_id = t.id
+            WHERE s.status = 'published'
+            GROUP BY s.id, s.title, s.description, s.image_path, s.created_at, s.view_count, s.like_count, u.username
+            ORDER BY s.created_at DESC
+        """)
+        
+        stories = cursor.fetchall()
+        
+        # Get unique categories for filtering
+        cursor.execute("""
+            SELECT DISTINCT t.name
+            FROM tags t
+            JOIN story_tags st ON t.id = st.tag_id
+            JOIN stories s ON st.story_id = s.id
+            WHERE s.status = 'published'
+            ORDER BY t.name
+        """)
+        
+        categories = [row['name'] for row in cursor.fetchall()]
+        
+        return render_template('story_library.html', stories=stories, categories=categories)
+        
+    except Exception as e:
+        flash(f'Error loading story library: {str(e)}', 'error')
+        return redirect(url_for('index'))
+    finally:
+        if 'connection' in locals():
+            connection.close()
 
 @app.route('/api/get_story_types')
 @login_required  
@@ -545,8 +796,8 @@ def generate_description():
                 'error': 'Story content is required'
             }), 400
         
-        # Determine language from content
-        language = 'zh-CN' if any('\u4e00' <= char <= '\u9fff' for char in content) else 'en-US'
+        # Since all story content is now in English after Gemini processing
+        language = 'en-US'
         
         # Generate description using Gemini
         result = gemini_service.generate_story_description(content, language)
@@ -579,9 +830,16 @@ def publish_story_api():
         title = request.form.get('title', '').strip()
         content = request.form.get('content', '').strip()
         description = request.form.get('description', '').strip()
-        language_raw = request.form.get('language', 'zh-CN')
-        language_name = request.form.get('language_name', '中文')
-        status = request.form.get('status', 'draft')
+        language_raw = request.form.get('language', 'en-US')
+        language_name = request.form.get('language_name', 'English')
+        
+        # Since all stories are now translated to English by Gemini, 
+        # ensure language is always set to English
+        if content:  # If there's content, it's been processed by Gemini and is in English
+            language_raw = 'en-US'
+            language_name = 'English'
+        # 新故事默认为待审核状态，需要管理员审核
+        status = 'pending'  # 默认状态为待审核
         
         # Now we have expanded the field, keep the full language code
         language = language_raw if language_raw else 'zh-CN'
@@ -670,20 +928,27 @@ def publish_story_api():
         word_count = len(content.replace(' ', '')) if any('\u4e00' <= char <= '\u9fff' for char in content) else len(content.split())
         reading_time = max(1, word_count // (200 if language.startswith('zh') else 250))
         
-        # Handle image upload (temporarily disabled for testing)
+        # Handle image upload
         image_path = None
         image_original_name = None
         
-        print("🖼️  Image upload temporarily disabled for debugging")
+        print("🖼️  Processing image upload...")
         
-        # TODO: Re-enable image upload after fixing main publish issue
-        # if 'cover_image' in request.files:
-        #     file = request.files['cover_image']
-        #     if file and file.filename:
-        #         upload_result = image_service.upload_story_image(file, current_user.id)
-        #         if upload_result['success']:
-        #             image_path = upload_result['main_image_path']
-        #             image_original_name = upload_result['metadata']['original_filename']
+        if 'cover_image' in request.files:
+            file = request.files['cover_image']
+            if file and file.filename:
+                print(f"📸 Uploading image: {file.filename}")
+                upload_result = image_service.upload_story_image(file, current_user.id)
+                if upload_result['success']:
+                    image_path = upload_result['main_image_path']
+                    image_original_name = upload_result['metadata']['original_filename']
+                    print(f"✅ Image uploaded successfully: {image_path}")
+                else:
+                    print(f"❌ Image upload failed: {upload_result.get('error', 'Unknown error')}")
+            else:
+                print("📸 No image file provided")
+        else:
+            print("📸 No cover_image in request files")
         
         # Insert story into database
         print("💾 Connecting to database...")
@@ -788,6 +1053,557 @@ def get_user_stories():
         return jsonify({
             'success': False,
             'error': f'Failed to load stories: {str(e)}'
+        }), 500
+
+# =====================================================
+# Admin Management Routes
+# =====================================================
+
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    """Admin login page"""
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        if verify_admin_credentials(username, password):
+            session['admin_logged_in'] = True
+            session['admin_username'] = username
+            flash('管理员登录成功！', 'success')
+            return redirect(url_for('admin_dashboard'))
+        else:
+            flash('用户名或密码错误！', 'error')
+    
+    return render_template('admin/login.html')
+
+@app.route('/admin/logout')
+@admin_required
+def admin_logout():
+    """Admin logout"""
+    session.pop('admin_logged_in', None)
+    session.pop('admin_username', None)
+    flash('已安全退出管理后台', 'info')
+    return redirect(url_for('index'))
+
+@app.route('/admin/dashboard')
+@admin_required
+def admin_dashboard():
+    """Admin dashboard with statistics"""
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        
+        # Get system statistics
+        stats = {}
+        
+        # Story statistics by status
+        cursor.execute("""
+            SELECT status, COUNT(*) as count 
+            FROM stories 
+            GROUP BY status
+        """)
+        status_stats = cursor.fetchall()
+        stats['stories'] = {stat['status']: stat['count'] for stat in status_stats}
+        
+        # Total users
+        cursor.execute("SELECT COUNT(*) as count FROM users")
+        stats['total_users'] = cursor.fetchone()['count']
+        
+        # Recent pending stories (last 10)
+        cursor.execute("""
+            SELECT s.id, s.title, s.created_at, u.username as author
+            FROM stories s
+            JOIN users u ON s.user_id = u.id
+            WHERE s.status = 'pending'
+            ORDER BY s.created_at DESC
+            LIMIT 10
+        """)
+        recent_pending = cursor.fetchall()
+        
+        # Top viewed published stories
+        cursor.execute("""
+            SELECT s.id, s.title, s.view_count, u.username as author
+            FROM stories s
+            JOIN users u ON s.user_id = u.id
+            WHERE s.status = 'published'
+            ORDER BY s.view_count DESC
+            LIMIT 5
+        """)
+        top_stories = cursor.fetchall()
+        
+        cursor.close()
+        connection.close()
+        
+        return render_template('admin/dashboard.html', 
+                             stats=stats,
+                             recent_pending=recent_pending,
+                             top_stories=top_stories)
+        
+    except Exception as e:
+        flash(f'获取统计数据失败: {str(e)}', 'error')
+        return render_template('admin/dashboard.html', 
+                             stats={'stories': {}},
+                             recent_pending=[],
+                             top_stories=[])
+
+@app.route('/admin/stories')
+@admin_required
+def admin_stories():
+    """Admin story management page"""
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        
+        # Get filter parameters
+        status = request.args.get('status', 'pending')
+        page = int(request.args.get('page', 1))
+        per_page = 20
+        offset = (page - 1) * per_page
+        
+        # Get stories with pagination
+        cursor.execute("""
+            SELECT s.id, s.title, s.description, s.status, s.created_at, s.updated_at,
+                   s.view_count, s.like_count, s.word_count,
+                   u.username as author, u.email as author_email,
+                   GROUP_CONCAT(t.name) as tags
+            FROM stories s
+            JOIN users u ON s.user_id = u.id
+            LEFT JOIN story_tags st ON s.id = st.story_id
+            LEFT JOIN tags t ON st.tag_id = t.id
+            WHERE s.status = %s
+            GROUP BY s.id, s.title, s.description, s.status, s.created_at, s.updated_at,
+                     s.view_count, s.like_count, s.word_count, u.username, u.email
+            ORDER BY s.created_at DESC
+            LIMIT %s OFFSET %s
+        """, (status, per_page, offset))
+        
+        stories = cursor.fetchall()
+        
+        # Get total count for pagination
+        cursor.execute("SELECT COUNT(*) as count FROM stories WHERE status = %s", (status,))
+        total_count = cursor.fetchone()['count']
+        total_pages = (total_count + per_page - 1) // per_page
+        
+        # Get status counts for tabs
+        cursor.execute("""
+            SELECT status, COUNT(*) as count 
+            FROM stories 
+            GROUP BY status
+        """)
+        status_counts = {stat['status']: stat['count'] for stat in cursor.fetchall()}
+        
+        cursor.close()
+        connection.close()
+        
+        return render_template('admin/stories.html',
+                             stories=stories,
+                             current_status=status,
+                             status_counts=status_counts,
+                             page=page,
+                             total_pages=total_pages,
+                             total_count=total_count)
+        
+    except Exception as e:
+        flash(f'获取故事列表失败: {str(e)}', 'error')
+        return render_template('admin/stories.html',
+                             stories=[],
+                             current_status='pending',
+                             status_counts={},
+                             page=1,
+                             total_pages=1,
+                             total_count=0)
+
+@app.route('/admin/story/<int:story_id>')
+@admin_required
+def admin_story_detail(story_id):
+    """Admin story detail view"""
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        
+        # Get story details
+        cursor.execute("""
+            SELECT s.*, u.username as author, u.email as author_email,
+                   GROUP_CONCAT(t.name) as tags
+            FROM stories s
+            JOIN users u ON s.user_id = u.id
+            LEFT JOIN story_tags st ON s.id = st.story_id
+            LEFT JOIN tags t ON st.tag_id = t.id
+            WHERE s.id = %s
+            GROUP BY s.id, s.title, s.content, s.description, s.status, s.created_at, 
+                     s.updated_at, s.published_at, s.view_count, s.like_count, 
+                     s.word_count, s.reading_time, s.language, s.language_name,
+                     s.image_path, s.image_original_name, u.username, u.email
+        """, (story_id,))
+        
+        story = cursor.fetchone()
+        
+        if not story:
+            flash('故事不存在', 'error')
+            return redirect(url_for('admin_stories'))
+        
+        cursor.close()
+        connection.close()
+        
+        return render_template('admin/story_detail.html', story=story)
+        
+    except Exception as e:
+        flash(f'获取故事详情失败: {str(e)}', 'error')
+        return redirect(url_for('admin_stories'))
+
+# Admin API routes
+@app.route('/admin/api/approve_story/<int:story_id>', methods=['POST'])
+@admin_required
+def admin_approve_story(story_id):
+    """Approve a story"""
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        # Update story status to published
+        cursor.execute("""
+            UPDATE stories 
+            SET status = 'published', published_at = %s, updated_at = %s
+            WHERE id = %s AND status = 'pending'
+        """, (datetime.now(), datetime.now(), story_id))
+        
+        if cursor.rowcount > 0:
+            connection.commit()
+            cursor.close()
+            connection.close()
+            return jsonify({'success': True, 'message': '故事已审核通过'})
+        else:
+            cursor.close()
+            connection.close()
+            return jsonify({'success': False, 'error': '故事不存在或状态不正确'}), 400
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'审核失败: {str(e)}'}), 500
+
+@app.route('/admin/api/reject_story/<int:story_id>', methods=['POST'])
+@admin_required
+def admin_reject_story(story_id):
+    """Reject a story"""
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        # Update story status to rejected
+        cursor.execute("""
+            UPDATE stories 
+            SET status = 'rejected', updated_at = %s
+            WHERE id = %s AND status = 'pending'
+        """, (datetime.now(), story_id))
+        
+        if cursor.rowcount > 0:
+            connection.commit()
+            cursor.close()
+            connection.close()
+            return jsonify({'success': True, 'message': '故事已被拒绝'})
+        else:
+            cursor.close()
+            connection.close()
+            return jsonify({'success': False, 'error': '故事不存在或状态不正确'}), 400
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'拒绝失败: {str(e)}'}), 500
+
+@app.route('/admin/api/batch_action', methods=['POST'])
+@admin_required
+def admin_batch_action():
+    """Perform batch actions on stories"""
+    try:
+        data = request.get_json()
+        action = data.get('action')
+        story_ids = data.get('story_ids', [])
+        
+        if not action or not story_ids:
+            return jsonify({'success': False, 'error': '缺少必要参数'}), 400
+        
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        if action == 'approve':
+            # Batch approve stories
+            placeholders = ','.join(['%s'] * len(story_ids))
+            cursor.execute(f"""
+                UPDATE stories 
+                SET status = 'published', published_at = %s, updated_at = %s
+                WHERE id IN ({placeholders}) AND status = 'pending'
+            """, [datetime.now(), datetime.now()] + story_ids)
+            
+        elif action == 'reject':
+            # Batch reject stories
+            placeholders = ','.join(['%s'] * len(story_ids))
+            cursor.execute(f"""
+                UPDATE stories 
+                SET status = 'rejected', updated_at = %s
+                WHERE id IN ({placeholders}) AND status = 'pending'
+            """, [datetime.now()] + story_ids)
+        else:
+            return jsonify({'success': False, 'error': '无效的操作'}), 400
+        
+        affected_rows = cursor.rowcount
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            'success': True, 
+            'message': f'成功处理了 {affected_rows} 个故事',
+            'affected_count': affected_rows
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'批量操作失败: {str(e)}'}), 500
+
+# =====================================================
+# Story Like/Unlike Routes
+# =====================================================
+
+@app.route('/api/like_story/<int:story_id>', methods=['POST'])
+@login_required
+def like_story(story_id):
+    """Like a story"""
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        # Check if user already liked this story
+        cursor.execute("""
+            SELECT id FROM story_likes 
+            WHERE user_id = %s AND story_id = %s
+        """, (current_user.id, story_id))
+        
+        existing_like = cursor.fetchone()
+        
+        if existing_like:
+            # Unlike: Remove the like
+            cursor.execute("""
+                DELETE FROM story_likes 
+                WHERE user_id = %s AND story_id = %s
+            """, (current_user.id, story_id))
+            
+            # Decrease like count
+            cursor.execute("""
+                UPDATE stories 
+                SET like_count = GREATEST(0, like_count - 1) 
+                WHERE id = %s
+            """, (story_id,))
+            
+            action = 'unliked'
+        else:
+            # Like: Add the like
+            cursor.execute("""
+                INSERT INTO story_likes (user_id, story_id) 
+                VALUES (%s, %s)
+            """, (current_user.id, story_id))
+            
+            # Increase like count
+            cursor.execute("""
+                UPDATE stories 
+                SET like_count = like_count + 1 
+                WHERE id = %s
+            """, (story_id,))
+            
+            action = 'liked'
+        
+        # Get updated like count
+        cursor.execute("SELECT like_count FROM stories WHERE id = %s", (story_id,))
+        like_count = cursor.fetchone()[0] or 0
+        
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            'success': True,
+            'action': action,
+            'like_count': like_count
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'点赞操作失败: {str(e)}'
+        }), 500
+
+@app.route('/api/check_like_status/<int:story_id>')
+@login_required
+def check_like_status(story_id):
+    """Check if current user has liked a story"""
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        cursor.execute("""
+            SELECT id FROM story_likes 
+            WHERE user_id = %s AND story_id = %s
+        """, (current_user.id, story_id))
+        
+        liked = cursor.fetchone() is not None
+        
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            'success': True,
+            'liked': liked
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'检查点赞状态失败: {str(e)}'
+        }), 500
+
+# =====================================================
+# Story Edit Routes
+# =====================================================
+
+@app.route('/edit_story/<int:story_id>')
+@login_required
+def edit_story(story_id):
+    """Edit story page - only for story owner"""
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        
+        # Get story details and verify ownership
+        cursor.execute("""
+            SELECT s.*, GROUP_CONCAT(t.name) as tags
+            FROM stories s
+            LEFT JOIN story_tags st ON s.id = st.story_id
+            LEFT JOIN tags t ON st.tag_id = t.id
+            WHERE s.id = %s AND s.user_id = %s
+            GROUP BY s.id, s.title, s.content, s.description, s.status, 
+                     s.image_path, s.created_at, s.updated_at
+        """, (story_id, current_user.id))
+        
+        story = cursor.fetchone()
+        
+        if not story:
+            flash('故事不存在或您无权编辑', 'error')
+            return redirect(url_for('my_stories'))
+        
+        # Get available story types
+        cursor.execute("""
+            SELECT id, name, description 
+            FROM tags 
+            WHERE category_id = 1
+            ORDER BY name
+        """)
+        story_types = cursor.fetchall()
+        
+        cursor.close()
+        connection.close()
+        
+        return render_template('edit_story.html', story=story, story_types=story_types)
+        
+    except Exception as e:
+        flash(f'获取故事信息失败: {str(e)}', 'error')
+        return redirect(url_for('my_stories'))
+
+@app.route('/api/update_story/<int:story_id>', methods=['POST'])
+@login_required
+def update_story(story_id):
+    """Update an existing story"""
+    try:
+        # Get form data
+        title = request.form.get('title', '').strip()
+        content = request.form.get('content', '').strip()
+        description = request.form.get('description', '').strip()
+        story_type = request.form.get('story_type')
+        
+        if not title or not content:
+            return jsonify({
+                'success': False,
+                'error': '标题和内容不能为空'
+            }), 400
+        
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        # Verify story ownership
+        cursor.execute("""
+            SELECT status FROM stories 
+            WHERE id = %s AND user_id = %s
+        """, (story_id, current_user.id))
+        
+        story = cursor.fetchone()
+        if not story:
+            return jsonify({
+                'success': False,
+                'error': '故事不存在或您无权编辑'
+            }), 403
+        
+        # Calculate word count and reading time
+        word_count = len(content.replace(' ', '')) if any('\u4e00' <= char <= '\u9fff' for char in content) else len(content.split())
+        reading_time = max(1, word_count // 200)
+        
+        # Handle image upload if present
+        image_path = None
+        image_original_name = None
+        
+        if 'cover_image' in request.files:
+            file = request.files['cover_image']
+            if file and file.filename:
+                upload_result = image_service.upload_story_image(file, current_user.id)
+                if upload_result['success']:
+                    image_path = upload_result['main_image_path']
+                    image_original_name = upload_result['metadata']['original_filename']
+        
+        # Update story - set status to pending if it was published/rejected
+        current_status = story[0]
+        new_status = 'pending' if current_status in ['published', 'rejected'] else current_status
+        
+        update_query = """
+            UPDATE stories 
+            SET title = %s, content = %s, description = %s, word_count = %s, reading_time = %s,
+                updated_at = %s, status = %s
+        """
+        update_params = [title, content, description, word_count, reading_time, datetime.now(), new_status]
+        
+        # Add image fields if new image uploaded
+        if image_path:
+            update_query += ", image_path = %s, image_original_name = %s"
+            update_params.extend([image_path, image_original_name])
+        
+        update_query += " WHERE id = %s AND user_id = %s"
+        update_params.extend([story_id, current_user.id])
+        
+        cursor.execute(update_query, update_params)
+        
+        # Update story tags
+        if story_type and story_type.isdigit():
+            # Remove existing tags
+            cursor.execute("DELETE FROM story_tags WHERE story_id = %s", (story_id,))
+            
+            # Add new tag
+            cursor.execute("INSERT INTO story_tags (story_id, tag_id) VALUES (%s, %s)", 
+                          (story_id, int(story_type)))
+        
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
+        # Determine message based on status change
+        if current_status in ['published', 'rejected'] and new_status == 'pending':
+            message = '故事已更新并重新提交审核！'
+        else:
+            message = '故事已成功更新！'
+        
+        return jsonify({
+            'success': True,
+            'message': message,
+            'status_changed': current_status != new_status,
+            'new_status': new_status
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'更新失败: {str(e)}'
         }), 500
 
 if __name__ == '__main__':

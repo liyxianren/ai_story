@@ -2,7 +2,7 @@
 
 {% block title %}登录 - 故事传承{% endblock %}
 
-{% block content %}
+{% block extra_css %}
 <style>
     .login-section {
         background: linear-gradient(135deg, var(--color-neutral-light) 0%, #fff 100%);
@@ -121,7 +121,9 @@
         opacity: 0.9;
     }
 </style>
+{% endblock %}
 
+{% block content %}
 <section class="login-section d-flex align-items-center">
     <!-- 背景装饰球体 -->
     <div class="blob blob-1"></div>

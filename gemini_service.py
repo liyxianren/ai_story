@@ -72,7 +72,7 @@ class GeminiService:
                     'success': True,
                     'content': response.text.strip(),
                     'model': 'gemini-2.5-flash',
-                    'language': language
+                    'language': 'en-US'  # Always return English since we translate everything
                 }
             else:
                 logger.warning("Gemini returned empty response")
@@ -111,8 +111,7 @@ class GeminiService:
                     model="gemini-2.5-flash",
                     contents=prompt,
                     config=types.GenerateContentConfig(
-                        temperature=0.7,  # Balanced creativity
-                        thinking_config=types.ThinkingConfig(thinking_budget=0)  # Disable thinking for faster response
+                        temperature=0.7  # Balanced creativity
                     )
                 )
                 
@@ -261,52 +260,67 @@ Please provide the description directly to make readers interested in reading th
         Returns:
             str: The prompt for Gemini story polishing
         """
-        # Determine language for response
+        # Always respond in English - translate if necessary
+        language_instruction = "Please respond in English only."
+        
+        # Determine if translation is needed
         if language.startswith('zh') or language.startswith('cmn'):
-            language_instruction = "请用中文回应。"
-            prompt_template = """你是一个专业的故事润色编辑助手。你的任务是将用户录音转录的原始文本转换成一个流畅、引人入胜的故事。
-
-请按照以下要求润色这段转录文本：
-
-📝 **润色要求**：
-1. **语法修正**：修复语法错误、时态问题和语言不当之处
-2. **流畅性改进**：使句子衔接更自然，提高可读性
-3. **叙述增强**：丰富描述，增加生动的细节和情感表达
-4. **结构优化**：整理段落结构，确保逻辑清晰
-5. **保持原意**：确保不改变原故事的核心内容和意图
-6. **自然风格**：保持讲述者的个人风格和语调
-7. **保持语言**：必须保持原文的语言，不要翻译成其他语言
-
-**原始转录文本**：
-{transcript}
-
-请直接提供润色后的故事，无需解释过程。让故事听起来自然、完整且引人入胜。保持原文语言不变。
-
-{language_instruction}"""
+            source_language = "Chinese"
+        elif language.startswith('uk'):
+            source_language = "Ukrainian" 
+        elif language.startswith('ru'):
+            source_language = "Russian"
+        elif language.startswith('es'):
+            source_language = "Spanish"
+        elif language.startswith('fr'):
+            source_language = "French"
+        elif language.startswith('de'):
+            source_language = "German"
+        elif language.startswith('ja'):
+            source_language = "Japanese"
+        elif language.startswith('ko'):
+            source_language = "Korean"
+        elif language.startswith('ar'):
+            source_language = "Arabic"
+        elif language.startswith('hi'):
+            source_language = "Hindi"
+        elif language.startswith('pt'):
+            source_language = "Portuguese"
+        elif language.startswith('it'):
+            source_language = "Italian"
+        elif language.startswith('nl'):
+            source_language = "Dutch"
+        elif language.startswith('th'):
+            source_language = "Thai"
+        elif language.startswith('vi'):
+            source_language = "Vietnamese"
         else:
-            language_instruction = "Please respond in English."
-            prompt_template = """You are a professional story polishing editor assistant. Your task is to transform the raw transcribed text from user's recording into a smooth, engaging, and well-crafted story.
+            source_language = "the original language"
+        
+        prompt_template = """You are a professional story polishing and translation editor assistant. Your task is to transform the raw transcribed text from user's recording into a smooth, engaging, and well-crafted English story.
 
-Please polish this transcribed text according to the following requirements:
+Please polish and translate this transcribed text according to the following requirements:
 
-📝 **Polishing Requirements**:
-1. **Grammar Correction**: Fix grammatical errors, tense issues, and awkward phrasing
-2. **Flow Improvement**: Make sentences connect naturally and improve readability
-3. **Narrative Enhancement**: Enrich descriptions, add vivid details and emotional expression
-4. **Structure Optimization**: Organize paragraph structure and ensure logical clarity
-5. **Preserve Intent**: Maintain the core content and intention of the original story
-6. **Natural Style**: Keep the storyteller's personal style and tone
-7. **Keep Original Language**: Maintain the same language as the original text - do not translate to other languages
+📝 **Polishing & Translation Requirements**:
+1. **Translation to English**: If the original text is in {source_language}, translate it completely to natural, fluent English
+2. **Grammar Perfection**: Ensure perfect English grammar, tense consistency, and natural phrasing
+3. **Flow Enhancement**: Make sentences connect seamlessly and improve overall readability
+4. **Narrative Enrichment**: Add vivid descriptions, emotional depth, and engaging details while staying true to the original story
+5. **Structure Optimization**: Organize content into clear paragraphs with logical flow
+6. **Preserve Core Intent**: Maintain the original story's meaning, emotions, and cultural context
+7. **Natural English Style**: Create a story that reads as if it were originally written by a native English speaker
+8. **Storytelling Excellence**: Transform the raw transcript into a compelling, publishable English story
 
-**Original Transcribed Text**:
+**Original Transcribed Text in {source_language}**:
 {transcript}
 
-Please provide the polished story directly without explaining the process. Make the story sound natural, complete, and engaging. Keep the same language as the original text.
+Please provide the polished English story directly without any explanations or meta-commentary. The result should be a beautifully written English story that captures the essence and emotion of the original while being completely natural and engaging to English readers.
 
 {language_instruction}"""
         
         return prompt_template.format(
             transcript=transcript,
+            source_language=source_language,
             language_instruction=language_instruction
         )
 

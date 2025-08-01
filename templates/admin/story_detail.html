@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+
+{% block title %}{{ story.title }} - 故事详情 - 故事传承{% endblock %}
+
+{% block content %}
+<!-- Admin Header -->
+<div class="bg-gradient-primary text-white py-4 mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="h3 mb-0 text-white">
+                    <i class="fas fa-book-open me-3"></i>
+                    故事详情
+                </h1>
+                <p class="mb-0 mt-2 opacity-75">{{ story.title }}</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="d-flex justify-content-md-end gap-2">
+                    <a href="{{ url_for('admin_stories', status=story.status) }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-left me-2"></i>返回列表
+                    </a>
+                    {% if story.status == 'published' %}
+                    <a href="{{ url_for('story_detail', story_id=story.id) }}" 
+                       class="btn btn-outline-light btn-sm" target="_blank">
+                        <i class="fas fa-external-link-alt me-2"></i>查看公开页面
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- Story Content -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-warm mb-4">
+                <!-- Story Header -->
+                <div class="card-header bg-light border-0">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h2 class="h4 mb-2">{{ story.title }}</h2>
+                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                {% if story.status == 'published' %}
+                                    <span class="badge bg-success">已发布</span>
+                                {% elif story.status == 'pending' %}
+                                    <span class="badge bg-warning">待审核</span>
+                                {% elif story.status == 'rejected' %}
+                                    <span class="badge bg-danger">已拒绝</span>
+                                {% elif story.status == 'draft' %}
+                                    <span class="badge bg-secondary">草稿</span>
+                                {% else %}
+                                    <span class="badge bg-info">{{ story.status }}</span>
+                                {% endif %}
+                                
+                                {% if story.language_name %}
+                                <span class="badge bg-info">{{ story.language_name }}</span>
+                                {% endif %}
+                                
+                                <span class="badge bg-secondary">{{ story.word_count or 0 }} 字</span>
+                                
+                                {% if story.reading_time %}
+                                <span class="badge bg-secondary">{{ story.reading_time }} 分钟阅读</span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if story.tags %}
+                            <div class="mb-2">
+                                {% for tag in story.tags.split(',') %}
+                                <span class="badge bg-outline-primary me-1"># {{ tag.strip() }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if story.image_path %}
+                        <div class="ms-3">
+                            <img src="{{ story.image_path }}" alt="故事封面" 
+                                 class="img-thumbnail" style="max-width: 120px; max-height: 80px; object-fit: cover;">
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Story Description -->
+                {% if story.description %}
+                <div class="card-body border-bottom">
+                    <h6 class="text-muted mb-2">故事简介</h6>
+                    <p class="text-muted">{{ story.description }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Story Content -->
+                <div class="card-body">
+                    <h6 class="text-muted mb-3">故事内容</h6>
+                    <div class="story-content" style="line-height: 1.8; font-size: 1.1rem;">
+                        {{ story.content | replace('\n\n', '</p><p>') | replace('\n', '<br>') | safe }}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                {% if story.status == 'pending' %}
+                <div class="card-footer bg-light border-0">
+                    <div class="d-flex justify-content-end gap-2">
+                        <button class="btn btn-danger" onclick="rejectStory({{ story.id }})">
+                            <i class="fas fa-times me-2"></i>拒绝发布
+                        </button>
+                        <button class="btn btn-success" onclick="approveStory({{ story.id }})">
+                            <i class="fas fa-check me-2"></i>审核通过
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Author Info -->
+            <div class="card border-0 shadow-warm mb-4">
+                <div class="card-header bg-light border-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2 text-primary"></i>
+                        作者信息
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
+                             style="width: 50px; height: 50px;">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">{{ story.author }}</h6>
+                            <small class="text-muted">{{ story.author_email }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Story Stats -->
+            <div class="card border-0 shadow-warm mb-4">
+                <div class="card-header bg-light border-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2 text-primary"></i>
+                        故事统计
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h4 mb-1 text-primary">{{ story.view_count or 0 }}</div>
+                                <small class="text-muted">浏览量</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h4 mb-1 text-success">{{ story.like_count or 0 }}</div>
+                                <small class="text-muted">点赞数</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h5 mb-1 text-info">{{ story.word_count or 0 }}</div>
+                                <small class="text-muted">字数</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h5 mb-1 text-warning">{{ story.reading_time or 0 }}</div>
+                                <small class="text-muted">阅读时长(分)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="card border-0 shadow-warm">
+                <div class="card-header bg-light border-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock me-2 text-primary"></i>
+                        时间线
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item d-flex align-items-center py-2">
+                            <div class="timeline-marker bg-primary me-3"></div>
+                            <div>
+                                <small class="text-muted">创建时间</small>
+                                <div class="fw-semibold">{{ story.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                            </div>
+                        </div>
+                        
+                        {% if story.updated_at and story.updated_at != story.created_at %}
+                        <div class="timeline-item d-flex align-items-center py-2">
+                            <div class="timeline-marker bg-info me-3"></div>
+                            <div>
+                                <small class="text-muted">最后更新</small>
+                                <div class="fw-semibold">{{ story.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if story.published_at %}
+                        <div class="timeline-item d-flex align-items-center py-2">
+                            <div class="timeline-marker bg-success me-3"></div>
+                            <div>
+                                <small class="text-muted">发布时间</small>
+                                <div class="fw-semibold">{{ story.published_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.story-content {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.story-content p:first-child::first-letter {
+    font-size: 3em;
+    font-weight: bold;
+    float: left;
+    line-height: 1;
+    margin: 0 8px 0 0;
+    color: var(--color-primary);
+}
+
+.timeline-marker {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.badge.bg-outline-primary {
+    background-color: transparent !important;
+    border: 1px solid var(--color-primary);
+    color: var(--color-primary);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function approveStory(storyId) {
+    if (confirm('确认通过这个故事的审核吗？故事将会在故事库中公开显示。')) {
+        fetch(`/admin/api/approve_story/${storyId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('故事审核通过！');
+                // Redirect to stories list or reload page
+                window.location.href = "{{ url_for('admin_stories', status='published') }}";
+            } else {
+                alert('操作失败: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('网络错误，请重试');
+        });
+    }
+}
+
+function rejectStory(storyId) {
+    if (confirm('确认拒绝这个故事吗？故事将不会在故事库中显示。')) {
+        fetch(`/admin/api/reject_story/${storyId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('故事已被拒绝');
+                // Redirect to stories list
+                window.location.href = "{{ url_for('admin_stories', status='rejected') }}";
+            } else {
+                alert('操作失败: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('网络错误，请重试');
+        });
+    }
+}
+</script>
+{% endblock %}

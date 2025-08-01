@@ -2,7 +2,7 @@
 
 {% block title %}故事传承 - 记录传承每一个珍贵故事{% endblock %}
 
-{% block content %}
+{% block extra_css %}
 <style>
     /* 故事传承网站 - 温暖怀旧风格 */
     :root {
@@ -248,7 +248,9 @@
         }
     }
 </style>
+{% endblock %}
 
+{% block content %}
 <!-- Hero Section -->
 <section class="hero-section">
     <!-- 背景装饰球体 -->
@@ -281,7 +283,7 @@
                             <i class="fa-solid fa-pencil me-2"></i>
                             开始记录故事
                         </a>
-                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary btn-lg">
+                        <a href="{{ url_for('my_stories') }}" class="btn btn-outline-primary btn-lg">
                             <i class="fa-solid fa-book me-2"></i>
                             我的故事
                         </a>
@@ -512,6 +514,14 @@
                 </div>
             </div>
         </div>
+        
+        <div class="row mt-5">
+            <div class="col-12 text-center">
+                <a href="{{ url_for('story_library') }}" class="btn btn-outline-primary btn-lg px-5">
+                    <i class="fa-solid fa-book-open me-2"></i>查看更多故事
+                </a>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -535,8 +545,8 @@
                                     <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4">
                                         <i class="fa-solid fa-microphone me-2"></i>立即开始录制
                                     </a>
-                                    <a href="#" class="btn btn-outline-primary btn-lg px-4">
-                                        <i class="fa-solid fa-play me-2"></i>观看演示
+                                    <a href="{{ url_for('story_library') }}" class="btn btn-outline-primary btn-lg px-4">
+                                        <i class="fa-solid fa-book-open me-2"></i>浏览故事珍藏馆
                                     </a>
                                 </div>
                                 

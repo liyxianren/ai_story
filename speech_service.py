@@ -124,7 +124,8 @@ class SpeechTranscriptionService:
                             'transcript': polished_story,  # Polished version as main transcript
                             'raw_transcript': combined_transcript,  # Keep original for reference
                             'confidence': average_confidence,
-                            'language': google_language_code,
+                            'language': 'en-US',  # Final story is always in English
+                            'original_language': google_language_code,  # Keep track of original language
                             'segments': len(result['results']),
                             'polished': True,
                             'gemini': gemini_result
