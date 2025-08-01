@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}故事珍藏馆 - VoiceVault{% endblock %}
+{% block title %}Story Library - StoryKeeper{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -366,10 +366,10 @@
         <div class="row align-items-center g-5">
             <div class="col-lg-6 animate-fade-in-up">
                 <h1 class="display-3 fw-bold mb-4" style="font-family: var(--font-serif); color: #92400e; line-height: 1.2; letter-spacing: -0.02em;">
-                    故事<span style="background: linear-gradient(135deg, var(--color-primary), #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">珍藏</span>馆
+                    Story <span style="background: linear-gradient(135deg, var(--color-primary), #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Library</span>
                 </h1>
                 <p class="fs-5 mb-5" style="max-width: 500px; color: #6b7280; line-height: 1.7; font-weight: 400;">
-                    探索那些由社区成员分享的珍贵故事，感受不同人生的<span style="color: var(--color-primary); font-weight: 600;">精彩历程</span>与智慧传承
+                    Discover precious stories shared by our community members, experience different life <span style="color: var(--color-primary); font-weight: 600;">journeys</span> and wisdom heritage
                 </p>
             </div>
             <div class="col-lg-6 animate-fade-in-right">
@@ -480,10 +480,10 @@
             {% else %}
             <div class="empty-state">
                 <i class="fas fa-book-heart"></i>
-                <h3 class="h4 fw-bold mb-3">故事等待被发现</h3>
-                <p class="mb-4">每个人都有独特的故事值得被记录和分享<br>成为第一个在这里分享故事的人吧！</p>
+                <h3 class="h4 fw-bold mb-3">Stories Waiting to be Discovered</h3>
+                <p class="mb-4">Everyone has unique stories worth recording and sharing<br>Be the first to share your story here!</p>
                 <a href="{{ url_for('record_story') }}" class="btn btn-primary">
-                    <i class="fa-solid fa-microphone me-2"></i>开始记录我的故事
+                    <i class="fa-solid fa-microphone me-2"></i>Start Recording My Story
                 </a>
             </div>
             {% endif %}
@@ -492,10 +492,10 @@
         <!-- Empty State for Filtered Results -->
         <div id="empty-filtered-state" class="empty-state" style="display: none;">
             <i class="fas fa-search"></i>
-            <h3 class="h4 fw-bold mb-3">这个分类还没有故事</h3>
-            <p class="mb-4">尝试选择其他分类，或者成为第一个在这个分类<br>分享故事的人！</p>
+            <h3 class="h4 fw-bold mb-3">No Stories in This Category Yet</h3>
+            <p class="mb-4">Try selecting another category, or become the first person<br>to share a story in this category!</p>
             <a href="{{ url_for('record_story') }}" class="btn btn-primary">
-                <i class="fa-solid fa-plus me-2"></i>添加第一个故事
+                <i class="fa-solid fa-plus me-2"></i>Add the First Story
             </a>
         </div>
     </div>
