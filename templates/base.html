@@ -12,11 +12,21 @@
     
     <style>
         :root {
-            --warm-primary: #FF8A65;
-            --warm-primary-dark: #E64A19;
-            --warm-primary-light: #FFCCBC;
-            --warm-secondary: #8D6E63;
-            --warm-neutral: #D7CCC8;
+            /* 故事传承网站 - 温暖怀旧风格 */
+            --color-primary: #d97706; /* 琥珀色作为主色调 */
+            --color-primary-light: #fbbf24;
+            --color-primary-dark: #92400e;
+            --color-secondary: #7f1d1d;
+            --color-neutral-light: #fef3c7;
+            --color-neutral: #f59e0b;
+            --color-neutral-dark: #4b5563;
+            
+            /* 兼容原有变量 */
+            --warm-primary: #d97706;
+            --warm-primary-dark: #92400e;
+            --warm-primary-light: #fbbf24;
+            --warm-secondary: #7f1d1d;
+            --warm-neutral: #fef3c7;
             --warm-background: #FFF8E1;
             --warm-success: #81C784;
             --warm-info: #64B5F6;
@@ -33,16 +43,17 @@
         }
         
         .navbar {
-            background: rgba(255, 255, 255, 0.98) !important;
-            backdrop-filter: blur(15px);
-            box-shadow: 0 2px 20px rgba(141, 110, 99, 0.15);
-            border-bottom: 1px solid var(--warm-primary-light);
+            background: rgba(254, 243, 199, 0.8) !important;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 2px 20px rgba(217, 119, 6, 0.15);
+            border-bottom: 1px solid rgba(217, 119, 6, 0.1);
         }
         
         .navbar-brand {
-            color: var(--warm-primary-dark) !important;
-            font-family: 'Georgia', serif;
+            color: #92400e !important;
+            font-family: Georgia, Cambria, "Times New Roman", Times, serif;
             font-size: 1.4rem;
+            font-weight: bold;
         }
         
         .card {
@@ -59,37 +70,42 @@
         }
         
         .btn-primary {
-            background: linear-gradient(45deg, var(--warm-primary), var(--warm-primary-dark));
-            border: none;
-            border-radius: 30px;
-            padding: 14px 32px;
-            font-weight: 600;
-            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+            color: #fff;
+            font-weight: 500;
+            border-radius: 9999px;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(255, 138, 101, 0.3);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(255, 138, 101, 0.4);
-            background: linear-gradient(45deg, var(--warm-primary-dark), #D84315);
+            background-color: var(--color-primary-dark);
+            border-color: var(--color-primary-dark);
+            color: #fff;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
         }
         
         .btn-outline-primary {
-            border: 2px solid var(--warm-primary);
-            color: var(--warm-primary-dark);
-            border-radius: 30px;
-            padding: 12px 30px;
-            font-weight: 600;
+            background-color: transparent;
+            border: 2px solid var(--color-primary);
+            color: var(--color-primary);
+            font-weight: 500;
+            border-radius: 9999px;
             transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .btn-outline-primary:hover {
-            background: var(--warm-primary);
-            border-color: var(--warm-primary);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 138, 101, 0.3);
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+            color: #fff;
+            transform: scale(1.05);
         }
         
         .form-control {
@@ -149,13 +165,21 @@
         }
         
         .nav-link {
-            color: var(--warm-secondary) !important;
+            color: #6b7280 !important;
             font-weight: 500;
-            transition: color 0.3s ease;
+            transition: all 0.2s ease;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.5rem !important;
         }
         
         .nav-link:hover {
-            color: var(--warm-primary) !important;
+            color: #374151 !important;
+            border-bottom-color: #fbbf24;
+        }
+        
+        .nav-link.active {
+            color: #111827 !important;
+            border-bottom-color: var(--color-primary);
         }
     </style>
 </head>
@@ -163,8 +187,9 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light fixed-top">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">
-                <i class="fas fa-microphone-alt me-2"></i>VoiceVault
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url_for('index') }}">
+                <i class="fa-solid fa-book-open me-2" style="color: var(--color-primary); font-size: 1.5rem;"></i>
+                <span>故事传承</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -175,40 +200,42 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('index') }}">
-                            <i class="fas fa-home me-1"></i>Home
+                            首页
                         </a>
                     </li>
                     
                     {% if current_user.is_authenticated %}
                         <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('record_story') }}">
+                                记录故事
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('dashboard') }}">
-                                <i class="fas fa-microphone me-1"></i>My Stories
+                                故事库
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('profile') }}">
-                                <i class="fas fa-user-circle me-1"></i>Profile
+                                个人中心
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('logout') }}">
-                                <i class="fas fa-sign-out-alt me-1"></i>Logout
+                        <li class="nav-item ms-3">
+                            <a class="btn btn-primary btn-sm" href="{{ url_for('logout') }}">
+                                <i class="fa-solid fa-sign-out-alt me-2"></i>
+                                退出登录
                             </a>
-                        </li>
-                        <li class="nav-item">
-                            <span class="navbar-text text-primary ms-2">
-                                <i class="fas fa-user me-1"></i>{{ current_user.username }}
-                            </span>
                         </li>
                     {% else %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('login') }}">
-                                <i class="fas fa-sign-in-alt me-1"></i>Login
+                                登录
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('register') }}">
-                                <i class="fas fa-user-plus me-1"></i>Register
+                        <li class="nav-item ms-3">
+                            <a class="btn btn-primary btn-sm" href="{{ url_for('register') }}">
+                                <i class="fa-solid fa-user-plus me-2"></i>
+                                注册
                             </a>
                         </li>
                     {% endif %}
@@ -244,13 +271,13 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-light py-4 mt-5">
+    <footer class="py-4 mt-5" style="background-color: #78350f; color: #fef3c7;">
         <div class="container text-center">
             <p class="mb-0">
-                <i class="fas fa-microphone me-2"></i>
-                Preserving Voices, Building Bridges | 
-                <i class="fas fa-heart text-danger mx-2"></i>
-                Every Story Matters
+                <i class="fa-solid fa-book-open me-2"></i>
+                故事传承 - 记录每一个珍贵的记忆 | 
+                <i class="fa-solid fa-heart mx-2" style="color: #fbbf24;"></i>
+                每个故事都值得被珍藏
             </p>
         </div>
     </footer>
@@ -270,6 +297,48 @@
                 }
             });
         }, 5000);
+        
+        // 语言切换功能
+        function changeLanguage(languageCode) {
+            // 显示加载状态
+            const loadingHtml = `
+                <div class="d-flex justify-content-center align-items-center py-3">
+                    <div class="spinner-border spinner-border-sm me-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span>切换语言中...</span>
+                </div>
+            `;
+            
+            // 可以在这里显示加载状态
+            
+            // 调用后端 API 切换语言
+            fetch(`/set_language/${languageCode}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 刷新页面以应用新语言
+                    window.location.reload();
+                } else {
+                    console.error('语言切换失败:', data.error);
+                    alert('语言切换失败，请稍后再试');
+                }
+            })
+            .catch(error => {
+                console.error('请求错误:', error);
+                alert('网络错误，请稍后再试');
+            });
+        }
+        
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 可以在这里添加其他初始化代码
+        });
     </script>
     
     {% block scripts %}{% endblock %}

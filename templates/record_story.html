@@ -327,6 +327,18 @@
                                             您可以直接编辑润色后的故事 | You can edit the polished story directly above.
                                             <span id="confidenceScore"></span>
                                         </div>
+                                        
+                                        <!-- Publish Story Button -->
+                                        <div class="mt-3 text-center">
+                                            <button id="publishStoryBtn" class="btn btn-primary btn-lg" onclick="goToPublish()" style="display: none;">
+                                                <i class="fas fa-paper-plane me-2"></i>
+                                                发布我的故事 | Publish My Story
+                                            </button>
+                                            <small class="d-block mt-2 text-muted">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                完善故事信息并分享给更多读者 | Complete story details and share with readers
+                                            </small>
+                                        </div>
                                     </div>
                                     
                                     <!-- Raw Transcription (Collapsible) -->
@@ -726,15 +738,29 @@ class VoiceRecorder {
         this.chatMessages = [];
         this.currentStoryText = '';
         this.selectedLanguageCode = 'en-US';
+        
+        // Initialize language selector
+        this.initializeLanguageSelector();
     }
     
     initializeLanguageSelector() {
+        console.log('Initializing language selector...');
+        
         this.selectedLanguageElement = document.getElementById('selectedLanguage');
         this.languageDropdown = document.getElementById('languageDropdown');
         this.languageSearch = document.getElementById('languageSearch');
         this.allLanguagesContainer = document.getElementById('allLanguages');
         this.recentLanguagesContainer = document.getElementById('recentLanguages');
         this.languageSelectInput = document.getElementById('languageSelect');
+        
+        console.log('Elements found:', {
+            selectedLanguageElement: !!this.selectedLanguageElement,
+            languageDropdown: !!this.languageDropdown,
+            languageSearch: !!this.languageSearch,
+            allLanguagesContainer: !!this.allLanguagesContainer,
+            recentLanguagesContainer: !!this.recentLanguagesContainer,
+            languageSelectInput: !!this.languageSelectInput
+        });
         
         // Populate all languages
         this.populateAllLanguages();
@@ -744,11 +770,19 @@ class VoiceRecorder {
         
         // Bind language selector events
         this.bindLanguageSelectorEvents();
+        
+        // Backup event binding in case elements aren't ready
+        setTimeout(() => {
+            this.bindBackupEvents();
+        }, 100);
+        
+        console.log('Language selector initialized');
     }
     
     bindLanguageSelectorEvents() {
         // Toggle dropdown
         this.selectedLanguageElement.addEventListener('click', (e) => {
+            console.log('Language selector clicked');
             e.stopPropagation();
             this.toggleLanguageDropdown();
         });
@@ -769,6 +803,20 @@ class VoiceRecorder {
         this.languageSearch.addEventListener('keydown', (e) => {
             this.handleKeyboardNavigation(e);
         });
+    }
+    
+    bindBackupEvents() {
+        // Backup event binding using document.getElementById
+        const selectedLanguageElement = document.getElementById('selectedLanguage');
+        if (selectedLanguageElement && !selectedLanguageElement.hasAttribute('data-event-bound')) {
+            console.log('Binding backup click event');
+            selectedLanguageElement.addEventListener('click', (e) => {
+                console.log('Backup language selector clicked');
+                e.stopPropagation();
+                this.toggleLanguageDropdown();
+            });
+            selectedLanguageElement.setAttribute('data-event-bound', 'true');
+        }
     }
     
     populateAllLanguages() {
@@ -824,6 +872,10 @@ class VoiceRecorder {
     }
     
     toggleLanguageDropdown() {
+        console.log('Toggle language dropdown called');
+        console.log('Dropdown element:', this.languageDropdown);
+        console.log('Has d-none class:', this.languageDropdown.classList.contains('d-none'));
+        
         if (this.languageDropdown.classList.contains('d-none')) {
             this.openLanguageDropdown();
         } else {
@@ -832,18 +884,44 @@ class VoiceRecorder {
     }
     
     openLanguageDropdown() {
+        console.log('Opening language dropdown');
+        console.log('Dropdown element before:', this.languageDropdown);
+        console.log('Current classes:', this.languageDropdown.className);
+        
         this.languageDropdown.classList.remove('d-none');
-        this.selectedLanguageElement.querySelector('.dropdown-arrow').style.transform = 'rotate(180deg)';
+        this.languageDropdown.style.display = 'block'; // Force display
+        this.languageDropdown.style.visibility = 'visible'; // Force visibility
+        this.languageDropdown.style.opacity = '1'; // Force opacity
+        
+        console.log('Classes after removal:', this.languageDropdown.className);
+        console.log('Display style:', this.languageDropdown.style.display);
+        
+        const arrow = this.selectedLanguageElement.querySelector('.dropdown-arrow');
+        if (arrow) {
+            arrow.style.transform = 'rotate(180deg)';
+        }
         
         // Focus search input
         setTimeout(() => {
-            this.languageSearch.focus();
+            if (this.languageSearch) {
+                this.languageSearch.focus();
+            }
         }, 100);
+        
+        console.log('Language dropdown opened');
     }
     
     closeLanguageDropdown() {
+        console.log('Closing language dropdown');
         this.languageDropdown.classList.add('d-none');
-        this.selectedLanguageElement.querySelector('.dropdown-arrow').style.transform = 'rotate(0deg)';
+        this.languageDropdown.style.display = 'none'; // Force hide
+        
+        const arrow = this.selectedLanguageElement.querySelector('.dropdown-arrow');
+        if (arrow) {
+            arrow.style.transform = 'rotate(0deg)';
+        }
+        
+        console.log('Language dropdown closed');
     }
     
     filterLanguages(searchTerm) {
@@ -1148,7 +1226,8 @@ class VoiceRecorder {
             
             const response = await fetch('/api/transcribe', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                credentials: 'same-origin'
             });
             
             console.log('📨 API响应状态 RESPONSE STATUS:', response.status);
@@ -1359,7 +1438,8 @@ class VoiceRecorder {
             
             const response = await fetch('/api/transcribe', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                credentials: 'same-origin'
             });
             
             const result = await response.json();
@@ -1941,7 +2021,8 @@ class VoiceRecorder {
             
             const response = await fetch('/api/transcribe', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                credentials: 'same-origin'
             });
             
             console.log('📨 录音API响应状态 RECORDING RESPONSE STATUS:', response.status);
@@ -2681,6 +2762,11 @@ class VoiceRecorder {
         // Show the transcription result section
         document.getElementById('transcriptionResult').classList.remove('d-none');
         
+        // Show publish button if story is polished
+        if (isPolished && this.currentStoryText) {
+            document.getElementById('publishStoryBtn').style.display = 'inline-block';
+        }
+        
         console.log('✅ 转录结果显示完成 TRANSCRIPTION RESULT DISPLAY COMPLETE');
         console.log('Story available for chat:', !!this.currentStoryText);
     }
@@ -2692,9 +2778,30 @@ class VoiceRecorder {
         const modal = new bootstrap.Modal(document.getElementById('errorModal'));
         modal.show();
     }
+    
+    getLanguageName(languageCode) {
+        const languages = {
+            'en-US': 'English (US)',
+            'zh-CN': '中文 (简体)',
+            'zh-TW': '中文 (繁體)',
+            'ja-JP': '日本語',
+            'ko-KR': '한국어',
+            'es-ES': 'Español',
+            'fr-FR': 'Français',
+            'de-DE': 'Deutsch',
+            'it-IT': 'Italiano',
+            'pt-BR': 'Português (Brasil)',
+            'ru-RU': 'Русский',
+            'ar-SA': 'العربية',
+            'hi-IN': 'हिन्दी',
+            'th-TH': 'ไทย',
+            'vi-VN': 'Tiếng Việt'
+        };
+        return languages[languageCode] || languageCode;
+    }
 }
 
-// CSS for recording pulse animation and language selector
+// Initialize dynamic styles
 const style = document.createElement('style');
 style.textContent = `
     .recording-pulse {
@@ -2815,78 +2922,202 @@ style.textContent = `
         background-color: #FFF8E1 !important;
         transform: scale(1.02);
     }
-    
-    .file-info {
-        animation: fadeInUp 0.5s ease;
-    }
-    
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    .audio-preview audio {
-        border: 2px solid var(--warm-neutral);
-        border-radius: 15px;
-        outline: none;
-    }
-    
-    .audio-preview audio:focus {
-        border-color: var(--warm-primary);
-        box-shadow: 0 0 0 0.2rem rgba(255, 138, 101, 0.25);
-    }
-    
-    .file-actions .btn {
-        border-radius: 25px;
-        padding: 12px 24px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-    
-    .file-actions .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    }
-    
-    .upload-progress {
-        animation: fadeIn 0.3s ease;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    
-    /* Recording Mode Toggle Styles */
-    .btn-group .btn-check:checked + .btn {
-        background-color: var(--warm-primary);
-        border-color: var(--warm-primary);
-        color: white;
-    }
-    
-    .btn-group .btn {
-        transition: all 0.3s ease;
-        font-weight: 600;
-        padding: 12px 24px;
-    }
-    
-    .btn-group .btn:hover {
-        background-color: var(--warm-primary-light);
-        border-color: var(--warm-primary);
-        color: var(--warm-primary-dark);
-    }
 `;
+
+// Add dynamic styles to page
 document.head.appendChild(style);
+
+// Global variable to store recorder instance
+window.storyRecorder = null;
 
 // Initialize recorder when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    new VoiceRecorder();
+    window.storyRecorder = new VoiceRecorder();
 });
 </script>
+
+<style>
+.file-info {
+    animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.audio-preview audio {
+    border: 2px solid var(--warm-neutral);
+    border-radius: 15px;
+    outline: none;
+}
+
+.audio-preview audio:focus {
+    border-color: var(--warm-primary);
+    box-shadow: 0 0 0 0.2rem rgba(255, 138, 101, 0.25);
+}
+
+.file-actions .btn {
+    border-radius: 25px;
+    padding: 12px 24px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.file-actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.upload-progress {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Recording Mode Toggle Styles */
+.btn-group .btn-check:checked + .btn {
+    background-color: var(--warm-primary);
+    border-color: var(--warm-primary);
+    color: white;
+}
+
+.btn-group .btn {
+    transition: all 0.3s ease;
+    font-weight: 600;
+    padding: 12px 24px;
+}
+
+.btn-group .btn:hover {
+    background-color: var(--warm-primary-light);
+    border-color: var(--warm-primary);
+    color: var(--warm-primary-dark);
+}
+</style>
+
+<script>
+// Story publishing functionality
+function goToPublish() {
+    // Get current story data
+    const recorder = window.storyRecorder;
+    if (!recorder || !recorder.currentStoryText) {
+        alert('没有可发布的故事内容 | No story content to publish');
+        return;
+    }
+    
+    // Prepare story data for publishing
+    const storyData = {
+        transcription: recorder.originalTranscription || '',
+        polished_content: recorder.currentStoryText || '',
+        language: recorder.selectedLanguage || 'zh-CN',
+        language_name: recorder.getLanguageName(recorder.selectedLanguage) || '中文',
+        timestamp: new Date().toISOString()
+    };
+    
+    // Store in session storage for publish page
+    sessionStorage.setItem('recordedStory', JSON.stringify(storyData));
+    
+    // Navigate to publish page
+    window.location.href = '/publish_story';
+}
+
+// Update publish button visibility when story is edited
+document.addEventListener('DOMContentLoaded', function() {
+    const polishedStoryText = document.getElementById('polishedStoryText');
+    if (polishedStoryText) {
+        polishedStoryText.addEventListener('input', function() {
+            // Update the current story text in recorder
+            if (window.storyRecorder) {
+                window.storyRecorder.currentStoryText = this.textContent;
+                
+                // Show publish button if there's content
+                const publishBtn = document.getElementById('publishStoryBtn');
+                if (this.textContent.trim()) {
+                    publishBtn.style.display = 'inline-block';
+                } else {
+                    publishBtn.style.display = 'none';
+                }
+            }
+        });
+    }
+});
+</script>
+
+<style>
+.file-info {
+    animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.audio-preview audio {
+    border: 2px solid var(--warm-neutral);
+    border-radius: 15px;
+    outline: none;
+}
+
+.audio-preview audio:focus {
+    border-color: var(--warm-primary);
+    box-shadow: 0 0 0 0.2rem rgba(255, 138, 101, 0.25);
+}
+
+.file-actions .btn {
+    border-radius: 25px;
+    padding: 12px 24px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.file-actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.upload-progress {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Recording Mode Toggle Styles */
+.btn-group .btn-check:checked + .btn {
+    background-color: var(--warm-primary);
+    border-color: var(--warm-primary);
+    color: white;
+}
+
+.btn-group .btn {
+    transition: all 0.3s ease;
+    font-weight: 600;
+    padding: 12px 24px;
+}
+
+.btn-group .btn:hover {
+    background-color: var(--warm-primary-light);
+    border-color: var(--warm-primary);
+    color: var(--warm-primary-dark);
+}
+</style>
+
 {% endblock %} 

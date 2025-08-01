@@ -1,0 +1,516 @@
+{% extends "base.html" %}
+
+{% block title %}发布故事 - AI故事平台{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0">📖 发布我的故事</h1>
+                    <p class="text-muted">完善故事信息，分享给更多读者</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> 返回
+                    </a>
+                </div>
+            </div>
+
+            <!-- Story Publishing Form -->
+            <form id="publishStoryForm" enctype="multipart/form-data">
+                <div class="row">
+                    <!-- Left Column - Story Content -->
+                    <div class="col-lg-8">
+                        <!-- Story Content Card -->
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0"><i class="fas fa-book-open"></i> 故事内容</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Story Title -->
+                                <div class="mb-3">
+                                    <label for="storyTitle" class="form-label">
+                                        <i class="fas fa-heading"></i> 故事标题 <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="storyTitle" name="title" 
+                                           placeholder="给你的故事起个吸引人的标题..." required maxlength="255">
+                                    <div class="form-text">标题将显示在故事列表中，建议简洁有吸引力</div>
+                                </div>
+
+                                <!-- Story Content Preview -->
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-align-left"></i> 故事内容预览
+                                    </label>
+                                    <div id="storyContentPreview" class="form-control" style="height: 300px; overflow-y: auto; background-color: #f8f9fa;">
+                                        <div class="text-muted text-center py-5">
+                                            <i class="fas fa-file-alt fa-3x mb-3"></i>
+                                            <p>故事内容将从录制页面自动获取</p>
+                                            <small>语言: <span id="storyLanguage">未知</span> | 字数: <span id="wordCount">0</span></small>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="storyContent" name="content" required>
+                                    <input type="hidden" id="languageCode" name="language">
+                                    <input type="hidden" id="languageName" name="language_name">
+                                </div>
+
+                                <!-- Auto-generate Description -->
+                                <div class="mb-3">
+                                    <label for="storyDescription" class="form-label">
+                                        <i class="fas fa-align-justify"></i> 故事简介
+                                    </label>
+                                    <textarea class="form-control" id="storyDescription" name="description" 
+                                              rows="4" placeholder="描述你的故事主要内容和亮点..."></textarea>
+                                    <div class="mt-2">
+                                        <button type="button" class="btn btn-outline-info btn-sm" id="generateDescriptionBtn">
+                                            <i class="fas fa-magic"></i> AI 自动生成简介
+                                        </button>
+                                        <small class="form-text text-muted ms-2">使用AI根据故事内容自动生成吸引人的简介</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Story Type Selection Card -->
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0"><i class="fas fa-bookmark"></i> 故事类型</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted mb-3">选择最适合您故事的类型</p>
+                                
+                                <!-- Story Types -->
+                                <div id="storyTypes">
+                                    <!-- Story types will be loaded dynamically -->
+                                    <div class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="mt-2">正在加载故事类型...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column - Story Settings -->
+                    <div class="col-lg-4">
+                        <!-- Cover Image Card -->
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-warning text-white">
+                                <h5 class="mb-0"><i class="fas fa-image"></i> 故事封面</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Image Upload Area -->
+                                <div class="mb-3">
+                                    <div id="imageUploadArea" class="border-2 border-dashed border-secondary rounded p-4 text-center" 
+                                         style="min-height: 200px; cursor: pointer;" onclick="document.getElementById('coverImage').click()">
+                                        <div id="imagePreview">
+                                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                            <p class="text-muted">点击上传故事封面图片</p>
+                                            <small class="text-muted">支持 JPG, PNG, WebP 格式，最大 5MB</small>
+                                        </div>
+                                    </div>
+                                    <input type="file" id="coverImage" name="cover_image" accept="image/jpeg,image/png,image/webp" 
+                                           style="display: none;" onchange="previewImage(this)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Publishing Options Card -->
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0"><i class="fas fa-cog"></i> 发布设置</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Publishing Status -->
+                                <div class="mb-3">
+                                    <label class="form-label">发布状态</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="status" id="statusDraft" value="draft" checked>
+                                        <label class="form-check-label" for="statusDraft">
+                                            <i class="fas fa-edit text-warning"></i> 保存为草稿
+                                        </label>
+                                        <small class="form-text text-muted d-block">暂时保存，稍后继续编辑</small>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="status" id="statusPending" value="pending">
+                                        <label class="form-check-label" for="statusPending">
+                                            <i class="fas fa-clock text-info"></i> 提交审核
+                                        </label>
+                                        <small class="form-text text-muted d-block">提交给管理员审核后发布</small>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="status" id="statusPrivate" value="private">
+                                        <label class="form-check-label" for="statusPrivate">
+                                            <i class="fas fa-lock text-secondary"></i> 私人收藏
+                                        </label>
+                                        <small class="form-text text-muted d-block">仅自己可见</small>
+                                    </div>
+                                </div>
+
+                                <!-- Story Stats -->
+                                <div class="row text-center">
+                                    <div class="col">
+                                        <div class="border rounded p-2">
+                                            <div class="text-primary fw-bold" id="displayWordCount">0</div>
+                                            <small class="text-muted">字数</small>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="border rounded p-2">
+                                            <div class="text-info fw-bold" id="readingTime">0</div>
+                                            <small class="text-muted">阅读分钟</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-paper-plane"></i> 发布故事
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="window.history.back()">
+                                        <i class="fas fa-times"></i> 取消
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary mb-3" role="status"></div>
+                <h5 id="loadingMessage">正在处理...</h5>
+                <p class="text-muted mb-0">请稍候，不要关闭页面</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Page initialization
+document.addEventListener('DOMContentLoaded', function() {
+    loadStoryFromSession();
+    loadStoryTypes();
+    setupFormValidation();
+});
+
+// Load story content from session storage (from recording page)
+function loadStoryFromSession() {
+    const storyData = sessionStorage.getItem('recordedStory');
+    if (storyData) {
+        const data = JSON.parse(storyData);
+        
+        // Update content preview
+        const contentPreview = document.getElementById('storyContentPreview');
+        if (contentPreview) {
+            contentPreview.innerHTML = `<div class="p-3">${data.polished_content || data.transcription || ''}</div>`;
+        }
+        
+        // Set hidden form fields
+        const storyContent = document.getElementById('storyContent');
+        const languageCode = document.getElementById('languageCode');
+        const languageName = document.getElementById('languageName');
+        
+        if (storyContent) storyContent.value = data.polished_content || data.transcription || '';
+        if (languageCode) languageCode.value = data.language || 'zh-CN';
+        if (languageName) languageName.value = data.language_name || '中文';
+        
+        // Update language display
+        const storyLanguage = document.getElementById('storyLanguage');
+        if (storyLanguage) {
+            storyLanguage.textContent = data.language_name || '中文';
+        }
+        
+        // Calculate and display word count
+        const content = data.polished_content || data.transcription || '';
+        const wordCount = calculateWordCount(content);
+        
+        const wordCountEl = document.getElementById('wordCount');
+        const displayWordCountEl = document.getElementById('displayWordCount');
+        if (wordCountEl) wordCountEl.textContent = wordCount;
+        if (displayWordCountEl) displayWordCountEl.textContent = wordCount;
+        
+        // Calculate reading time (assuming 200 words per minute for Chinese, 250 for English)
+        const isEnglish = (data.language || '').includes('en');
+        const wordsPerMinute = isEnglish ? 250 : 200;
+        const readingTime = Math.max(1, Math.ceil(wordCount / wordsPerMinute));
+        
+        const readingTimeEl = document.getElementById('readingTime');
+        if (readingTimeEl) readingTimeEl.textContent = readingTime;
+    }
+}
+
+// Calculate word count
+function calculateWordCount(text) {
+    if (!text) return 0;
+    // For Chinese: count characters, for English: count words
+    const hasChineseChars = /[\u4e00-\u9fff]/.test(text);
+    if (hasChineseChars) {
+        return text.replace(/\s/g, '').length; // Chinese character count
+    } else {
+        return text.trim().split(/\s+/).length; // English word count
+    }
+}
+
+// Load story types (simplified tags)
+async function loadStoryTypes() {
+    try {
+        const response = await fetch('/api/get_story_types');
+        const data = await response.json();
+        
+        if (data.success) {
+            renderStoryTypes(data.story_types);
+        } else {
+            document.getElementById('storyTypes').innerHTML = 
+                '<div class="alert alert-warning">加载故事类型失败，请刷新页面重试</div>';
+        }
+    } catch (error) {
+        console.error('Failed to load story types:', error);
+        document.getElementById('storyTypes').innerHTML = 
+            '<div class="alert alert-danger">网络错误，无法加载故事类型</div>';
+    }
+}
+
+// Render story types - 简化为8个故事类型选1个
+function renderStoryTypes(storyTypes) {
+    const container = document.getElementById('storyTypes');
+    container.innerHTML = '';
+    
+    const typesHTML = storyTypes.map((type, index) => `
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="story_type" value="${type.id}" id="type${type.id}" ${index === 0 ? 'checked' : ''}>
+                <label class="form-check-label w-100" for="type${type.id}">
+                    <div class="card story-type-card ${index === 0 ? 'selected' : ''}" style="cursor: pointer; transition: all 0.3s ease;">
+                        <div class="card-body text-center py-3">
+                            <h6 class="card-title mb-1">${type.name}</h6>
+                            <small class="text-muted">${type.description}</small>
+                        </div>
+                    </div>
+                </label>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = `<div class="row">${typesHTML}</div>`;
+    
+    // Add click handlers for story type cards
+    container.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            // 重置所有卡片样式
+            container.querySelectorAll('.story-type-card').forEach(card => {
+                card.classList.remove('selected');
+                card.style.borderColor = '#dee2e6';
+                card.style.backgroundColor = '#fff';
+            });
+            
+            // 高亮选中的卡片
+            const selectedCard = container.querySelector(`label[for="${this.id}"] .story-type-card`);
+            if (selectedCard) {
+                selectedCard.classList.add('selected');
+                selectedCard.style.borderColor = '#007bff';
+                selectedCard.style.backgroundColor = '#f8f9ff';
+            }
+        });
+    });
+}
+
+// Preview uploaded image
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        
+        // Validate file size (5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('图片文件过大，请选择小于5MB的图片');
+            input.value = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('imagePreview').innerHTML = `
+                <img src="${e.target.result}" class="img-fluid rounded" style="max-height: 200px;">
+                <div class="mt-2">
+                    <small class="text-muted">${file.name}</small>
+                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeImage()">
+                        <i class="fas fa-times"></i> 移除
+                    </button>
+                </div>
+            `;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// Remove uploaded image
+function removeImage() {
+    document.getElementById('coverImage').value = '';
+    document.getElementById('imagePreview').innerHTML = `
+        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+        <p class="text-muted">点击上传故事封面图片</p>
+        <small class="text-muted">支持 JPG, PNG, WebP 格式，最大 5MB</small>
+    `;
+}
+
+// Generate description using AI
+document.getElementById('generateDescriptionBtn').addEventListener('click', async function() {
+    const content = document.getElementById('storyContent').value;
+    if (!content.trim()) {
+        alert('请先确保故事内容已加载');
+        return;
+    }
+    
+    const btn = this;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 生成中...';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch('/api/generate_description', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ content: content })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('storyDescription').value = data.description;
+        } else {
+            alert('生成简介失败: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error generating description:', error);
+        alert('网络错误，请稍后重试');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+});
+
+// Form validation and submission
+function setupFormValidation() {
+    const form = document.getElementById('publishStoryForm');
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Validate required fields
+        const title = document.getElementById('storyTitle').value.trim();
+        const content = document.getElementById('storyContent').value.trim();
+        
+        if (!title) {
+            alert('请输入故事标题');
+            document.getElementById('storyTitle').focus();
+            return;
+        }
+        
+        if (!content) {
+            alert('故事内容不能为空，请从录制页面获取内容');
+            return;
+        }
+        
+        // Get selected story type
+        const selectedType = document.querySelector('input[name="story_type"]:checked');
+        
+        if (!selectedType) {
+            alert('请为您的故事选择一个类型！');
+            return;
+        }
+        
+        console.log('Selected story type:', selectedType.value);
+        
+        // Show loading modal
+        showLoadingModal('正在发布故事...');
+        
+        // Prepare form data
+        const formData = new FormData(form);
+        formData.append('story_type', selectedType.value);
+        
+        try {
+            const response = await fetch('/api/publish_story', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Clear session storage
+                sessionStorage.removeItem('recordedStory');
+                
+                // Redirect to dashboard with success message
+                sessionStorage.setItem('publishSuccess', '故事发布成功！');
+                window.location.href = '/dashboard';
+            } else {
+                hideLoadingModal();
+                alert('发布失败: ' + result.error);
+            }
+        } catch (error) {
+            hideLoadingModal();
+            console.error('Error publishing story:', error);
+            alert('网络错误，请稍后重试');
+        }
+    });
+}
+
+// Loading modal functions
+function showLoadingModal(message) {
+    document.getElementById('loadingMessage').textContent = message;
+    new bootstrap.Modal(document.getElementById('loadingModal')).show();
+}
+
+function hideLoadingModal() {
+    bootstrap.Modal.getInstance(document.getElementById('loadingModal')).hide();
+}
+</script>
+
+<style>
+.tag-group .form-check-label {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.tag-group .form-check-label:hover {
+    transform: translateY(-1px);
+    shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#imageUploadArea {
+    transition: all 0.3s ease;
+}
+
+#imageUploadArea:hover {
+    border-color: var(--bs-primary) !important;
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+}
+
+.form-check-input:checked + .form-check-label {
+    background-color: var(--bs-secondary) !important;
+    color: white !important;
+    border-color: var(--bs-secondary) !important;
+}
+</style>
+{% endblock %}

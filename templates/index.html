@@ -1,46 +1,308 @@
 {% extends "base.html" %}
 
-{% block title %}Home - VoiceVault | Preserve Marginalized Voices{% endblock %}
+{% block title %}故事传承 - 记录传承每一个珍贵故事{% endblock %}
 
 {% block content %}
-<div class="hero-section">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold text-white mb-4">
-                    Welcome to VoiceVault
-                    <i class="fas fa-microphone-alt ms-3"></i>
+<style>
+    /* 故事传承网站 - 温暖怀旧风格 */
+    :root {
+        /* 颜色系统 - 温暖怀旧风格 */
+        --color-primary: #d97706; /* 琥珀色作为主色调，传达温暖和历史感 */
+        --color-primary-light: #fbbf24;
+        --color-primary-dark: #92400e;
+        --color-secondary: #7f1d1d; /* 深红色作为辅助色，用于强调和情感表达 */
+        --color-neutral-light: #fef3c7; /* 浅米色背景，营造纸张质感 */
+        --color-neutral: #f59e0b; /* 中性色 */
+        --color-neutral-dark: #4b5563; /* 深色文本 */
+        
+        /* 排版系统 */
+        --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+        --font-serif: Georgia, Cambria, "Times New Roman", Times, serif; /* 衬线字体用于标题，增强故事感 */
+        
+        /* 阴影和深度 */
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        
+        /* 圆角 */
+        --rounded-sm: 0.25rem;
+        --rounded: 0.5rem;
+        --rounded-lg: 0.75rem;
+        --rounded-xl: 1rem;
+        --rounded-2xl: 1.5rem;
+        --rounded-full: 9999px;
+    }
+    
+    /* 全局样式重置与基础设置 */
+    * {
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: var(--font-sans);
+        line-height: 1.6;
+        color: var(--color-neutral-dark);
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        color: #374151;
+    }
+    
+    /* 自定义动画效果 */
+    @keyframes blob {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(30px, -50px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+    
+    .animate-blob {
+        animation: blob 7s infinite;
+    }
+    
+    .animation-delay-2000 {
+        animation-delay: 2s;
+    }
+    
+    .animation-delay-4000 {
+        animation-delay: 4s;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .animate-fade-up {
+        animation: fadeInUp 0.8s ease-out;
+    }
+    
+    .animate-slide-right {
+        animation: slideInRight 0.8s ease-out 0.2s both;
+    }
+    
+    /* 英雄区域样式 */
+    .hero-section {
+        background: linear-gradient(to bottom, var(--color-neutral-light), #fff);
+        padding: 5rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* 背景装饰球体 */
+    .hero-section .blob {
+        position: absolute;
+        border-radius: 50%;
+        mix-blend-mode: multiply;
+        filter: blur(3rem);
+        opacity: 0.3;
+        pointer-events: none;
+    }
+    
+    .hero-section .blob-1 {
+        top: -10rem;
+        right: -10rem;
+        width: 20rem;
+        height: 20rem;
+        background-color: #fbbf24;
+    }
+    
+    .hero-section .blob-2 {
+        top: 10rem;
+        left: -5rem;
+        width: 20rem;
+        height: 20rem;
+        background-color: #fcd34d;
+    }
+    
+    .hero-section .blob-3 {
+        bottom: -10rem;
+        right: 5rem;
+        width: 20rem;
+        height: 20rem;
+        background-color: #f59e0b;
+    }
+    
+    .hero-section .gradient-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4rem;
+        background: linear-gradient(to top, #fff, transparent);
+    }
+    
+    /* 故事卡片悬停效果 */
+    .story-card {
+        background: #fff;
+        border-radius: var(--rounded-xl);
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .story-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .story-card img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .story-card:hover img {
+        transform: scale(1.1);
+    }
+    
+    /* 按钮样式 */
+    .btn-primary {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+        color: #fff;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--rounded-full);
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+    
+    .btn-primary:hover {
+        background-color: var(--color-primary-dark);
+        border-color: var(--color-primary-dark);
+        color: #fff;
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+    }
+    
+    .btn-outline-primary {
+        background-color: transparent;
+        border: 2px solid var(--color-primary);
+        color: var(--color-primary);
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--rounded-full);
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+    
+    .btn-outline-primary:hover {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+        color: #fff;
+        transform: scale(1.05);
+    }
+    
+    /* 行动召唤区域样式 */
+    .cta-section {
+        background-color: var(--color-neutral-light);
+        position: relative;
+    }
+    
+    .cta-card {
+        background-color: #fff;
+        border-radius: var(--rounded-2xl);
+        box-shadow: var(--shadow-xl);
+        overflow: hidden;
+    }
+    
+    /* 响应式调整 */
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 2rem 0;
+        }
+        
+        .hero-title {
+            font-size: 2.5rem !important;
+        }
+    }
+</style>
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <!-- 背景装饰球体 -->
+    <div class="blob blob-1 animate-blob"></div>
+    <div class="blob blob-2 animate-blob animation-delay-2000"></div>
+    <div class="blob blob-3 animate-blob animation-delay-4000"></div>
+    
+    <div class="container position-relative" style="z-index: 10;">
+        <div class="row align-items-center" style="min-height: 75vh;">
+            <div class="col-md-6 animate-fade-up">
+                <h1 class="display-4 fw-bold mb-4" style="font-family: var(--font-serif); color: #92400e; line-height: 1.2;">
+                    记录<span style="color: var(--color-primary);">故事</span>，<br />
+                    传承<span style="color: var(--color-primary);">记忆</span>
                 </h1>
-                <p class="lead text-white mb-4">
-                    A sanctuary for marginalized voices and untold stories. Record your narrative in any language, 
-                    preserve your heritage, and share your truth with the world.
+                <p class="fs-5 text-muted mb-4" style="max-width: 500px;">
+                    每一个故事都值得被珍藏。记录那些口口相传的智慧、历史与情感，让珍贵的记忆永不褪色。
                 </p>
-                
-                {% if not current_user.is_authenticated %}
-                    <div class="d-flex gap-3">
-                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
-                            <i class="fas fa-user-plus me-2"></i>Get Started
+                <div class="mt-4">
+                    {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3">
+                            <i class="fa-solid fa-pencil me-2"></i>
+                            开始记录故事
                         </a>
-                        <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">
-                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
+                            <i class="fa-solid fa-sign-in-alt me-2"></i>
+                            已有账户
                         </a>
-                    </div>
-                {% else %}
-                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">
-                        <i class="fas fa-heart me-2"></i>Go to My Stories
-                    </a>
-                {% endif %}
+                    {% else %}
+                        <a href="{{ url_for('record_story') }}" class="btn btn-primary btn-lg me-3">
+                            <i class="fa-solid fa-pencil me-2"></i>
+                            开始记录故事
+                        </a>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary btn-lg">
+                            <i class="fa-solid fa-book me-2"></i>
+                            我的故事
+                        </a>
+                    {% endif %}
+                </div>
             </div>
             
-            <div class="col-lg-6">
-                <div class="text-center">
-                    <div class="card">
-                        <div class="card-body p-5">
-                            <i class="fas fa-shield-alt feature-icon"></i>
-                            <h3 class="h4 mb-3">Secure & Reliable</h3>
-                            <p class="text-muted">
-                                Advanced security features including password hashing, 
-                                session management, and protected routes.
+            <div class="col-md-6 animate-slide-right">
+                <div class="position-relative">
+                    <div class="text-center" style="transform: rotate(1deg); transition: transform 0.5s ease;" onmouseover="this.style.transform='rotate(0deg)'" onmouseout="this.style.transform='rotate(1deg)'">
+                        <div class="rounded-3 overflow-hidden shadow-lg" style="max-width: 500px; margin: 0 auto;">
+                            <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
+                                 alt="古老的故事书与传承的智慧" 
+                                 class="img-fluid">
+                        </div>
+                        <div class="position-absolute bg-white p-3 rounded-3 shadow" 
+                             style="bottom: -1.5rem; left: -1.5rem; transform: rotate(-3deg); transition: transform 0.5s ease; max-width: 280px;"
+                             onmouseover="this.style.transform='rotate(0deg)'" 
+                             onmouseout="this.style.transform='rotate(-3deg)'">
+                            <p class="mb-0 fst-italic fw-medium" style="color: #92400e; font-size: 0.9rem;">
+                                "每一个故事都是连接过去与未来的桥梁"
                             </p>
                         </div>
                     </div>
@@ -48,119 +310,325 @@
             </div>
         </div>
     </div>
-</div>
-
-<div class="container py-5">
-    <div class="row">
-        <div class="col-12 text-center mb-5">
-            <h2 class="h1 fw-bold text-white">Features</h2>
-            <p class="lead text-white">Everything you need for user management</p>
-        </div>
-    </div>
     
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body text-center p-4">
-                    <i class="fas fa-user-plus feature-icon"></i>
-                    <h4 class="card-title">User Registration</h4>
-                    <p class="card-text">
-                        Easy and secure user registration with email validation 
-                        and duplicate checking.
+    <!-- 渐变遮罩 -->
+    <div class="gradient-overlay"></div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3" style="font-family: var(--font-serif); color: #92400e;">
+                简单三步，记录永恒
+            </h2>
+            <p class="fs-5 text-muted mx-auto" style="max-width: 600px;">
+                将您的珍贵故事转化为永久的数字记忆
+            </p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="story-card h-100 p-5 text-center">
+                    <div class="position-relative mb-4">
+                        <i class="fa-solid fa-microphone" style="font-size: 4rem; color: var(--color-primary); margin-bottom: 1.5rem;"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-white" style="background-color: var(--color-primary);">1</span>
+                    </div>
+                    <h4 class="fw-bold mb-3" style="font-family: var(--font-serif); color: #374151;">
+                        录制您的故事
+                    </h4>
+                    <p class="text-muted">
+                        使用我们的多语言录音功能，无论您讲什么语言，都能准确识别并转换为文字。支持中文、英文、西班牙文等23种语言。
                     </p>
                 </div>
             </div>
-        </div>
-        
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body text-center p-4">
-                    <i class="fas fa-lock feature-icon"></i>
-                    <h4 class="card-title">Secure Authentication</h4>
-                    <p class="card-text">
-                        Industry-standard password hashing and session-based 
-                        authentication system.
+            
+            <div class="col-lg-4">
+                <div class="story-card h-100 p-5 text-center">
+                    <div class="position-relative mb-4">
+                        <i class="fa-solid fa-brain" style="font-size: 4rem; color: var(--color-primary); margin-bottom: 1.5rem;"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-white" style="background-color: var(--color-primary);">2</span>
+                    </div>
+                    <h4 class="fw-bold mb-3" style="font-family: var(--font-serif); color: #374151;">
+                        AI智能优化
+                    </h4>
+                    <p class="text-muted">
+                        我们的AI助手会自动整理您的录音，生成优美的文字，添加合适的配图，让您的故事更加生动精彩。
                     </p>
                 </div>
             </div>
-        </div>
-        
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body text-center p-4">
-                    <i class="fas fa-user-edit feature-icon"></i>
-                    <h4 class="card-title">Profile Management</h4>
-                    <p class="card-text">
-                        Complete user profiles with bio, contact information, 
-                        and profile picture support.
-                    </p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body text-center p-4">
-                    <i class="fas fa-database feature-icon"></i>
-                    <h4 class="card-title">MySQL Integration</h4>
-                    <p class="card-text">
-                        Robust database integration with MySQL for reliable 
-                        data storage and retrieval.
-                    </p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body text-center p-4">
-                    <i class="fas fa-mobile-alt feature-icon"></i>
-                    <h4 class="card-title">Responsive Design</h4>
-                    <p class="card-text">
-                        Modern, responsive design that works perfectly on 
-                        desktop, tablet, and mobile devices.
-                    </p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body text-center p-4">
-                    <i class="fas fa-api feature-icon"></i>
-                    <h4 class="card-title">API Ready</h4>
-                    <p class="card-text">
-                        Built-in API endpoints for easy integration with 
-                        other applications and services.
+            
+            <div class="col-lg-4">
+                <div class="story-card h-100 p-5 text-center">
+                    <div class="position-relative mb-4">
+                        <i class="fa-solid fa-share-alt" style="font-size: 4rem; color: var(--color-primary); margin-bottom: 1.5rem;"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-white" style="background-color: var(--color-primary);">3</span>
+                    </div>
+                    <h4 class="fw-bold mb-3" style="font-family: var(--font-serif); color: #374151;">
+                        分享与传承
+                    </h4>
+                    <p class="text-muted">
+                        发布您的故事，让更多人了解您的经历。每个故事都是宝贵的历史片段，值得被永远保存。
                     </p>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
-{% if not current_user.is_authenticated %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-body text-center p-5">
-                    <h3 class="card-title mb-4">Ready to Get Started?</h3>
-                    <p class="card-text lead mb-4">
-                        Join our platform today and experience secure, modern user management.
-                    </p>
-                    <div class="d-flex justify-content-center gap-3">
-                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
-                            <i class="fas fa-rocket me-2"></i>Create Account
+<!-- Featured Stories Section -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3" style="font-family: var(--font-serif); color: #92400e;">
+                精选故事
+            </h2>
+            <p class="fs-5 text-muted mx-auto" style="max-width: 600px;">
+                发现那些触动人心的故事，感受不同人生的精彩历程
+            </p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="story-card">
+                    <div class="position-relative" style="height: 200px; overflow: hidden;">
+                        <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                             alt="奶奶的中秋节记忆" 
+                             class="story-card-image">
+                        <div class="position-absolute top-0 start-0 m-3">
+                            <span class="badge text-white px-3 py-2 rounded-pill" style="background-color: var(--color-primary); font-size: 0.75rem;">
+                                节日传统
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 flex-grow-1 d-flex flex-column">
+                        <h3 class="h5 fw-bold mb-2" style="font-family: var(--font-serif); color: #92400e;">
+                            奶奶的中秋节记忆
+                        </h3>
+                        
+                        <div class="d-flex align-items-center text-muted small mb-3">
+                            <i class="fa-regular fa-user me-1"></i>
+                            <span>李明</span>
+                            <span class="mx-2">•</span>
+                            <i class="fa-regular fa-calendar me-1"></i>
+                            <span>2025-07-15</span>
+                        </div>
+                        
+                        <p class="text-muted small mb-4 flex-grow-1">
+                            每年中秋节，奶奶都会讲述她小时候如何和家人一起制作月饼的故事。那时候没有现代的模具，她们用最简单的工具创造出了最难忘的味道...
+                        </p>
+                        
+                        <a href="#" class="d-inline-flex align-items-center fw-medium mt-auto" 
+                           style="color: var(--color-primary); text-decoration: none; transition: color 0.2s ease;"
+                           onmouseover="this.style.color='var(--color-primary-dark)'" 
+                           onmouseout="this.style.color='var(--color-primary)'">
+                            阅读完整故事
+                            <i class="fa-solid fa-arrow-right ms-1" style="font-size: 0.75rem;"></i>
                         </a>
-                        <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
-                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="story-card">
+                    <div class="position-relative" style="height: 200px; overflow: hidden;">
+                        <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                             alt="山村小学的老校长" 
+                             class="story-card-image">
+                        <div class="position-absolute top-0 start-0 m-3">
+                            <span class="badge text-white px-3 py-2 rounded-pill" style="background-color: var(--color-primary); font-size: 0.75rem;">
+                                人物记忆
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 flex-grow-1 d-flex flex-column">
+                        <h3 class="h5 fw-bold mb-2" style="font-family: var(--font-serif); color: #92400e;">
+                            山村小学的老校长
+                        </h3>
+                        
+                        <div class="d-flex align-items-center text-muted small mb-3">
+                            <i class="fa-regular fa-user me-1"></i>
+                            <span>王芳</span>
+                            <span class="mx-2">•</span>
+                            <i class="fa-regular fa-calendar me-1"></i>
+                            <span>2025-07-10</span>
+                        </div>
+                        
+                        <p class="text-muted small mb-4 flex-grow-1">
+                            在那个物资匮乏的年代，老校长用自己的工资为学生们购买课本，用扁担从山外挑回学习用品。他常说：'知识能改变命运，即使我们身在大山...
+                        </p>
+                        
+                        <a href="#" class="d-inline-flex align-items-center fw-medium mt-auto" 
+                           style="color: var(--color-primary); text-decoration: none; transition: color 0.2s ease;"
+                           onmouseover="this.style.color='var(--color-primary-dark)'" 
+                           onmouseout="this.style.color='var(--color-primary)'">
+                            阅读完整故事
+                            <i class="fa-solid fa-arrow-right ms-1" style="font-size: 0.75rem;"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="story-card">
+                    <div class="position-relative" style="height: 200px; overflow: hidden;">
+                        <img src="https://images.unsplash.com/photo-1586953208448-b95a79798f07?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                             alt="爷爷的抗战往事" 
+                             class="story-card-image">
+                        <div class="position-absolute top-0 start-0 m-3">
+                            <span class="badge text-white px-3 py-2 rounded-pill" style="background-color: var(--color-primary); font-size: 0.75rem;">
+                                历史记忆
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 flex-grow-1 d-flex flex-column">
+                        <h3 class="h5 fw-bold mb-2" style="font-family: var(--font-serif); color: #92400e;">
+                            爷爷的抗战往事
+                        </h3>
+                        
+                        <div class="d-flex align-items-center text-muted small mb-3">
+                            <i class="fa-regular fa-user me-1"></i>
+                            <span>张伟</span>
+                            <span class="mx-2">•</span>
+                            <i class="fa-regular fa-calendar me-1"></i>
+                            <span>2025-07-05</span>
+                        </div>
+                        
+                        <p class="text-muted small mb-4 flex-grow-1">
+                            爷爷很少提起他的抗战经历，但在那个雨夜，他终于向我讲述了那段峥嵘岁月。他说最难忘的不是战场上的炮火，而是战友间的相互扶持...
+                        </p>
+                        
+                        <a href="#" class="d-inline-flex align-items-center fw-medium mt-auto" 
+                           style="color: var(--color-primary); text-decoration: none; transition: color 0.2s ease;"
+                           onmouseover="this.style.color='var(--color-primary-dark)'" 
+                           onmouseout="this.style.color='var(--color-primary)'">
+                            阅读完整故事
+                            <i class="fa-solid fa-arrow-right ms-1" style="font-size: 0.75rem;"></i>
                         </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
+
+<!-- Call to Action Section -->
+{% if not current_user.is_authenticated %}
+<section class="cta-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="cta-card overflow-hidden">
+                    <div class="row g-0 align-items-center">
+                        <div class="col-md-6">
+                            <div class="p-5 text-center text-md-start">
+                                <h2 class="display-5 fw-bold mb-4" style="font-family: var(--font-serif); color: #92400e;">
+                                    您的故事值得被记录
+                                </h2>
+                                <p class="fs-5 text-muted mb-4">
+                                    每个人都有独特的人生经历，每段经历都是珍贵的历史。加入我们，让您的故事成为永恒的记忆，传承给下一代。
+                                </p>
+                                <div class="d-flex flex-column flex-sm-row gap-3 mb-4">
+                                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4">
+                                        <i class="fa-solid fa-microphone me-2"></i>立即开始录制
+                                    </a>
+                                    <a href="#" class="btn btn-outline-primary btn-lg px-4">
+                                        <i class="fa-solid fa-play me-2"></i>观看演示
+                                    </a>
+                                </div>
+                                
+                                <div class="row mt-4 pt-3" style="border-top: 1px solid rgba(217, 119, 6, 0.2);">
+                                    <div class="col-12 mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fa-solid fa-shield-alt me-3 fs-5" style="color: var(--color-primary);"></i>
+                                            <div>
+                                                <h6 class="mb-0 fw-bold">隐私保护</h6>
+                                                <small class="text-muted">您的故事安全无忧</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fa-solid fa-cloud me-3 fs-5" style="color: var(--color-primary);"></i>
+                                            <div>
+                                                <h6 class="mb-0 fw-bold">云端保存</h6>
+                                                <small class="text-muted">永久保存，随时访问</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fa-solid fa-mobile me-3 fs-5" style="color: var(--color-primary);"></i>
+                                            <div>
+                                                <h6 class="mb-0 fw-bold">多端同步</h6>
+                                                <small class="text-muted">手机电脑都能用</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="position-relative" style="height: 500px; overflow: hidden;">
+                                <img src="https://space.coze.cn/api/coze_space/gen_image?image_size=landscape_16_9&prompt=%24%7BctaImagePrompt%7D&sign=317ab8c2f8b5f0e9ca5a1ec645c4dbfa" 
+                                     alt="人们围坐分享故事" 
+                                     class="h-100 w-100" 
+                                     style="object-fit: cover;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 {% endif %}
-{% endblock %} 
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 页面加载动画和交互效果
+document.addEventListener('DOMContentLoaded', function() {
+    // 淡入动画
+    const fadeElements = document.querySelectorAll('.animate-fade-up, .animate-slide-right');
+    fadeElements.forEach((element, index) => {
+        element.style.opacity = '0';
+        element.style.transform = element.classList.contains('animate-fade-up') ? 'translateY(30px)' : 'translateX(30px)';
+        
+        setTimeout(() => {
+            element.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+            element.style.opacity = '1';
+            element.style.transform = 'translate(0, 0)';
+        }, index * 200);
+    });
+    
+    // 故事卡片悬停效果增强
+    document.querySelectorAll('.story-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-8px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // 平滑滚动效果
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

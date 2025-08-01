@@ -38,70 +38,60 @@ CREATE TABLE IF NOT EXISTS tags (
     UNIQUE KEY unique_tag_per_category (name, category_id)
 );
 
--- Insert default tags for each category
--- Genre tags
+-- Insert simplified default tags for each category (6 core tags per category)
+-- Genre tags (6 main genres)
 INSERT INTO tags (name, category_id, description) VALUES
 ('Adventure', 1, 'Exciting journeys and quests'),
 ('Romance', 1, 'Love stories and relationships'),
-('Mystery', 1, 'Puzzles and unknown elements'),
 ('Fantasy', 1, 'Magical and supernatural elements'),
-('Science Fiction', 1, 'Futuristic and technological themes'),
-('Horror', 1, 'Scary and suspenseful content'),
+('Mystery', 1, 'Puzzles and unknown elements'),
 ('Comedy', 1, 'Humorous and funny stories'),
-('Drama', 1, 'Serious and emotional narratives'),
-('Thriller', 1, 'Suspenseful and exciting plots'),
-('Historical', 1, 'Set in past time periods');
+('Drama', 1, 'Serious and emotional narratives');
 
--- Mood tags
+-- Mood tags (6 main moods)
 INSERT INTO tags (name, category_id, description) VALUES
 ('Happy', 2, 'Joyful and uplifting stories'),
 ('Sad', 2, 'Melancholic and emotional stories'),
 ('Inspiring', 2, 'Motivational and uplifting content'),
 ('Dark', 2, 'Serious and somber tone'),
 ('Lighthearted', 2, 'Fun and carefree atmosphere'),
-('Nostalgic', 2, 'Wistful and reminiscent feeling'),
-('Suspenseful', 2, 'Tense and exciting mood'),
-('Peaceful', 2, 'Calm and serene atmosphere');
+('Suspenseful', 2, 'Tense and exciting mood');
 
--- Theme tags
+-- Theme tags (6 main themes)
 INSERT INTO tags (name, category_id, description) VALUES
 ('Family', 3, 'Family relationships and bonds'),
 ('Friendship', 3, 'Bonds between friends'),
-('Coming of Age', 3, 'Growing up and maturing'),
 ('Love', 3, 'Romantic and platonic love'),
-('Loss', 3, 'Grief and letting go'),
-('Identity', 3, 'Self-discovery and personal growth'),
-('Justice', 3, 'Right vs wrong, moral choices'),
-('Freedom', 3, 'Liberation and independence'),
-('Survival', 3, 'Overcoming challenges and hardships'),
-('Redemption', 3, 'Second chances and forgiveness');
+('Growth', 3, 'Personal development and coming of age'),
+('Adventure', 3, 'Exploration and discovery'),
+('Life Lessons', 3, 'Moral and educational themes');
 
--- Audience tags
+-- Audience tags (6 age groups)
 INSERT INTO tags (name, category_id, description) VALUES
-('Children', 4, 'Suitable for young children'),
-('Young Adult', 4, 'For teenage readers'),
-('Adult', 4, 'Mature content for adults'),
-('Family Friendly', 4, 'Appropriate for all ages'),
+('Children', 4, 'Suitable for young children (0-12)'),
+('Teens', 4, 'For teenage readers (13-17)'),
+('Young Adults', 4, 'For young adults (18-25)'),
+('Adults', 4, 'Mature content for adults (25+)'),
+('Family', 4, 'Appropriate for all ages'),
 ('Educational', 4, 'Learning and instructional content');
 
--- Length tags
+-- Length tags (6 length categories)
 INSERT INTO tags (name, category_id, description) VALUES
-('Flash Fiction', 5, 'Very short stories (under 1000 words)'),
-('Short Story', 5, 'Brief narratives (1000-7500 words)'),
-('Novelette', 5, 'Medium length stories (7500-17500 words)'),
-('Novella', 5, 'Long stories (17500-40000 words)'),
-('Novel', 5, 'Full-length books (40000+ words)');
+('Very Short', 5, 'Under 500 words'),
+('Short', 5, '500-2000 words'),
+('Medium', 5, '2000-5000 words'),
+('Long', 5, '5000-10000 words'),
+('Very Long', 5, '10000+ words'),
+('Series', 5, 'Multi-part story series');
 
--- Setting tags
+-- Setting tags (6 main settings)
 INSERT INTO tags (name, category_id, description) VALUES
-('Modern Day', 6, 'Contemporary setting'),
-('Medieval', 6, 'Middle Ages time period'),
+('Modern', 6, 'Contemporary present day'),
+('Historical', 6, 'Past time periods'),
 ('Future', 6, 'Futuristic or sci-fi setting'),
-('Ancient', 6, 'Ancient civilizations'),
-('Urban', 6, 'City and metropolitan areas'),
-('Rural', 6, 'Countryside and small towns'),
 ('Fantasy World', 6, 'Imaginary or magical realms'),
-('Space', 6, 'Outer space and alien worlds');
+('Urban', 6, 'City and metropolitan areas'),
+('Nature', 6, 'Countryside, forests, outdoors');
 
 -- =====================================================
 -- 3. Stories Table (Main stories table)
@@ -118,7 +108,7 @@ CREATE TABLE IF NOT EXISTS stories (
     image_original_name VARCHAR(255), -- Original filename
     reading_time INT, -- Estimated reading time in minutes
     word_count INT, -- Number of words in the story
-    status ENUM('draft', 'published', 'private', 'archived') DEFAULT 'draft',
+    status ENUM('draft', 'pending', 'published', 'rejected', 'private', 'archived') DEFAULT 'draft',
     view_count INT DEFAULT 0,
     like_count INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

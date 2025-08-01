@@ -1,21 +1,24 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-import mysql.connector
-from mysql.connector import Error
+import pymysql
 import bcrypt
 import os
 from datetime import datetime
 import secrets
 from speech_service import speech_service
+from gemini_service import gemini_service
+from image_service import image_service
 
 app = Flask(__name__)
-app.secret_key = secrets.token_hex(16)  # Generate a secure secret key
+# Use a fixed secret key for development to maintain sessions across restarts
+app.secret_key = 'your-fixed-secret-key-for-development-only'  # Fixed key for development
 
 # Configure Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
+login_manager.session_protection = 'basic'  # Use basic session protection for better compatibility
 
 # Database configuration
 DB_CONFIG = {
@@ -39,7 +42,7 @@ class User(UserMixin):
 def load_user(user_id):
     """Load user from database for Flask-Login"""
     try:
-        connection = mysql.connector.connect(**DB_CONFIG)
+        connection = pymysql.connect(**DB_CONFIG)
         cursor = connection.cursor()
         
         cursor.execute("""
@@ -58,10 +61,10 @@ def load_user(user_id):
                 bio=user_data[5]
             )
         
-    except Error as e:
+    except Exception as e:
         print(f"Database error: {e}")
     finally:
-        if 'connection' in locals() and connection.is_connected():
+        if 'connection' in locals() and connection.open:
             cursor.close()
             connection.close()
     
@@ -69,7 +72,7 @@ def load_user(user_id):
 
 def get_db_connection():
     """Get database connection"""
-    return mysql.connector.connect(**DB_CONFIG)
+    return pymysql.connect(**DB_CONFIG)
 
 @app.route('/')
 def index():
@@ -123,11 +126,11 @@ def register():
             flash('Registration successful! Please log in.', 'success')
             return redirect(url_for('login'))
             
-        except Error as e:
+        except Exception as e:
             flash(f'Registration failed: {str(e)}', 'error')
             return render_template('register.html')
         finally:
-            if 'connection' in locals() and connection.is_connected():
+            if 'connection' in locals() and connection.open:
                 cursor.close()
                 connection.close()
     
@@ -172,10 +175,10 @@ def login():
             else:
                 flash('Invalid username or password!', 'error')
                 
-        except Error as e:
+        except Exception as e:
             flash(f'Login failed: {str(e)}', 'error')
         finally:
-            if 'connection' in locals() and connection.is_connected():
+            if 'connection' in locals() and connection.open:
                 cursor.close()
                 connection.close()
     
@@ -213,10 +216,10 @@ def profile():
             
             flash('Profile updated successfully!', 'success')
             
-        except Error as e:
+        except Exception as e:
             flash(f'Profile update failed: {str(e)}', 'error')
         finally:
-            if 'connection' in locals() and connection.is_connected():
+            if 'connection' in locals() and connection.open:
                 cursor.close()
                 connection.close()
     
@@ -262,10 +265,10 @@ def api_users():
         
         return jsonify({'users': users})
         
-    except Error as e:
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
     finally:
-        if 'connection' in locals() and connection.is_connected():
+        if 'connection' in locals() and connection.open:
             cursor.close()
             connection.close()
 
@@ -480,6 +483,312 @@ Please provide help based on the user's message. If the user requests story modi
         user_message=user_message,
         language_instruction=language_instruction
     )
+
+# =====================================================
+# Story Publishing Routes and APIs
+# =====================================================
+
+@app.route('/publish_story')
+@login_required
+def publish_story():
+    """Story publishing page"""
+    return render_template('publish_story.html')
+
+@app.route('/api/get_story_types')
+@login_required  
+def get_story_types():
+    """Get simplified story types for story publishing"""
+    try:
+        connection = pymysql.connect(**DB_CONFIG)
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        
+        # Get all story types (simplified tags)
+        cursor.execute("""
+            SELECT id, name, description, usage_count
+            FROM tags 
+            WHERE category_id = 1
+            ORDER BY id
+        """)
+        
+        story_types = cursor.fetchall()
+        
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            'success': True,
+            'story_types': story_types
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Database error: {str(e)}'
+        }), 500
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Failed to load story types: {str(e)}'
+        }), 500
+
+@app.route('/api/generate_description', methods=['POST'])
+@login_required
+def generate_description():
+    """Generate story description using Gemini AI"""
+    try:
+        data = request.get_json()
+        content = data.get('content', '').strip()
+        
+        if not content:
+            return jsonify({
+                'success': False,
+                'error': 'Story content is required'
+            }), 400
+        
+        # Determine language from content
+        language = 'zh-CN' if any('\u4e00' <= char <= '\u9fff' for char in content) else 'en-US'
+        
+        # Generate description using Gemini
+        result = gemini_service.generate_story_description(content, language)
+        
+        if result['success']:
+            return jsonify({
+                'success': True,
+                'description': result['description']
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': result['error']
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Description generation failed: {str(e)}'
+        }), 500
+
+@app.route('/api/publish_story', methods=['POST'])
+@login_required
+def publish_story_api():
+    """Publish a new story"""
+    try:
+        print("🚀 Publishing story API called")
+        
+        # Get form data
+        title = request.form.get('title', '').strip()
+        content = request.form.get('content', '').strip()
+        description = request.form.get('description', '').strip()
+        language_raw = request.form.get('language', 'zh-CN')
+        language_name = request.form.get('language_name', '中文')
+        status = request.form.get('status', 'draft')
+        
+        # Now we have expanded the field, keep the full language code
+        language = language_raw if language_raw else 'zh-CN'
+        
+        # Create language group mapping for story browsing
+        def get_language_group(lang_code):
+            """Map detailed language codes to main language groups"""
+            lang_mappings = {
+                # Chinese variants
+                'cmn-Hans-CN': 'zh',
+                'cmn-Hant-TW': 'zh', 
+                'zh-CN': 'zh',
+                'zh-TW': 'zh',
+                'zh-HK': 'zh',
+                # English variants
+                'en-US': 'en',
+                'en-GB': 'en',
+                'en-AU': 'en',
+                'en-CA': 'en',
+                'en-IN': 'en',
+                # Spanish variants
+                'es-ES': 'es',
+                'es-MX': 'es',
+                'es-AR': 'es',
+                # French variants
+                'fr-FR': 'fr',
+                'fr-CA': 'fr',
+                # German variants
+                'de-DE': 'de',
+                'de-AT': 'de',
+                # Japanese
+                'ja-JP': 'ja',
+                # Korean
+                'ko-KR': 'ko',
+                # Arabic variants
+                'ar-SA': 'ar',
+                'ar-EG': 'ar',
+                # Hindi
+                'hi-IN': 'hi',
+                # Portuguese variants
+                'pt-BR': 'pt',
+                'pt-PT': 'pt',
+                # Russian
+                'ru-RU': 'ru',
+                # Italian
+                'it-IT': 'it',
+                # Dutch
+                'nl-NL': 'nl',
+                # Thai
+                'th-TH': 'th',
+                # Vietnamese
+                'vi-VN': 'vi'
+            }
+            
+            # Return mapped group or extract the main language code
+            if lang_code in lang_mappings:
+                return lang_mappings[lang_code]
+            else:
+                # Fallback: extract the first part before '-'
+                return lang_code.split('-')[0] if '-' in lang_code else lang_code
+        
+        language_group = get_language_group(language)
+        
+        # Get selected story type
+        story_type = request.form.get('story_type')
+        
+        print(f"📝 Form data: title={title}, content_length={len(content) if content else 0}, status={status}, story_type={story_type}")
+        print(f"🌐 Language data: language='{language}' (len={len(language)}), language_name='{language_name}' (len={len(language_name)})")
+        
+        # Validate required fields
+        if not title:
+            print("❌ No title provided")
+            return jsonify({
+                'success': False,
+                'error': 'Story title is required'
+            }), 400
+        
+        if not content:
+            print("❌ No content provided")
+            return jsonify({
+                'success': False,
+                'error': 'Story content is required'
+            }), 400
+        
+        # Calculate word count and reading time
+        word_count = len(content.replace(' ', '')) if any('\u4e00' <= char <= '\u9fff' for char in content) else len(content.split())
+        reading_time = max(1, word_count // (200 if language.startswith('zh') else 250))
+        
+        # Handle image upload (temporarily disabled for testing)
+        image_path = None
+        image_original_name = None
+        
+        print("🖼️  Image upload temporarily disabled for debugging")
+        
+        # TODO: Re-enable image upload after fixing main publish issue
+        # if 'cover_image' in request.files:
+        #     file = request.files['cover_image']
+        #     if file and file.filename:
+        #         upload_result = image_service.upload_story_image(file, current_user.id)
+        #         if upload_result['success']:
+        #             image_path = upload_result['main_image_path']
+        #             image_original_name = upload_result['metadata']['original_filename']
+        
+        # Insert story into database
+        print("💾 Connecting to database...")
+        connection = pymysql.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        
+        # Insert story
+        print("📚 Inserting story...")
+        story_query = """
+            INSERT INTO stories (user_id, title, content, language, language_name, description, 
+                               image_path, image_original_name, reading_time, word_count, status, published_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        
+        published_at = datetime.now() if status == 'published' else None
+        
+        cursor.execute(story_query, (
+            current_user.id, title, content, language, language_name, description,
+            image_path, image_original_name, reading_time, word_count, status, published_at
+        ))
+        
+        story_id = cursor.lastrowid
+        print(f"✅ Story inserted with ID: {story_id}")
+        
+        # Insert story type (single tag)
+        if story_type and story_type.isdigit():
+            print(f"🏷️  Adding story type: {story_type}")
+            cursor.execute("INSERT INTO story_tags (story_id, tag_id) VALUES (%s, %s)", (story_id, int(story_type)))
+            
+            # Update tag usage count
+            cursor.execute("UPDATE tags SET usage_count = usage_count + 1 WHERE id = %s", (int(story_type),))
+            print("✅ Story type added")
+        else:
+            print(f"⚠️  No valid story type provided: {story_type}")
+        
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            'success': True,
+            'story_id': story_id,
+            'message': 'Story published successfully!'
+        })
+        
+    except Exception as e:
+        print(f"❌ Story publication error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': f'Publication failed: {str(e)}'
+        }), 500
+
+@app.route('/api/get_user_stories')
+@login_required
+def get_user_stories():
+    """Get current user's stories"""
+    try:
+        connection = pymysql.connect(**DB_CONFIG)
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        
+        cursor.execute("""
+            SELECT s.id, s.title, s.description, s.language_name, s.word_count, 
+                   s.reading_time, s.status, s.view_count, s.like_count,
+                   s.created_at, s.updated_at, s.published_at, s.image_path,
+                   GROUP_CONCAT(t.name) as tags
+            FROM stories s
+            LEFT JOIN story_tags st ON s.id = st.story_id
+            LEFT JOIN tags t ON st.tag_id = t.id
+            WHERE s.user_id = %s
+            GROUP BY s.id
+            ORDER BY s.created_at DESC
+        """, (current_user.id,))
+        
+        stories = cursor.fetchall()
+        
+        # Process stories data
+        for story in stories:
+            story['tags'] = story['tags'].split(',') if story['tags'] else []
+            story['image_url'] = image_service.get_image_url(story['image_path']) if story['image_path'] else None
+            
+            # Format dates
+            for date_field in ['created_at', 'updated_at', 'published_at']:
+                if story[date_field]:
+                    story[date_field] = story[date_field].isoformat()
+        
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            'success': True,
+            'stories': stories
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Database error: {str(e)}'
+        }), 500
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Failed to load stories: {str(e)}'
+        }), 500
 
 if __name__ == '__main__':
     # Create upload folder for profile pictures

@@ -141,6 +141,115 @@ class GeminiService:
         # This should not be reached, but just in case
         raise Exception("Unexpected error: All retry attempts exhausted")
     
+    def generate_story_description(self, story_content: str, language: str = 'zh-CN') -> Dict[str, Any]:
+        """
+        Generate a compelling story description/summary using Gemini AI
+        
+        Args:
+            story_content (str): The full story content
+            language (str): The language of the story
+            
+        Returns:
+            Dict[str, Any]: Result with success status and generated description
+        """
+        try:
+            if not story_content or not story_content.strip():
+                return {
+                    'success': False,
+                    'error': 'Empty story content provided',
+                    'description': ''
+                }
+            
+            logger.info(f"Generating story description with Gemini: {story_content[:50]}...")
+            
+            # Create description generation prompt
+            prompt = self._create_description_prompt(story_content, language)
+            
+            # Generate description using Gemini
+            response = self._generate_content_with_retry(prompt)
+            
+            if response and response.text:
+                description = response.text.strip()
+                logger.info(f"Story description generated successfully: {description[:50]}...")
+                return {
+                    'success': True,
+                    'description': description,
+                    'model': 'gemini-2.5-flash'
+                }
+            else:
+                logger.warning("Gemini returned empty description")
+                return {
+                    'success': False,
+                    'error': 'Gemini returned empty response',
+                    'description': ''
+                }
+                
+        except Exception as e:
+            logger.error(f"Description generation error: {str(e)}")
+            return {
+                'success': False,
+                'error': f"Description generation failed: {str(e)}",
+                'description': ''
+            }
+
+    def _create_description_prompt(self, story_content: str, language: str) -> str:
+        """
+        Create a prompt for generating story description
+        
+        Args:
+            story_content (str): The full story content
+            language (str): The language of the story
+            
+        Returns:
+            str: The prompt for story description generation
+        """
+        # Determine language for response
+        if language.startswith('zh') or language.startswith('cmn'):
+            language_instruction = "请用中文回应。"
+            prompt_template = """你是一个专业的故事推广文案编辑。你的任务是为给定的故事创作一个吸引人的简介，用于故事发布和推广。
+
+请根据以下要求为这个故事写一个简介：
+
+📝 **简介要求**：
+1. **长度控制**：简介应该在50-150字之间，简洁而有力
+2. **吸引读者**：突出故事的核心亮点和吸引人的元素
+3. **不剧透**：不要透露故事的结局或关键转折点
+4. **情感触达**：传达故事的情感基调和主要主题
+5. **读者群体**：适合目标读者群体的语言风格
+6. **直接输出**：只输出简介内容，不要添加任何解释
+
+**故事内容**：
+{story_content}
+
+请直接提供简介内容，让读者产生阅读兴趣。
+
+{language_instruction}"""
+        else:
+            language_instruction = "Please respond in English."
+            prompt_template = """You are a professional story marketing copywriter. Your task is to create an engaging description for the given story that will be used for story publishing and promotion.
+
+Please write a description for this story according to the following requirements:
+
+📝 **Description Requirements**:
+1. **Length Control**: The description should be 50-150 words, concise yet powerful
+2. **Attract Readers**: Highlight the core appeal and engaging elements of the story
+3. **No Spoilers**: Don't reveal the ending or key plot twists
+4. **Emotional Impact**: Convey the story's emotional tone and main themes
+5. **Target Audience**: Use language style appropriate for the target readers
+6. **Direct Output**: Only output the description content without any explanations
+
+**Story Content**:
+{story_content}
+
+Please provide the description directly to make readers interested in reading the story.
+
+{language_instruction}"""
+        
+        return prompt_template.format(
+            story_content=story_content,
+            language_instruction=language_instruction
+        )
+
     def _create_processing_prompt(self, transcript: str, language: str) -> str:
         """
         Create a story polishing prompt for the transcription
