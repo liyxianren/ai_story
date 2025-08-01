@@ -2018,8 +2018,17 @@ class VoiceRecorder {
                         gemini: polishingResult.gemini
                     });
                 } else {
+                    // Check if it's an authentication error
+                    if (polishingResult.error_type === 'authentication_required') {
+                        console.log('🔐 身份验证失败 AUTHENTICATION FAILED');
+                        alert('您的登录会话已过期，请重新登录后再试。\nYour login session has expired. Please log in again.');
+                        window.location.href = '/login';
+                        return;
+                    }
+                    
                     // Fallback: show raw transcript only
                     console.log('⚠️ Gemini润色失败，显示原始转录 GEMINI POLISHING FAILED, SHOWING RAW');
+                    console.log('失败原因:', polishingResult.error || 'Unknown error');
                     this.showTranscriptionResult({
                         success: true,
                         transcript: combinedTranscript,  // Raw transcript as main
@@ -2028,7 +2037,7 @@ class VoiceRecorder {
                         chunked: true,
                         chunkCount: chunks.length,
                         polished: false,
-                        gemini: polishingResult.gemini || { success: false, error: 'Polishing failed' }
+                        gemini: polishingResult.gemini || { success: false, error: polishingResult.error || 'Polishing failed' }
                     });
                 }
                 
@@ -2809,8 +2818,17 @@ class VoiceRecorder {
                         gemini: polishingResult.gemini
                     });
                 } else {
+                    // Check if it's an authentication error
+                    if (polishingResult.error_type === 'authentication_required') {
+                        console.log('🔐 录音身份验证失败 RECORDING AUTHENTICATION FAILED');
+                        alert('您的登录会话已过期，请重新登录后再试。\nYour login session has expired. Please log in again.');
+                        window.location.href = '/login';
+                        return;
+                    }
+                    
                     // Fallback: show raw transcript only
                     console.log('⚠️ 录音Gemini润色失败，显示原始转录 RECORDING GEMINI POLISHING FAILED, SHOWING RAW');
+                    console.log('失败原因:', polishingResult.error || 'Unknown error');
                     this.showTranscriptionResult({
                         success: true,
                         transcript: combinedTranscript,  // Raw transcript as main
@@ -2819,7 +2837,7 @@ class VoiceRecorder {
                         chunked: true,
                         chunkCount: chunks.length,
                         polished: false,
-                        gemini: polishingResult.gemini || { success: false, error: 'Polishing failed' }
+                        gemini: polishingResult.gemini || { success: false, error: polishingResult.error || 'Polishing failed' }
                     });
                 }
                 

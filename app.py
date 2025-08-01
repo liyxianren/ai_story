@@ -72,6 +72,7 @@ def load_user(user_id):
         
     except Exception as e:
         print(f"Database error: {e}")
+        return None
     finally:
         if 'connection' in locals() and connection.open:
             cursor.close()
@@ -884,9 +885,16 @@ def transcribe_audio():
         }), 500
 
 @app.route('/api/test-gemini', methods=['POST'])
-@login_required
 def test_gemini():
     """Test Gemini AI with custom text input"""
+    # Check authentication manually to return JSON error instead of HTML redirect
+    if not current_user.is_authenticated:
+        return jsonify({
+            'success': False,
+            'error': 'Authentication required. Please log in to use Gemini polishing.',
+            'error_type': 'authentication_required'
+        }), 401
+    
     try:
         # Get text and language from request
         data = request.get_json()
@@ -920,9 +928,16 @@ def test_gemini():
         }), 500
 
 @app.route('/api/chat-with-gemini', methods=['POST'])
-@login_required
 def chat_with_gemini():
     """Chat with Gemini for story polishing and improvement"""
+    # Check authentication manually to return JSON error instead of HTML redirect
+    if not current_user.is_authenticated:
+        return jsonify({
+            'success': False,
+            'error': 'Authentication required. Please log in to use Gemini chat.',
+            'error_type': 'authentication_required'
+        }), 401
+    
     try:
         # Get request data
         data = request.get_json()
