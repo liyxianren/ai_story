@@ -88,14 +88,14 @@ class ImageService:
             if not file or not file.filename:
                 return {
                     'success': False,
-                    'error': '没有选择文件'
+                    'error': 'No file selected'
                 }
             
             # Check file extension
             if not self.is_allowed_file(file.filename):
                 return {
                     'success': False,
-                    'error': f'不支持的文件格式。支持的格式: {", ".join(self.allowed_extensions)}'
+                    'error': f'Unsupported file format. Supported formats: {", ".join(self.allowed_extensions)}'
                 }
             
             # Check file size
@@ -107,7 +107,7 @@ class ImageService:
                 max_size_mb = self.max_file_size / (1024 * 1024)
                 return {
                     'success': False,
-                    'error': f'文件过大。最大支持 {max_size_mb:.1f}MB'
+                    'error': f'File too large. Maximum size supported: {max_size_mb:.1f}MB'
                 }
             
             # Try to open and validate as image
@@ -120,13 +120,13 @@ class ImageService:
                 if image.size[0] < 200 or image.size[1] < 200:
                     return {
                         'success': False,
-                        'error': '图片尺寸过小。最小尺寸为 200x200 像素'
+                        'error': 'Image dimensions too small. Minimum size is 200x200 pixels'
                     }
                 
             except Exception as e:
                 return {
                     'success': False,
-                    'error': '无效的图片文件'
+                    'error': 'Invalid image file'
                 }
             
             return {
@@ -139,7 +139,7 @@ class ImageService:
             logger.error(f"Image validation error: {str(e)}")
             return {
                 'success': False,
-                'error': f'文件验证失败: {str(e)}'
+                'error': f'File validation failed: {str(e)}'
             }
     
     def upload_story_image(self, file: FileStorage, user_id: int, story_id: Optional[int] = None) -> Dict[str, Any]:
@@ -232,7 +232,7 @@ class ImageService:
             logger.error(f"Image upload error: {str(e)}")
             return {
                 'success': False,
-                'error': f'图片上传失败: {str(e)}'
+                'error': f'Image upload failed: {str(e)}'
             }
     
     def _smart_resize(self, image: Image.Image, target_size: Tuple[int, int]) -> Image.Image:

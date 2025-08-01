@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}我的故事 - AI故事平台{% endblock %}
+{% block title %}My Stories - StoryKeeper{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -307,7 +307,7 @@
                                 margin-bottom: 8px;
                                 letter-spacing: -0.02em;
                             ">
-                                我的故事 | My Stories
+                                My Stories
                             </h1>
                             <p style="
                                 color: var(--warm-secondary);
@@ -315,7 +315,7 @@
                                 margin-bottom: 0;
                                 opacity: 0.8;
                             ">
-                                管理和分享您珍贵的故事收藏 | Manage and share your precious story collection
+                                Manage and share your precious story collection
                             </p>
                         </div>
                     </div>
@@ -332,7 +332,7 @@
                         transition: all 0.3s ease;
                     " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 35px rgba(34, 197, 94, 0.35)'" 
                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(34, 197, 94, 0.25)'">
-                        <i class="fas fa-plus me-2"></i>录制新故事 | New Story
+                        <i class="fas fa-plus me-2"></i>New Story
                     </a>
                 </div>
             </div>
@@ -343,23 +343,23 @@
     <div class="stats-container">
         <div class="stat-card">
             <div class="stat-number" id="totalStories">{{ stats.total }}</div>
-            <div class="stat-label">总故事数 | Total Stories</div>
+                            <div class="stat-label">Total Stories</div>
         </div>
         <div class="stat-card">
             <div class="stat-number" id="publishedStories">{{ stats.published }}</div>
-            <div class="stat-label">通过审核 | Approved</div>
+            <div class="stat-label">Approved</div>
         </div>
         <div class="stat-card">
             <div class="stat-number" id="pendingStories">{{ stats.pending }}</div>
-            <div class="stat-label">待审核 | Pending</div>
+            <div class="stat-label">Pending</div>
         </div>
         <div class="stat-card">
             <div class="stat-number" id="rejectedStories">{{ stats.rejected }}</div>
-            <div class="stat-label">未通过审核 | Rejected</div>
+            <div class="stat-label">Rejected</div>
         </div>
         <div class="stat-card">
             <div class="stat-number" id="totalViews">{{ stats.total_views }}</div>
-            <div class="stat-label">总浏览量 | Total Views</div>
+            <div class="stat-label">Total Views</div>
         </div>
     </div>
 
@@ -368,16 +368,16 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between">
             <div class="filters-container">
                 <button class="status-filter active" data-status="all">
-                    <i class="fas fa-list me-2"></i>全部故事 | All Stories
+                    <i class="fas fa-list me-2"></i>All Stories
                 </button>
                 <button class="status-filter" data-status="published">
-                    <i class="fas fa-check-circle me-2"></i>通过审核 | Approved
+                    <i class="fas fa-check-circle me-2"></i>Approved
                 </button>
                 <button class="status-filter" data-status="pending">
-                    <i class="fas fa-clock me-2"></i>待审核 | Pending
+                    <i class="fas fa-clock me-2"></i>Pending
                 </button>
                 <button class="status-filter" data-status="rejected">
-                    <i class="fas fa-times-circle me-2"></i>未通过审核 | Rejected
+                    <i class="fas fa-times-circle me-2"></i>Rejected
                 </button>
             </div>
             <div class="sort-options">
@@ -388,10 +388,10 @@
                     background: rgba(255, 255, 255, 0.8);
                     backdrop-filter: blur(5px);
                 ">
-                    <option value="created_desc">最新创建 | Latest</option>
-                    <option value="created_asc">最早创建 | Oldest</option>
-                    <option value="views_desc">浏览量高 | Most Viewed</option>
-                    <option value="title_asc">标题 A-Z | Title A-Z</option>
+                    <option value="created_desc">Latest</option>
+                    <option value="created_asc">Oldest</option>
+                    <option value="views_desc">Most Viewed</option>
+                    <option value="title_asc">Title A-Z</option>
                 </select>
             </div>
         </div>

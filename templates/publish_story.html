@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}发布故事 - AI故事平台{% endblock %}
+{% block title %}Publish Story - StoryKeeper{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -269,7 +269,7 @@
                         margin-bottom: 8px;
                         letter-spacing: -0.02em;
                     ">
-                        发布我的故事 | Publish My Story
+                        Publish My Story
                     </h1>
                     <p style="
                         color: var(--warm-secondary);
@@ -277,10 +277,10 @@
                         margin-bottom: 24px;
                         opacity: 0.8;
                     ">
-                        完善故事信息，分享给更多读者 | Complete story details and share with readers
+                        Complete story details and share with readers
                     </p>
                     <a href="{{ url_for('dashboard') }}" class="btn-modern-outline">
-                        <i class="fas fa-arrow-left me-2"></i>返回仪表板 | Back to Dashboard
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
                     </a>
                 </div>
             </div>
@@ -293,20 +293,20 @@
                         <!-- Story Content Card -->
                         <div class="modern-card">
                             <div class="card-header-modern">
-                                <i class="fas fa-book-open me-2"></i>故事内容 | Story Content
+                                <i class="fas fa-book-open me-2"></i>Story Content
                             </div>
                             
                             <!-- Story Title -->
                             <div class="mb-4">
                                 <label for="storyTitle" class="form-label fw-bold" style="color: var(--warm-primary-dark); font-size: 1.1rem;">
                                     <i class="fas fa-heading me-2" style="color: var(--warm-primary);"></i>
-                                    故事标题 | Story Title <span class="text-danger">*</span>
+                                    Story Title <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" class="form-control form-control-modern" id="storyTitle" name="title" 
-                                       placeholder="给你的故事起个吸引人的标题... | Give your story an attractive title..." required maxlength="255">
+                                       placeholder="Give your story an attractive title..." required maxlength="255">
                                 <div class="form-text mt-2" style="color: var(--warm-secondary); opacity: 0.8;">
                                     <i class="fas fa-info-circle me-1"></i>
-                                    标题将显示在故事列表中，建议简洁有吸引力 | Title will be displayed in story list, keep it concise and attractive
+                                    Title will be displayed in story list, keep it concise and attractive
                                 </div>
                             </div>
 
@@ -314,7 +314,7 @@
                             <div class="mb-4">
                                 <label class="form-label fw-bold" style="color: var(--warm-primary-dark); font-size: 1.1rem;">
                                     <i class="fas fa-align-left me-2" style="color: var(--warm-info);"></i>
-                                    故事内容预览 | Story Content Preview
+                                    Story Content Preview
                                 </label>
                                 <div class="story-preview-container" style="
                                     background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
@@ -336,7 +336,7 @@
                                             ">
                                                 <i class="fas fa-file-alt" style="font-size: 1.5rem; color: white;"></i>
                                             </div>
-                                            <p class="mb-2" style="font-size: 1rem;">故事内容将从录制页面自动获取</p>
+                                            <p class="mb-2" style="font-size: 1rem;">Story content will be automatically retrieved from the recording page</p>
                                             <p class="mb-0" style="font-size: 0.9rem;">Story content will be automatically loaded from recording page</p>
                                             <small class="d-block mt-3" style="opacity: 0.6;">
                                                 语言: <span id="storyLanguage" class="fw-semibold">未知</span> | 

@@ -204,8 +204,8 @@ class GeminiService:
         """
         # Determine language for response
         if language.startswith('zh') or language.startswith('cmn'):
-            language_instruction = "请用中文回应。"
-            prompt_template = """你是一个专业的故事推广文案编辑。你的任务是为给定的故事创作一个吸引人的简介，用于故事发布和推广。
+            language_instruction = "Please respond in English."
+            prompt_template = """You are a professional story marketing copy editor. Your task is to create an engaging summary for the given story, for story publishing and promotion.
 
 请根据以下要求为这个故事写一个简介：
 
