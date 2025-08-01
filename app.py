@@ -3,12 +3,14 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 import pymysql
 import bcrypt
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import secrets
 from functools import wraps
+import time
 from speech_service import speech_service
 from gemini_service import gemini_service
 from image_service import image_service
+from email_service import email_service
 
 app = Flask(__name__)
 # Use a fixed secret key for development to maintain sessions across restarts
@@ -23,6 +25,9 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
 login_manager.session_protection = 'basic'  # Use basic session protection for better compatibility
+
+# Initialize email service
+email_service.init_app(app)
 
 # Database configuration
 DB_CONFIG = {
@@ -81,6 +86,38 @@ def get_db_connection():
 # Admin authentication
 ADMIN_USERNAME = 'admin'
 ADMIN_PASSWORD = 'happystory'
+
+# Rate limiting storage (in production, use Redis or database)
+rate_limit_store = {}
+
+def check_rate_limit(key, max_attempts=5, window_minutes=15):
+    """Simple rate limiting function"""
+    now = time.time()
+    window_start = now - (window_minutes * 60)
+    
+    # Clean old entries
+    if key in rate_limit_store:
+        rate_limit_store[key] = [attempt for attempt in rate_limit_store[key] if attempt > window_start]
+    else:
+        rate_limit_store[key] = []
+    
+    # Check if limit exceeded
+    if len(rate_limit_store[key]) >= max_attempts:
+        return False, max_attempts - len(rate_limit_store[key])
+    
+    # Add current attempt
+    rate_limit_store[key].append(now)
+    return True, max_attempts - len(rate_limit_store[key])
+
+def get_client_ip():
+    """Get client IP address"""
+    # Check for forwarded IP first
+    if request.environ.get('HTTP_X_FORWARDED_FOR'):
+        return request.environ['HTTP_X_FORWARDED_FOR'].split(',')[0].strip()
+    elif request.environ.get('HTTP_X_REAL_IP'):
+        return request.environ['HTTP_X_REAL_IP']
+    else:
+        return request.remote_addr
 
 def admin_required(f):
     """Decorator to require admin authentication"""
@@ -345,6 +382,391 @@ def logout():
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('index'))
+
+@app.route('/api/change-password', methods=['POST'])
+@login_required
+def change_password():
+    """Change user password"""
+    try:
+        # Rate limiting for password changes
+        client_ip = get_client_ip()
+        user_key = f"change_password_{current_user.id}_{client_ip}"
+        allowed, remaining = check_rate_limit(user_key, max_attempts=5, window_minutes=15)
+        
+        if not allowed:
+            return jsonify({
+                'success': False,
+                'error': '密码修改次数过多，请15分钟后再试'
+            }), 429
+        # Get JSON data from request
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No data provided'
+            }), 400
+        
+        current_password = data.get('current_password', '').strip()
+        new_password = data.get('new_password', '').strip()
+        
+        # Validate input
+        if not current_password:
+            return jsonify({
+                'success': False,
+                'error': 'Current password is required',
+                'field': 'current_password'
+            }), 400
+        
+        if not new_password:
+            return jsonify({
+                'success': False,
+                'error': 'New password is required',
+                'field': 'new_password'
+            }), 400
+        
+        # Validate new password strength
+        if len(new_password) < 8:
+            return jsonify({
+                'success': False,
+                'error': 'Password must be at least 8 characters long',
+                'field': 'new_password'
+            }), 400
+        
+        # Check if password contains both letters and numbers
+        import re
+        if not re.search(r'[a-zA-Z]', new_password) or not re.search(r'\d', new_password):
+            return jsonify({
+                'success': False,
+                'error': 'Password must contain both letters and numbers',
+                'field': 'new_password'
+            }), 400
+        
+        # Check if new password is different from current
+        if current_password == new_password:
+            return jsonify({
+                'success': False,
+                'error': 'New password must be different from current password',
+                'field': 'new_password'
+            }), 400
+        
+        # Get user from database and verify current password
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        cursor.execute("""
+            SELECT password_hash FROM users WHERE id = %s
+        """, (current_user.id,))
+        
+        user_data = cursor.fetchone()
+        if not user_data:
+            return jsonify({
+                'success': False,
+                'error': 'User not found'
+            }), 404
+        
+        # Verify current password
+        if not bcrypt.checkpw(current_password.encode('utf-8'), user_data[0].encode('utf-8')):
+            return jsonify({
+                'success': False,
+                'error': 'Current password is incorrect',
+                'field': 'current_password'
+            }), 400
+        
+        # Hash new password
+        new_password_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        
+        # Update password in database
+        cursor.execute("""
+            UPDATE users SET password_hash = %s, updated_at = %s 
+            WHERE id = %s
+        """, (new_password_hash, datetime.now(), current_user.id))
+        
+        connection.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Password updated successfully'
+        })
+        
+    except Exception as e:
+        print(f"Password change error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'An error occurred while updating password'
+        }), 500
+    finally:
+        if 'connection' in locals() and connection.open:
+            cursor.close()
+            connection.close()
+
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    """Forgot password page and API"""
+    if request.method == 'GET':
+        return render_template('forgot_password.html')
+    
+    # Handle POST request (API)
+    try:
+        # Rate limiting for forgot password requests
+        client_ip = get_client_ip()
+        ip_key = f"forgot_password_{client_ip}"
+        allowed, remaining = check_rate_limit(ip_key, max_attempts=3, window_minutes=15)
+        
+        if not allowed:
+            return jsonify({
+                'success': False,
+                'error': '密码重置请求过于频繁，请15分钟后再试'
+            }), 429
+        # Get email from JSON data or form data
+        if request.is_json:
+            data = request.get_json()
+            email = data.get('email', '').strip() if data else ''
+        else:
+            email = request.form.get('email', '').strip()
+        
+        if not email:
+            return jsonify({
+                'success': False,
+                'error': '请输入邮箱地址'
+            }), 400
+        
+        # Validate email format
+        import re
+        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+            return jsonify({
+                'success': False,
+                'error': '请输入有效的邮箱地址'
+            }), 400
+        
+        # Check if user exists
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        cursor.execute("""
+            SELECT id, username FROM users WHERE email = %s
+        """, (email,))
+        
+        user_data = cursor.fetchone()
+        
+        # Check if user exists
+        if user_data:
+            user_id, username = user_data
+            
+            # Generate simple reset token (no expiry needed for this simple version)
+            reset_token = secrets.token_urlsafe(32)
+            
+            # Save token to database (24 hour expiry for convenience)
+            expires_at = datetime.now() + timedelta(hours=24)
+            
+            cursor.execute("""
+                INSERT INTO password_reset_tokens (user_id, token, expires_at)
+                VALUES (%s, %s, %s)
+            """, (user_id, reset_token, expires_at))
+            
+            connection.commit()
+            cursor.close()
+            connection.close()
+            
+            # Direct redirect to reset password page
+            return jsonify({
+                'success': True,
+                'redirect': f'/reset-password/{reset_token}',
+                'message': f'邮箱验证成功！正在跳转到密码重置页面...'
+            })
+        else:
+            cursor.close()
+            connection.close()
+            
+            return jsonify({
+                'success': False,
+                'error': '该邮箱地址未注册，请检查后重试'
+            }), 400
+        
+    except Exception as e:
+        print(f"Forgot password error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': '服务暂时不可用，请稍后重试'
+        }), 500
+    finally:
+        if 'connection' in locals() and connection.open:
+            cursor.close()
+            connection.close()
+
+@app.route('/reset-password/<token>')
+def reset_password(token):
+    """Password reset page with token validation"""
+    try:
+        # Validate token exists and is not expired
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        cursor.execute("""
+            SELECT prt.id, prt.user_id, prt.expires_at, prt.used, u.username, u.email
+            FROM password_reset_tokens prt
+            JOIN users u ON prt.user_id = u.id
+            WHERE prt.token = %s
+        """, (token,))
+        
+        token_data = cursor.fetchone()
+        
+        if not token_data:
+            flash('重置链接无效或已过期', 'error')
+            return redirect(url_for('forgot_password'))
+        
+        token_id, user_id, expires_at, used, username, email = token_data
+        
+        # Check if token is expired
+        from datetime import datetime
+        if datetime.now() > expires_at:
+            flash('重置链接已过期，请重新申请', 'error')
+            return redirect(url_for('forgot_password'))
+        
+        # Check if token is already used
+        if used:
+            flash('此重置链接已被使用', 'error')
+            return redirect(url_for('login'))
+        
+        cursor.close()
+        connection.close()
+        
+        # Token is valid, show reset password form
+        return render_template('reset_password.html', token=token, username=username)
+        
+    except Exception as e:
+        print(f"Password reset page error: {str(e)}")
+        flash('服务暂时不可用，请稍后重试', 'error')
+        return redirect(url_for('forgot_password'))
+    finally:
+        if 'connection' in locals() and connection.open:
+            cursor.close()
+            connection.close()
+
+@app.route('/api/reset-password', methods=['POST'])
+def reset_password_api():
+    """Complete password reset with new password"""
+    try:
+        # Rate limiting for password reset completion
+        client_ip = get_client_ip()
+        ip_key = f"reset_password_{client_ip}"
+        allowed, remaining = check_rate_limit(ip_key, max_attempts=5, window_minutes=15)
+        
+        if not allowed:
+            return jsonify({
+                'success': False,
+                'error': '密码重置尝试过于频繁，请15分钟后再试'
+            }), 429
+        # Get data from request
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': '无效的请求数据'
+            }), 400
+        
+        token = data.get('token', '').strip()
+        new_password = data.get('new_password', '').strip()
+        
+        if not token:
+            return jsonify({
+                'success': False,
+                'error': '缺少重置令牌'
+            }), 400
+        
+        if not new_password:
+            return jsonify({
+                'success': False,
+                'error': '请输入新密码'
+            }), 400
+        
+        # Validate new password strength
+        if len(new_password) < 8:
+            return jsonify({
+                'success': False,
+                'error': '密码长度至少为8个字符'
+            }), 400
+        
+        import re
+        if not re.search(r'[a-zA-Z]', new_password) or not re.search(r'\d', new_password):
+            return jsonify({
+                'success': False,
+                'error': '密码必须包含字母和数字'
+            }), 400
+        
+        # Validate token and get user info
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        cursor.execute("""
+            SELECT prt.id, prt.user_id, prt.expires_at, prt.used, u.username
+            FROM password_reset_tokens prt
+            JOIN users u ON prt.user_id = u.id
+            WHERE prt.token = %s
+        """, (token,))
+        
+        token_data = cursor.fetchone()
+        
+        if not token_data:
+            return jsonify({
+                'success': False,
+                'error': '重置链接无效或已过期'
+            }), 400
+        
+        token_id, user_id, expires_at, used, username = token_data
+        
+        # Check if token is expired
+        from datetime import datetime
+        if datetime.now() > expires_at:
+            return jsonify({
+                'success': False,
+                'error': '重置链接已过期，请重新申请密码重置'
+            }), 400
+        
+        # Check if token is already used
+        if used:
+            return jsonify({
+                'success': False,
+                'error': '此重置链接已被使用'
+            }), 400
+        
+        # Hash new password
+        new_password_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        
+        # Update user password
+        cursor.execute("""
+            UPDATE users SET password_hash = %s, updated_at = %s 
+            WHERE id = %s
+        """, (new_password_hash, datetime.now(), user_id))
+        
+        # Mark token as used
+        cursor.execute("""
+            UPDATE password_reset_tokens SET used = TRUE, updated_at = %s 
+            WHERE id = %s
+        """, (datetime.now(), token_id))
+        
+        # Clean up old tokens for this user (optional but good practice)
+        cursor.execute("""
+            DELETE FROM password_reset_tokens 
+            WHERE user_id = %s AND (expires_at < %s OR used = TRUE) AND id != %s
+        """, (user_id, datetime.now(), token_id))
+        
+        connection.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': '密码重置成功！正在跳转到登录页面...'
+        })
+        
+    except Exception as e:
+        print(f"Password reset API error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': '密码重置失败，请重试'
+        }), 500
+    finally:
+        if 'connection' in locals() and connection.open:
+            cursor.close()
+            connection.close()
 
 @app.route('/record')
 @login_required
