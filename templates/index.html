@@ -573,8 +573,8 @@
                                         <div class="d-flex align-items-center">
                                             <i class="fa-solid fa-mobile me-3 fs-5" style="color: var(--color-primary);"></i>
                                             <div>
-                                                <h6 class="mb-0 fw-bold">多端同步</h6>
-                                                <small class="text-muted">手机电脑都能用</small>
+                                                <h6 class="mb-0 fw-bold">Multi-Device Sync</h6>
+                                                <small class="text-muted">Works on phone and computer</small>
                                             </div>
                                         </div>
                                     </div>
@@ -600,9 +600,9 @@
 
 {% block scripts %}
 <script>
-// 页面加载动画和交互效果
+    // Page loading animations and interactive effects
 document.addEventListener('DOMContentLoaded', function() {
-    // 淡入动画
+    // Fade-in animation
     const fadeElements = document.querySelectorAll('.animate-fade-up, .animate-slide-right');
     fadeElements.forEach((element, index) => {
         element.style.opacity = '0';
@@ -626,7 +626,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // 平滑滚动效果
+    // Smooth scrolling effects
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
