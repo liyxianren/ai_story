@@ -311,11 +311,11 @@
                                 src="{{ url_for('static', filename='uploads/stories/' + story.image_path) }}" 
                                 alt="{{ story.title }}" 
                                 class="w-100 story-image"
-                                onerror="this.src='https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=300&fit=crop&crop=center'"
+                                onerror="this.src='{{ url_for('static', filename='cover.png') }}'"
                             />
                             {% else %}
                             <img 
-                                src="https://lf-code-agent.coze.cn/obj/x-ai-cn/page_image/3ba8cc7f37c46ada1715cdadd06e40ef.png" 
+                                src="{{ url_for('static', filename='cover.png') }}" 
                                 alt="{{ story.title }}" 
                                 class="w-100 story-image"
                             />
