@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}{{ story.title }} - AI故事平台{% endblock %}
+{% block title %}{{ story.title }} - StoryKeeper{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* 故事详情页面样式 - 与my_stories保持一致的美丽设计 */
+    /* Story Detail Page Styles - Beautiful design consistent with my_stories */
     .story-hero {
         background: linear-gradient(135deg, rgba(255, 248, 225, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
         position: relative;
@@ -314,7 +314,7 @@
         gap: 12px;
     }
 
-    /* 响应式设计 */
+    /* Responsive Design */
     @media (max-width: 768px) {
         .story-hero {
             min-height: 400px;
@@ -405,15 +405,15 @@
                             </div>
                             <div class="meta-item">
                                 <i class="fas fa-calendar"></i>
-                                <span>{{ story.created_at.strftime('%Y年%m月%d日') }}</span>
+                                <span>{{ story.created_at.strftime('%B %d, %Y') }}</span>
                             </div>
                             <div class="meta-item">
                                 <i class="fas fa-clock"></i>
-                                <span>{{ story.reading_time or 5 }}分钟阅读</span>
+                                <span>{{ story.reading_time or 5 }} min read</span>
                             </div>
                             <div class="meta-item">
                                 <i class="fas fa-globe"></i>
-                                <span>{{ story.language_name or '中文' }}</span>
+                                <span>{{ story.language_name or 'Chinese' }}</span>
                             </div>
                             {% if story.categories %}
                             <div class="meta-item">
@@ -430,11 +430,11 @@
                         <div class="d-flex align-items-center justify-content-between">
                             <span class="status-badge status-{{ story.status }}">
                                 {% if story.status == 'published' %}
-                                    <i class="fas fa-check-circle"></i>通过审核
+                                    <i class="fas fa-check-circle"></i>Approved
                                 {% elif story.status == 'pending' %}
-                                    <i class="fas fa-clock"></i>待审核
+                                    <i class="fas fa-clock"></i>Pending
                                 {% elif story.status == 'rejected' %}
-                                    <i class="fas fa-times-circle"></i>未通过审核
+                                    <i class="fas fa-times-circle"></i>Rejected
                                 {% endif %}
                             </span>
                         </div>
@@ -462,28 +462,28 @@
                 <div class="stats-grid">
                     <div class="stat-item">
                         <div class="stat-number">{{ story.view_count or 0 }}</div>
-                        <div class="stat-label">浏览量</div>
+                        <div class="stat-label">Views</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-number">{{ story.like_count or 0 }}</div>
-                        <div class="stat-label">点赞数</div>
+                        <div class="stat-label">Likes</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-number">{{ story.word_count or 0 }}</div>
-                        <div class="stat-label">字数</div>
+                        <div class="stat-label">Words</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-number">{{ story.reading_time or 5 }}</div>
-                        <div class="stat-label">阅读时间(分钟)</div>
+                        <div class="stat-label">Read Time (min)</div>
                     </div>
                 </div>
 
                 <div class="action-buttons">
                     <a href="{{ url_for('story_library') }}" class="btn-action btn-back">
-                        <i class="fas fa-arrow-left"></i>返回故事库
+                        <i class="fas fa-arrow-left"></i>Back to Library
                     </a>
                     <a href="#" class="btn-action btn-like" onclick="likeStory({{ story.id }})">
-                        <i class="fas fa-heart"></i>点赞故事
+                        <i class="fas fa-heart"></i>Like Story
                     </a>
                 </div>
             </div>
@@ -492,7 +492,7 @@
             {% if related_stories %}
             <div class="related-stories-section">
                 <h3 style="color: var(--warm-primary-dark); font-family: var(--font-serif); margin-bottom: 24px;">
-                    <i class="fas fa-book-open me-2"></i>相关推荐
+                    <i class="fas fa-book-open me-2"></i>Related Stories
                 </h3>
                 <div class="row g-3">
                     {% for related in related_stories %}
@@ -548,7 +548,7 @@ function likeStory(storyId) {
     const originalContent = btn.innerHTML;
     
     // Show loading state
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>处理中...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>Processing...';
     btn.disabled = true;
     
     fetch(`/api/like_story/${storyId}`, {
@@ -571,19 +571,19 @@ function likeStory(storyId) {
             
             // Show success message
             if (data.action === 'liked') {
-                showToast('已点赞！', 'success');
+                showToast('Liked!', 'success');
             } else {
-                showToast('已取消点赞', 'info');
+                showToast('Like removed', 'info');
             }
         } else {
             // Show error
-            showToast(data.error || '操作失败，请重试', 'error');
+            showToast(data.error || 'Operation failed, please try again', 'error');
             btn.innerHTML = originalContent;
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showToast('网络错误，请重试', 'error');
+        showToast('Network error, please try again', 'error');
         btn.innerHTML = originalContent;
     })
     .finally(() => {
@@ -594,12 +594,12 @@ function likeStory(storyId) {
 function updateLikeButton(liked) {
     const btn = document.querySelector('.btn-like');
     if (liked) {
-        btn.innerHTML = '<i class="fas fa-heart"></i>已点赞';
+        btn.innerHTML = '<i class="fas fa-heart"></i>Liked';
         btn.style.background = '#dc2626';
         btn.style.color = 'white';
         btn.classList.add('liked');
     } else {
-        btn.innerHTML = '<i class="fas fa-heart"></i>点赞故事';
+        btn.innerHTML = '<i class="fas fa-heart"></i>Like Story';
         btn.style.background = '';
         btn.style.color = '';
         btn.classList.remove('liked');
@@ -629,7 +629,7 @@ function showToast(message, type) {
     }, 3000);
 }
 
-// 添加滚动动画效果
+    // Add scroll animation effects
 document.addEventListener('DOMContentLoaded', function() {
     // Check like status on page load
     checkLikeStatus();
@@ -647,7 +647,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, observerOptions);
 
-    // 为所有section添加动画
+    // Add animations to all sections
     document.querySelectorAll('.story-content-section, .story-stats-section, .related-stories-section').forEach(section => {
         section.style.opacity = '0';
         section.style.transform = 'translateY(20px)';
