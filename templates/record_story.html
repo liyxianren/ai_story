@@ -1412,6 +1412,7 @@ class VoiceRecorder {
         this.chatMessages = [];
         this.currentStoryText = '';
         this.originalTranscription = '';  // Store raw transcription for publishing
+        this.lastAIResponse = '';  // Store last AI response for potential adoption
         this.selectedLanguageCode = 'en-US';
         
         // Initialize language selector
@@ -3250,13 +3251,11 @@ class VoiceRecorder {
             console.log('📋 聊天API响应结果 CHAT API RESPONSE:', result);
             
             if (result.success) {
-                // Add AI response to chat history
-                this.addChatMessage('assistant', result.gemini_response);
+                // Store the last AI response for potential adoption
+                this.lastAIResponse = result.gemini_response;
                 
-                // Check if the response contains a revised story
-                if (this.isRevisedStory(result.gemini_response)) {
-                    this.updatePolishedStory(result.gemini_response);
-                }
+                // Add AI response to chat history with potential Agree button
+                this.addChatMessage('assistant', result.gemini_response);
                 
                 console.log('✅ 聊天成功 CHAT SUCCESS');
                 
@@ -3306,6 +3305,9 @@ class VoiceRecorder {
             messageClass = 'system-message';
         }
         
+        // Check if this is an AI assistant message that might contain story suggestions
+        const showAgreeButton = role === 'assistant' && this.isRevisedStory(content);
+        
         messageDiv.innerHTML = `
             <div class="d-flex ${role === 'user' ? 'justify-content-end' : 'justify-content-start'}">
                 <div class="message-bubble ${messageClass}" style="max-width: 80%; padding: 10px 15px; border-radius: 15px; ${role === 'user' ? 'background: var(--warm-primary); color: white; margin-left: 20%;' : 'background: #f8f9fa; border: 1px solid #dee2e6; margin-right: 20%;'}">
@@ -3316,6 +3318,32 @@ class VoiceRecorder {
                         </small>
                     </div>
                     <div class="message-content" style="line-height: 1.5; white-space: pre-wrap;">${content}</div>
+                    ${showAgreeButton ? `
+                        <div class="message-actions mt-2 pt-2" style="border-top: 1px solid #dee2e6;">
+                            <button class="btn-agree-ai-response btn btn-sm" 
+                                    onclick="window.storyRecorder.applyAIResponse('${this.chatMessages.length}')"
+                                    style="
+                                        background: linear-gradient(135deg, var(--warm-success) 0%, #22c55e 100%);
+                                        border: none;
+                                        border-radius: 8px;
+                                        color: white;
+                                        padding: 6px 12px;
+                                        font-size: 0.8rem;
+                                        font-weight: 500;
+                                        box-shadow: 0 2px 8px rgba(34, 197, 94, 0.25);
+                                        transition: all 0.2s ease;
+                                    "
+                                    onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(34, 197, 94, 0.35)'"
+                                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(34, 197, 94, 0.25)'">
+                                <i class="fas fa-check me-1"></i>
+                                采用建议 | Apply Suggestion
+                            </button>
+                            <small class="text-muted ms-2" style="font-size: 0.75rem;">
+                                <i class="fas fa-info-circle me-1"></i>
+                                点击将使用此回答替换故事内容
+                            </small>
+                        </div>
+                    ` : ''}
                 </div>
             </div>
         `;
@@ -3337,21 +3365,61 @@ class VoiceRecorder {
     }
     
     isRevisedStory(response) {
-        // Simple heuristic to detect if the response contains a revised story
-        // You can make this more sophisticated based on your needs
+        // Enhanced heuristic to detect if the response contains a revised story
         const storyIndicators = [
+            // English indicators
             'here is the revised story',
             'here\'s the improved version',
             'revised story:',
             'improved story:',
             'new version:',
             'here\'s the story',
-            'updated story'
+            'updated story',
+            'here\'s a better version',
+            'improved version:',
+            'revised version:',
+            // Chinese indicators  
+            '修改后的故事',
+            '改进的故事',
+            '新版本的故事',
+            '修订后的故事',
+            '改善后的故事',
+            '优化后的故事',
+            '这是修改后的版本',
+            '这是改进的版本'
         ];
         
         const lowerResponse = response.toLowerCase();
-        return storyIndicators.some(indicator => lowerResponse.includes(indicator)) ||
-               (response.length > 100 && response.includes('.') && !response.startsWith('I think') && !response.startsWith('You could'));
+        
+        // Check for explicit story indicators
+        const hasExplicitIndicator = storyIndicators.some(indicator => 
+            lowerResponse.includes(indicator.toLowerCase())
+        );
+        
+        // Check for narrative structure (longer responses with multiple sentences)
+        const hasNarrativeStructure = response.length > 150 && 
+                                     response.split('.').length > 3 &&
+                                     !response.toLowerCase().startsWith('i think') &&
+                                     !response.toLowerCase().startsWith('you could') &&
+                                     !response.toLowerCase().startsWith('consider') &&
+                                     !response.toLowerCase().includes('suggestion:');
+        
+        // Check for story-like content patterns
+        const storyPatterns = [
+            /once upon a time/i,
+            /there was/i,
+            /he said/i,
+            /she said/i,
+            /they went/i,
+            /suddenly/i,
+            /meanwhile/i,
+            /in the end/i,
+            /finally/i
+        ];
+        
+        const hasStoryPatterns = storyPatterns.some(pattern => pattern.test(response));
+        
+        return hasExplicitIndicator || (hasNarrativeStructure && hasStoryPatterns);
     }
     
     updatePolishedStory(newStoryText) {
@@ -3370,6 +3438,85 @@ class VoiceRecorder {
                 polishedStoryElement.style.backgroundColor = '';
             }, 1500);
         }
+    }
+    
+    // Apply AI response to story content
+    applyAIResponse(messageIndex) {
+        if (!this.lastAIResponse) {
+            alert('没有可应用的AI建议 | No AI suggestion available to apply');
+            return;
+        }
+        
+        // Show confirmation dialog
+        const confirmMessage = `确定要使用AI的建议替换当前故事内容吗？此操作不可撤销。\n\nAre you sure you want to replace the current story content with AI's suggestion? This action cannot be undone.`;
+        
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+        
+        console.log('🤖 应用AI建议 APPLYING AI SUGGESTION:', {
+            oldStoryLength: this.currentStoryText.length,
+            newStoryLength: this.lastAIResponse.length,
+            messageIndex: messageIndex
+        });
+        
+        // Update the story content with AI response
+        this.updatePolishedStory(this.lastAIResponse);
+        
+        // Disable the agree button that was clicked
+        const agreeButton = document.querySelector(`button[onclick*="${messageIndex}"]`);
+        if (agreeButton) {
+            agreeButton.disabled = true;
+            agreeButton.innerHTML = '<i class="fas fa-check me-1"></i>已采用 | Applied';
+            agreeButton.style.background = '#6c757d';
+            agreeButton.style.boxShadow = 'none';
+            agreeButton.style.cursor = 'not-allowed';
+        }
+        
+        // Show success feedback
+        this.showSuccessToast('✅ AI建议已应用到故事内容 | AI suggestion applied to story content');
+        
+        console.log('✅ AI建议应用成功 AI SUGGESTION APPLIED SUCCESSFULLY');
+    }
+    
+    // Show success toast notification
+    showSuccessToast(message) {
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = 'success-toast';
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--warm-success) 0%, #22c55e 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.25);
+            z-index: 9999;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+            max-width: 300px;
+            word-wrap: break-word;
+        `;
+        toast.innerHTML = `<i class="fas fa-check-circle me-2"></i>${message}`;
+        
+        // Add to page
+        document.body.appendChild(toast);
+        
+        // Animate in
+        setTimeout(() => {
+            toast.style.transform = 'translateX(0)';
+        }, 100);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 300);
+        }, 3000);
     }
     
     // Modified showTranscriptionResult to handle polished stories
