@@ -818,7 +818,7 @@ function setupFormValidation() {
         console.log('Selected story type:', selectedType.value);
         
         // Show loading modal
-        showLoadingModal('正在发布故事...');
+        showLoadingModal('Publishing story...');
         
         // Prepare form data
         const formData = new FormData(form);
@@ -837,11 +837,11 @@ function setupFormValidation() {
                 sessionStorage.removeItem('recordedStory');
                 
                 // Redirect to my stories with success message
-                sessionStorage.setItem('publishSuccess', '故事发布成功！');
+                sessionStorage.setItem('publishSuccess', 'Story published successfully!');
                 window.location.href = '/my_stories';
             } else {
                 hideLoadingModal();
-                alert('发布失败: ' + result.error);
+                alert('Publishing failed: ' + result.error);
             }
         } catch (error) {
             hideLoadingModal();
