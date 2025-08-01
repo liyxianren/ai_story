@@ -305,35 +305,35 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link active" href="{{ url_for('index') }}">
-                            首页
+                            Home
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('story_library') }}">
-                            故事库
+                            Story Library
                         </a>
                     </li>
                     
                     {% if current_user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('record_story') }}">
-                                记录故事
+                                Record Story
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('my_stories') }}">
-                                我的故事
+                                My Stories
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('profile') }}">
-                                个人中心
+                                Profile
                             </a>
                         </li>
                         <li class="nav-item ms-3">
                             <a class="btn btn-primary btn-sm" href="{{ url_for('logout') }}">
                                 <i class="fa-solid fa-sign-out-alt me-2"></i>
-                                退出登录
+                                Logout
                             </a>
                         </li>
                     {% else %}
@@ -408,35 +408,35 @@
                 </div>
                 
                 <div class="col-lg-3 col-md-6">
-                    <h5 class="text-white mb-3">快速链接</h5>
+                    <h5 class="text-white mb-3">Quick Links</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{{ url_for('index') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">首页</a></li>
+                        <li class="mb-2"><a href="{{ url_for('index') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">Home</a></li>
                         {% if current_user.is_authenticated %}
-                            <li class="mb-2"><a href="{{ url_for('record_story') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">记录故事</a></li>
-                            <li class="mb-2"><a href="{{ url_for('my_stories') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">我的故事</a></li>
-                            <li class="mb-2"><a href="{{ url_for('profile') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">个人中心</a></li>
+                            <li class="mb-2"><a href="{{ url_for('record_story') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">Record Story</a></li>
+                            <li class="mb-2"><a href="{{ url_for('my_stories') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">My Stories</a></li>
+                            <li class="mb-2"><a href="{{ url_for('profile') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">Profile</a></li>
                         {% endif %}
-                        <li class="mb-2"><a href="{{ url_for('story_library') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">故事库</a></li>
+                        <li class="mb-2"><a href="{{ url_for('story_library') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">Story Library</a></li>
                     </ul>
                 </div>
                 
                 <div class="col-lg-3 col-md-6">
-                    <h5 class="text-white mb-3">故事分类</h5>
+                    <h5 class="text-white mb-3">Story Categories</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">家族历史</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">地方传说</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">传统技艺</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">人物记忆</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">Family History</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">Local Legends</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">Traditional Crafts</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">Personal Memories</a></li>
                     </ul>
                 </div>
                 
                 <div class="col-lg-3 col-md-6">
-                    <h5 class="text-white mb-3">关于我们</h5>
+                    <h5 class="text-white mb-3">About Us</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">项目介绍</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">使用帮助</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">隐私政策</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">联系我们</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">Platform Overview</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">Help & Support</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">Privacy Policy</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">Contact Us</a></li>
                     </ul>
                 </div>
             </div>
@@ -445,9 +445,9 @@
             <div class="text-center pt-3">
                 <p class="mb-0" style="color: #fbbf24;">
                     <i class="fa-solid fa-book-open me-2"></i>
-                    © 2025 故事传承 - 记录每一个珍贵的记忆 | 
+                    © 2025 StoryKeeper - Preserving Every Precious Memory | 
                     <i class="fa-solid fa-heart mx-2" style="color: #fbbf24;"></i>
-                    每个故事都值得被珍藏
+                    Every Story Deserves to be Treasured
                 </p>
             </div>
         </div>

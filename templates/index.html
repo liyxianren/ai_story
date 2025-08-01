@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}故事传承 - 记录传承每一个珍贵故事{% endblock %}
+{% block title %}StoryKeeper - Preserve Every Precious Life Story{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -266,7 +266,7 @@
                     传承<span style="color: var(--color-primary);">记忆</span>
                 </h1>
                 <p class="fs-5 text-muted mb-4" style="max-width: 500px;">
-                    每一个故事都值得被珍藏。记录那些口口相传的智慧、历史与情感，让珍贵的记忆永不褪色。
+                    Every story deserves to be treasured. Record the wisdom, history, and emotions passed down through generations, ensuring precious memories never fade.
                 </p>
                 <div class="mt-4">
                     {% if not current_user.is_authenticated %}
@@ -285,7 +285,7 @@
                         </a>
                         <a href="{{ url_for('my_stories') }}" class="btn btn-outline-primary btn-lg">
                             <i class="fa-solid fa-book me-2"></i>
-                            我的故事
+                            My Stories
                         </a>
                     {% endif %}
                 </div>
@@ -539,14 +539,14 @@
                                     您的故事值得被记录
                                 </h2>
                                 <p class="fs-5 text-muted mb-4">
-                                    每个人都有独特的人生经历，每段经历都是珍贵的历史。加入我们，让您的故事成为永恒的记忆，传承给下一代。
+                                    Everyone has unique life experiences, and every experience is precious history. Join us to make your stories eternal memories, passed down to the next generation.
                                 </p>
                                 <div class="d-flex flex-column flex-sm-row gap-3 mb-4">
                                     <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4">
-                                        <i class="fa-solid fa-microphone me-2"></i>立即开始录制
+                                        <i class="fa-solid fa-microphone me-2"></i>Start Recording Now
                                     </a>
                                     <a href="{{ url_for('story_library') }}" class="btn btn-outline-primary btn-lg px-4">
-                                        <i class="fa-solid fa-book-open me-2"></i>浏览故事珍藏馆
+                                        <i class="fa-solid fa-book-open me-2"></i>Browse Story Library
                                     </a>
                                 </div>
                                 
