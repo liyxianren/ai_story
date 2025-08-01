@@ -4,29 +4,29 @@
 
 {% block extra_css %}
 <style>
-    /* 故事传承网站 - 温暖怀旧风格 */
+    /* StoryKeeper Website - Warm Nostalgic Style */
     :root {
-        /* 颜色系统 - 温暖怀旧风格 */
-        --color-primary: #d97706; /* 琥珀色作为主色调，传达温暖和历史感 */
+        /* Color System - Warm Nostalgic Style */
+        --color-primary: #d97706; /* Amber as primary color, conveying warmth and historical feel */
         --color-primary-light: #fbbf24;
         --color-primary-dark: #92400e;
-        --color-secondary: #7f1d1d; /* 深红色作为辅助色，用于强调和情感表达 */
-        --color-neutral-light: #fef3c7; /* 浅米色背景，营造纸张质感 */
-        --color-neutral: #f59e0b; /* 中性色 */
-        --color-neutral-dark: #4b5563; /* 深色文本 */
+        --color-secondary: #7f1d1d; /* Deep red as secondary color for emphasis and emotional expression */
+        --color-neutral-light: #fef3c7; /* Light beige background, creating paper texture */
+        --color-neutral: #f59e0b; /* Neutral color */
+        --color-neutral-dark: #4b5563; /* Dark text color */
         
-        /* 排版系统 */
+        /* Typography System */
         --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
-        --font-serif: Georgia, Cambria, "Times New Roman", Times, serif; /* 衬线字体用于标题，增强故事感 */
+        --font-serif: Georgia, Cambria, "Times New Roman", Times, serif; /* Serif font for titles, enhancing storytelling feel */
         
-        /* 阴影和深度 */
+        /* Shadows and Depth */
         --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
         --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         
-        /* 圆角 */
+        /* Border Radius */
         --rounded-sm: 0.25rem;
         --rounded: 0.5rem;
         --rounded-lg: 0.75rem;
@@ -35,7 +35,7 @@
         --rounded-full: 9999px;
     }
     
-    /* 全局样式重置与基础设置 */
+    /* Global Style Reset and Base Settings */
     * {
         box-sizing: border-box;
     }
@@ -52,7 +52,7 @@
         color: #374151;
     }
     
-    /* 自定义动画效果 */
+    /* Custom Animation Effects */
     @keyframes blob {
         0%, 100% { transform: translate(0, 0) scale(1); }
         33% { transform: translate(30px, -50px) scale(1.1); }
@@ -262,8 +262,8 @@
         <div class="row align-items-center" style="min-height: 75vh;">
             <div class="col-md-6 animate-fade-up">
                 <h1 class="display-4 fw-bold mb-4" style="font-family: var(--font-serif); color: #92400e; line-height: 1.2;">
-                    记录<span style="color: var(--color-primary);">故事</span>，<br />
-                    传承<span style="color: var(--color-primary);">记忆</span>
+                    Record Your <span style="color: var(--color-primary);">Stories</span>,<br />
+                    Preserve <span style="color: var(--color-primary);">Memories</span>
                 </h1>
                 <p class="fs-5 text-muted mb-4" style="max-width: 500px;">
                     Every story deserves to be treasured. Record the wisdom, history, and emotions passed down through generations, ensuring precious memories never fade.
@@ -272,16 +272,16 @@
                     {% if not current_user.is_authenticated %}
                         <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3">
                             <i class="fa-solid fa-pencil me-2"></i>
-                            开始记录故事
+                            Start Recording Stories
                         </a>
                         <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
                             <i class="fa-solid fa-sign-in-alt me-2"></i>
-                            已有账户
+                            Already Have Account
                         </a>
                     {% else %}
                         <a href="{{ url_for('record_story') }}" class="btn btn-primary btn-lg me-3">
                             <i class="fa-solid fa-pencil me-2"></i>
-                            开始记录故事
+                            Start Recording Stories
                         </a>
                         <a href="{{ url_for('my_stories') }}" class="btn btn-outline-primary btn-lg">
                             <i class="fa-solid fa-book me-2"></i>
@@ -296,7 +296,7 @@
                     <div class="text-center" style="transform: rotate(1deg); transition: transform 0.5s ease;" onmouseover="this.style.transform='rotate(0deg)'" onmouseout="this.style.transform='rotate(1deg)'">
                         <div class="rounded-3 overflow-hidden shadow-lg" style="max-width: 500px; margin: 0 auto;">
                             <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
-                                 alt="古老的故事书与传承的智慧" 
+                                 alt="Ancient storybook and inherited wisdom" 
                                  class="img-fluid">
                         </div>
                         <div class="position-absolute bg-white p-3 rounded-3 shadow" 
@@ -304,7 +304,7 @@
                              onmouseover="this.style.transform='rotate(0deg)'" 
                              onmouseout="this.style.transform='rotate(-3deg)'">
                             <p class="mb-0 fst-italic fw-medium" style="color: #92400e; font-size: 0.9rem;">
-                                "每一个故事都是连接过去与未来的桥梁"
+                                "Every story is a bridge connecting past and future"
                             </p>
                         </div>
                     </div>
@@ -322,10 +322,10 @@
     <div class="container">
         <div class="text-center mb-5">
             <h2 class="display-5 fw-bold mb-3" style="font-family: var(--font-serif); color: #92400e;">
-                简单三步，记录永恒
+                Three Simple Steps to Record Eternity
             </h2>
             <p class="fs-5 text-muted mx-auto" style="max-width: 600px;">
-                将您的珍贵故事转化为永久的数字记忆
+                Transform your precious stories into permanent digital memories
             </p>
         </div>
         
@@ -337,10 +337,10 @@
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-white" style="background-color: var(--color-primary);">1</span>
                     </div>
                     <h4 class="fw-bold mb-3" style="font-family: var(--font-serif); color: #374151;">
-                        录制您的故事
+                        Record Your Story
                     </h4>
                     <p class="text-muted">
-                        使用我们的多语言录音功能，无论您讲什么语言，都能准确识别并转换为文字。支持中文、英文、西班牙文等23种语言。
+                        Use our multilingual recording feature to accurately recognize and convert speech to text, regardless of language. Supports 23 languages including Chinese, English, Spanish, and more.
                     </p>
                 </div>
             </div>
@@ -352,10 +352,10 @@
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-white" style="background-color: var(--color-primary);">2</span>
                     </div>
                     <h4 class="fw-bold mb-3" style="font-family: var(--font-serif); color: #374151;">
-                        AI智能优化
+                        AI Smart Optimization
                     </h4>
                     <p class="text-muted">
-                        我们的AI助手会自动整理您的录音，生成优美的文字，添加合适的配图，让您的故事更加生动精彩。
+                        Our AI assistant automatically organizes your recordings, generates beautiful text, and adds appropriate images to make your stories more vivid and engaging.
                     </p>
                 </div>
             </div>
@@ -367,10 +367,10 @@
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-white" style="background-color: var(--color-primary);">3</span>
                     </div>
                     <h4 class="fw-bold mb-3" style="font-family: var(--font-serif); color: #374151;">
-                        分享与传承
+                        Share and Preserve
                     </h4>
                     <p class="text-muted">
-                        发布您的故事，让更多人了解您的经历。每个故事都是宝贵的历史片段，值得被永远保存。
+                        Publish your stories to share your experiences with others. Every story is a precious piece of history that deserves to be preserved forever.
                     </p>
                 </div>
             </div>
@@ -383,10 +383,10 @@
     <div class="container">
         <div class="text-center mb-5">
             <h2 class="display-5 fw-bold mb-3" style="font-family: var(--font-serif); color: #92400e;">
-                精选故事
+                Featured Stories
             </h2>
             <p class="fs-5 text-muted mx-auto" style="max-width: 600px;">
-                发现那些触动人心的故事，感受不同人生的精彩历程
+                Discover heartwarming stories and experience the wonderful journeys of different lives
             </p>
         </div>
         
@@ -406,26 +406,26 @@
                     
                     <div class="p-4 flex-grow-1 d-flex flex-column">
                         <h3 class="h5 fw-bold mb-2" style="font-family: var(--font-serif); color: #92400e;">
-                            奶奶的中秋节记忆
+                            Grandma's Mid-Autumn Festival Memories
                         </h3>
                         
                         <div class="d-flex align-items-center text-muted small mb-3">
                             <i class="fa-regular fa-user me-1"></i>
-                            <span>李明</span>
+                            <span>Li Ming</span>
                             <span class="mx-2">•</span>
                             <i class="fa-regular fa-calendar me-1"></i>
                             <span>2025-07-15</span>
                         </div>
                         
                         <p class="text-muted small mb-4 flex-grow-1">
-                            每年中秋节，奶奶都会讲述她小时候如何和家人一起制作月饼的故事。那时候没有现代的模具，她们用最简单的工具创造出了最难忘的味道...
+                            Every Mid-Autumn Festival, Grandma would tell stories about making mooncakes with her family when she was young. Without modern molds, they used the simplest tools to create the most unforgettable flavors...
                         </p>
                         
                         <a href="#" class="d-inline-flex align-items-center fw-medium mt-auto" 
                            style="color: var(--color-primary); text-decoration: none; transition: color 0.2s ease;"
                            onmouseover="this.style.color='var(--color-primary-dark)'" 
                            onmouseout="this.style.color='var(--color-primary)'">
-                            阅读完整故事
+                            Read Full Story
                             <i class="fa-solid fa-arrow-right ms-1" style="font-size: 0.75rem;"></i>
                         </a>
                     </div>
@@ -447,26 +447,26 @@
                     
                     <div class="p-4 flex-grow-1 d-flex flex-column">
                         <h3 class="h5 fw-bold mb-2" style="font-family: var(--font-serif); color: #92400e;">
-                            山村小学的老校长
+                            The Old Principal of Mountain Village School
                         </h3>
                         
                         <div class="d-flex align-items-center text-muted small mb-3">
                             <i class="fa-regular fa-user me-1"></i>
-                            <span>王芳</span>
+                            <span>Wang Fang</span>
                             <span class="mx-2">•</span>
                             <i class="fa-regular fa-calendar me-1"></i>
                             <span>2025-07-10</span>
                         </div>
                         
                         <p class="text-muted small mb-4 flex-grow-1">
-                            在那个物资匮乏的年代，老校长用自己的工资为学生们购买课本，用扁担从山外挑回学习用品。他常说：'知识能改变命运，即使我们身在大山...
+                            In those days of material scarcity, the old principal used his own salary to buy textbooks for students and carried school supplies from outside the mountains with a shoulder pole. He often said: 'Knowledge can change destiny, even if we live in the mountains...
                         </p>
                         
                         <a href="#" class="d-inline-flex align-items-center fw-medium mt-auto" 
                            style="color: var(--color-primary); text-decoration: none; transition: color 0.2s ease;"
                            onmouseover="this.style.color='var(--color-primary-dark)'" 
                            onmouseout="this.style.color='var(--color-primary)'">
-                            阅读完整故事
+                            Read Full Story
                             <i class="fa-solid fa-arrow-right ms-1" style="font-size: 0.75rem;"></i>
                         </a>
                     </div>
@@ -488,26 +488,26 @@
                     
                     <div class="p-4 flex-grow-1 d-flex flex-column">
                         <h3 class="h5 fw-bold mb-2" style="font-family: var(--font-serif); color: #92400e;">
-                            爷爷的抗战往事
+                            Grandpa's War Stories
                         </h3>
                         
                         <div class="d-flex align-items-center text-muted small mb-3">
                             <i class="fa-regular fa-user me-1"></i>
-                            <span>张伟</span>
+                            <span>Zhang Wei</span>
                             <span class="mx-2">•</span>
                             <i class="fa-regular fa-calendar me-1"></i>
                             <span>2025-07-05</span>
                         </div>
                         
                         <p class="text-muted small mb-4 flex-grow-1">
-                            爷爷很少提起他的抗战经历，但在那个雨夜，他终于向我讲述了那段峥嵘岁月。他说最难忘的不是战场上的炮火，而是战友间的相互扶持...
+                            Grandpa rarely mentioned his wartime experiences, but on that rainy night, he finally told me about those turbulent years. He said what he remembered most wasn't the gunfire on the battlefield, but the mutual support among comrades...
                         </p>
                         
                         <a href="#" class="d-inline-flex align-items-center fw-medium mt-auto" 
                            style="color: var(--color-primary); text-decoration: none; transition: color 0.2s ease;"
                            onmouseover="this.style.color='var(--color-primary-dark)'" 
                            onmouseout="this.style.color='var(--color-primary)'">
-                            阅读完整故事
+                            Read Full Story
                             <i class="fa-solid fa-arrow-right ms-1" style="font-size: 0.75rem;"></i>
                         </a>
                     </div>
@@ -518,7 +518,7 @@
         <div class="row mt-5">
             <div class="col-12 text-center">
                 <a href="{{ url_for('story_library') }}" class="btn btn-outline-primary btn-lg px-5">
-                    <i class="fa-solid fa-book-open me-2"></i>查看更多故事
+                    <i class="fa-solid fa-book-open me-2"></i>View More Stories
                 </a>
             </div>
         </div>
@@ -536,7 +536,7 @@
                         <div class="col-md-6">
                             <div class="p-5 text-center text-md-start">
                                 <h2 class="display-5 fw-bold mb-4" style="font-family: var(--font-serif); color: #92400e;">
-                                    您的故事值得被记录
+                                    Your Stories Deserve to be Recorded
                                 </h2>
                                 <p class="fs-5 text-muted mb-4">
                                     Everyone has unique life experiences, and every experience is precious history. Join us to make your stories eternal memories, passed down to the next generation.
@@ -584,7 +584,7 @@
                         <div class="col-md-6">
                             <div class="position-relative" style="height: 500px; overflow: hidden;">
                                 <img src="https://space.coze.cn/api/coze_space/gen_image?image_size=landscape_16_9&prompt=%24%7BctaImagePrompt%7D&sign=317ab8c2f8b5f0e9ca5a1ec645c4dbfa" 
-                                     alt="人们围坐分享故事" 
+                                     alt="People gathering to share stories" 
                                      class="h-100 w-100" 
                                      style="object-fit: cover;">
                             </div>
