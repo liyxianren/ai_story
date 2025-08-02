@@ -1,10 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}StoryKeeper - Preserve Every Precious Life Story{% endblock %}
+{% block title %}echoverse{% endblock %}
 
 {% block extra_css %}
+<!-- Google Fonts for handwritten style -->
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Kaushan+Script&family=Pacifico&display=swap" rel="stylesheet">
 <style>
-    /* StoryKeeper Website - Warm Nostalgic Style */
+    /* 
+echoverse
+ Website - Warm Nostalgic Style */
     :root {
         /* Color System - Warm Nostalgic Style */
         --color-primary: #d97706; /* Amber as primary color, conveying warmth and historical feel */
@@ -104,7 +108,7 @@
     /* Hero Section Styles */
     .hero-section {
         background: linear-gradient(to bottom, var(--color-neutral-light), #fff);
-        padding: 5rem 0;
+        padding: 3rem 0;
         position: relative;
         overflow: hidden;
     }
@@ -238,13 +242,44 @@
     }
     
     /* Responsive Adjustments */
+    
+    /* Floating animation keyframes */
+    @keyframes float1 {
+        0%, 100% { transform: translateY(0px) translateX(0px); }
+        33% { transform: translateY(-15px) translateX(10px); }
+        66% { transform: translateY(-5px) translateX(-8px); }
+    }
+    
+    @keyframes float2 {
+        0%, 100% { transform: translateY(0px) translateX(0px); }
+        50% { transform: translateY(-20px) translateX(-15px); }
+    }
+    
+    @keyframes float3 {
+        0%, 100% { transform: translateY(0px) translateX(0px); }
+        25% { transform: translateY(-10px) translateX(12px); }
+        75% { transform: translateY(-18px) translateX(-10px); }
+    }
+    
     @media (max-width: 768px) {
         .hero-section {
-            padding: 2rem 0;
+            padding: 1.5rem 0;
+        }
+        
+        .row {
+            min-height: 40vh !important;
         }
         
         .hero-title {
             font-size: 2.5rem !important;
+        }
+        
+        .floating-element {
+            display: none !important;
+        }
+        
+        section {
+            overflow: visible !important;
         }
     }
 </style>
@@ -252,76 +287,179 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="hero-section">
-    <!-- Background Decorative Blobs -->
-    <div class="blob blob-1 animate-blob"></div>
-    <div class="blob blob-2 animate-blob animation-delay-2000"></div>
-    <div class="blob blob-3 animate-blob animation-delay-4000"></div>
+<section class="hero-section" style="
+    background: #ffffff;
+    ">
     
     <div class="container position-relative" style="z-index: 10;">
-        <div class="row align-items-center" style="min-height: 75vh;">
-            <div class="col-md-6 animate-fade-up">
-                <h1 class="display-4 fw-bold mb-4" style="font-family: var(--font-serif); color: #92400e; line-height: 1.2;">
-                    Record Your <span style="color: var(--color-primary);">Stories</span>,<br />
-                    Preserve <span style="color: var(--color-primary);">Memories</span>
-                </h1>
-                <p class="fs-5 text-muted mb-4" style="max-width: 500px;">
-                    Every story deserves to be treasured. Record the wisdom, history, and emotions passed down through generations, ensuring precious memories never fade.
-                </p>
-                <div class="mt-4">
-                    {% if not current_user.is_authenticated %}
-                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3">
-                            <i class="fa-solid fa-pencil me-2"></i>
-                            Start Recording Stories
-                        </a>
-                        <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
-                            <i class="fa-solid fa-sign-in-alt me-2"></i>
-                            Already Have Account
-                        </a>
-                    {% else %}
-                        <a href="{{ url_for('record_story') }}" class="btn btn-primary btn-lg me-3">
-                            <i class="fa-solid fa-pencil me-2"></i>
-                            Start Recording Stories
-                        </a>
-                        <a href="{{ url_for('my_stories') }}" class="btn btn-outline-primary btn-lg">
-                            <i class="fa-solid fa-book me-2"></i>
-                            My Stories
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <div class="col-md-6 animate-slide-right">
-                <div class="position-relative">
-                    <div class="text-center" style="transform: rotate(1deg); transition: transform 0.5s ease;" onmouseover="this.style.transform='rotate(0deg)'" onmouseout="this.style.transform='rotate(1deg)'">
-                        <div class="rounded-3 overflow-hidden shadow-lg" style="max-width: 500px; margin: 0 auto;">
-                            <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
-                                 alt="Ancient storybook and inherited wisdom" 
-                                 class="img-fluid">
-                        </div>
-                        <div class="position-absolute bg-white p-3 rounded-3 shadow" 
-                             style="bottom: -1.5rem; left: -1.5rem; transform: rotate(-3deg); transition: transform 0.5s ease; max-width: 280px;"
-                             onmouseover="this.style.transform='rotate(0deg)'" 
-                             onmouseout="this.style.transform='rotate(-3deg)'">
-                            <p class="mb-0 fst-italic fw-medium" style="color: #92400e; font-size: 0.9rem;">
-                                "Every story is a bridge connecting past and future"
-                            </p>
-                        </div>
+        <div class="row justify-content-center" style="min-height: 50vh;">
+            <div class="col-12 text-center d-flex flex-column justify-content-center position-relative">
+                <!-- Main content box - full width -->
+                <div style="
+                    background: linear-gradient(135deg, #fef3c7 0%, #ffffff 100%);
+                    padding: 4rem 2rem;
+                    border-radius: 0;
+                    border: none;
+                    box-shadow: none;
+                    width: 100vw;
+                    margin-left: calc(-50vw + 50%);
+                    position: relative;
+                    z-index: 10;
+                    min-height: 50vh;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                ">
+                    <!-- Animated floating elements inside box -->
+                    <div class="floating-element" style="
+                        position: absolute; 
+                        top: 15%; 
+                        left: 8%; 
+                        width: 8px; 
+                        height: 8px; 
+                        background: #fbbf24; 
+                        border-radius: 50%; 
+                        animation: float1 6s ease-in-out infinite;
+                    "></div>
+                    <div class="floating-element" style="
+                        position: absolute; 
+                        top: 25%; 
+                        right: 12%; 
+                        width: 6px; 
+                        height: 6px; 
+                        background: #d97706; 
+                        border-radius: 50%; 
+                        animation: float2 8s ease-in-out infinite;
+                    "></div>
+                    <div class="floating-element" style="
+                        position: absolute; 
+                        bottom: 20%; 
+                        left: 15%; 
+                        width: 10px; 
+                        height: 10px; 
+                        background: #92400e; 
+                        border-radius: 50%; 
+                        animation: float3 7s ease-in-out infinite;
+                    "></div>
+                    <div class="floating-element" style="
+                        position: absolute; 
+                        bottom: 30%; 
+                        right: 10%; 
+                        width: 5px; 
+                        height: 5px; 
+                        background: #fbbf24; 
+                        border-radius: 50%; 
+                        animation: float1 9s ease-in-out infinite reverse;
+                    "></div>
+                    <div class="floating-element" style="
+                        position: absolute; 
+                        top: 40%; 
+                        left: 5%; 
+                        width: 7px; 
+                        height: 7px; 
+                        background: #d97706; 
+                        border-radius: 50%; 
+                        animation: float2 10s ease-in-out infinite;
+                    "></div>
+                    <div class="floating-element" style="
+                        position: absolute; 
+                        top: 60%; 
+                        right: 6%; 
+                        width: 9px; 
+                        height: 9px; 
+                        background: #92400e; 
+                        border-radius: 50%; 
+                        animation: float3 11s ease-in-out infinite;
+                    "></div>
+                    <!-- Brand Name -->
+                    <h1 class="display-1 fw-light mb-3" style="
+                        font-family: 'Courier New', 'Lucida Console', Monaco, monospace;
+                        color: #374151;
+                        font-size: clamp(4rem, 12vw, 7rem);
+                        letter-spacing: 0.05em;
+                        font-weight: 900;
+                        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+                    ">
+                        echoverse
+                    </h1>
+                    
+                    <!-- Slogan -->
+                    <p class="fs-4 text-muted mb-4" style="
+                        font-family: Georgia, 'Times New Roman', serif;
+                        color: #6b7280;
+                        font-weight: 400;
+                        letter-spacing: 0.01em;
+                        font-style: italic;
+                    ">
+                        Preserving voices. AI-powered. Human-rooted.
+                    </p>
+                    
+                    <!-- Action Buttons -->
+                    <div class="mt-4">
+                        {% if not current_user.is_authenticated %}
+                            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3 mb-2">
+                                <i class="fa-solid fa-pencil me-2"></i>
+                                Start Recording Stories
+                            </a>
+                            <a href="{{ url_for('my_stories') }}" class="btn btn-outline-primary btn-lg mb-2">
+                                <i class="fa-solid fa-book me-2"></i>
+                                My Stories
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('record_story') }}" class="btn btn-primary btn-lg me-3 mb-2">
+                                <i class="fa-solid fa-pencil me-2"></i>
+                                Start Recording Stories
+                            </a>
+                            <a href="{{ url_for('my_stories') }}" class="btn btn-outline-primary btn-lg mb-2">
+                                <i class="fa-solid fa-book me-2"></i>
+                                My Stories
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Gradient Overlay -->
-    <div class="gradient-overlay"></div>
 </section>
 
 <!-- How It Works Section -->
-<section class="py-5">
+<section class="py-5" style="background: #ffffff; position: relative; overflow: hidden;">
+    <!-- Floating elements for How It Works section -->
+    <div class="floating-element" style="
+        position: absolute; 
+        top: 10%; 
+        left: 5%; 
+        width: 6px; 
+        height: 6px; 
+        background: #fbbf24; 
+        border-radius: 50%; 
+        animation: float1 8s ease-in-out infinite;
+    "></div>
+    <div class="floating-element" style="
+        position: absolute; 
+        top: 70%; 
+        right: 8%; 
+        width: 8px; 
+        height: 8px; 
+        background: #d97706; 
+        border-radius: 50%; 
+        animation: float2 10s ease-in-out infinite;
+    "></div>
+    <div class="floating-element" style="
+        position: absolute; 
+        bottom: 15%; 
+        left: 12%; 
+        width: 5px; 
+        height: 5px; 
+        background: #92400e; 
+        border-radius: 50%; 
+        animation: float3 9s ease-in-out infinite;
+    "></div>
+    
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="display-5 fw-bold mb-3" style="font-family: var(--font-serif); color: #92400e;">
+            <h2 class="display-5 mb-3" style="font-family: 'Courier New', 'Lucida Console', Monaco, monospace; color: #92400e; letter-spacing: 0.02em; font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 300;">
                 Three Simple Steps to Record Eternity
             </h2>
             <p class="fs-5 text-muted mx-auto" style="max-width: 600px;">
@@ -336,7 +474,7 @@
                         <i class="fa-solid fa-microphone" style="font-size: 4rem; color: var(--color-primary); margin-bottom: 1.5rem;"></i>
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-white" style="background-color: var(--color-primary);">1</span>
                     </div>
-                    <h4 class="fw-bold mb-3" style="font-family: var(--font-serif); color: #374151;">
+                    <h4 class="fw-bold mb-3" style="font-family: 'Courier New', 'Lucida Console', Monaco, monospace; color: #374151; letter-spacing: 0.02em; font-size: clamp(1.2rem, 3vw, 1.5rem);">
                         Record Your Story
                     </h4>
                     <p class="text-muted">
@@ -351,7 +489,7 @@
                         <i class="fa-solid fa-brain" style="font-size: 4rem; color: var(--color-primary); margin-bottom: 1.5rem;"></i>
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-white" style="background-color: var(--color-primary);">2</span>
                     </div>
-                    <h4 class="fw-bold mb-3" style="font-family: var(--font-serif); color: #374151;">
+                    <h4 class="fw-bold mb-3" style="font-family: 'Courier New', 'Lucida Console', Monaco, monospace; color: #374151; letter-spacing: 0.02em; font-size: clamp(1.2rem, 3vw, 1.5rem);">
                         AI Smart Optimization
                     </h4>
                     <p class="text-muted">
@@ -366,7 +504,7 @@
                         <i class="fa-solid fa-share-alt" style="font-size: 4rem; color: var(--color-primary); margin-bottom: 1.5rem;"></i>
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-white" style="background-color: var(--color-primary);">3</span>
                     </div>
-                    <h4 class="fw-bold mb-3" style="font-family: var(--font-serif); color: #374151;">
+                    <h4 class="fw-bold mb-3" style="font-family: 'Courier New', 'Lucida Console', Monaco, monospace; color: #374151; letter-spacing: 0.02em; font-size: clamp(1.2rem, 3vw, 1.5rem);">
                         Share and Preserve
                     </h4>
                     <p class="text-muted">
@@ -379,10 +517,52 @@
 </section>
 
 <!-- Featured Stories Section -->
-<section class="py-5 bg-white">
+<section class="py-5 bg-white" style="position: relative; overflow: hidden;">
+    <!-- Floating elements for Featured Stories section -->
+    <div class="floating-element" style="
+        position: absolute; 
+        top: 20%; 
+        left: 3%; 
+        width: 7px; 
+        height: 7px; 
+        background: #fbbf24; 
+        border-radius: 50%; 
+        animation: float2 7s ease-in-out infinite;
+    "></div>
+    <div class="floating-element" style="
+        position: absolute; 
+        top: 50%; 
+        right: 4%; 
+        width: 9px; 
+        height: 9px; 
+        background: #d97706; 
+        border-radius: 50%; 
+        animation: float1 11s ease-in-out infinite;
+    "></div>
+    <div class="floating-element" style="
+        position: absolute; 
+        bottom: 25%; 
+        left: 8%; 
+        width: 6px; 
+        height: 6px; 
+        background: #92400e; 
+        border-radius: 50%; 
+        animation: float3 8s ease-in-out infinite;
+    "></div>
+    <div class="floating-element" style="
+        position: absolute; 
+        top: 80%; 
+        right: 15%; 
+        width: 4px; 
+        height: 4px; 
+        background: #fbbf24; 
+        border-radius: 50%; 
+        animation: float2 12s ease-in-out infinite;
+    "></div>
+    
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="display-5 fw-bold mb-3" style="font-family: var(--font-serif); color: #92400e;">
+            <h2 class="display-5 mb-3" style="font-family: 'Courier New', 'Lucida Console', Monaco, monospace; color: #92400e; letter-spacing: 0.02em; font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 300;">
                 Featured Stories
             </h2>
             <p class="fs-5 text-muted mx-auto" style="max-width: 600px;">
@@ -391,128 +571,137 @@
         </div>
         
         <div class="row g-4">
-            <div class="col-md-6 col-lg-4">
-                <div class="story-card">
-                    <div class="position-relative" style="height: 200px; overflow: hidden;">
-                        <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-                             alt="Grandma's Mid-Autumn Festival Memories" 
-                             class="story-card-image">
-                        <div class="position-absolute top-0 start-0 m-3">
-                            <span class="badge text-white px-3 py-2 rounded-pill" style="background-color: var(--color-primary); font-size: 0.75rem;">
-                                Holiday Traditions
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div class="p-4 flex-grow-1 d-flex flex-column">
-                        <h3 class="h5 fw-bold mb-2" style="font-family: var(--font-serif); color: #92400e;">
-                            Grandma's Mid-Autumn Festival Memories
-                        </h3>
-                        
-                        <div class="d-flex align-items-center text-muted small mb-3">
-                            <i class="fa-regular fa-user me-1"></i>
-                            <span>Li Ming</span>
-                            <span class="mx-2">•</span>
-                            <i class="fa-regular fa-calendar me-1"></i>
-                            <span>2025-07-15</span>
+            {% if featured_stories %}
+                {% for story in featured_stories %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="story-card">
+                        <div class="position-relative" style="height: 200px; overflow: hidden;">
+                            {% if story.image_url %}
+                                <img src="{{ story.image_url }}" 
+                                     alt="{{ story.title }}" 
+                                     class="story-card-image"
+                                     onerror="this.src='/static/cover.png'">
+                            {% else %}
+                                <img src="/static/cover.png" 
+                                     alt="{{ story.title }}" 
+                                     class="story-card-image">
+                            {% endif %}
+                            <div class="position-absolute top-0 start-0 m-3">
+                                <span class="badge text-white px-3 py-2 rounded-pill" style="background-color: var(--color-primary); font-size: 0.75rem;">
+                                    <i class="fa-solid fa-eye me-1"></i>{{ story.view_count }} views
+                                </span>
+                            </div>
                         </div>
                         
-                        <p class="text-muted small mb-4 flex-grow-1">
-                            Every Mid-Autumn Festival, Grandma would tell stories about making mooncakes with her family when she was young. Without modern molds, they used the simplest tools to create the most unforgettable flavors...
-                        </p>
-                        
-                        <a href="#" class="d-inline-flex align-items-center fw-medium mt-auto" 
-                           style="color: var(--color-primary); text-decoration: none; transition: color 0.2s ease;"
-                           onmouseover="this.style.color='var(--color-primary-dark)'" 
-                           onmouseout="this.style.color='var(--color-primary)'">
-                            Read Full Story
-                            <i class="fa-solid fa-arrow-right ms-1" style="font-size: 0.75rem;"></i>
-                        </a>
+                        <div class="p-4 flex-grow-1 d-flex flex-column">
+                            <h3 class="h5 fw-bold mb-2" style="font-family: 'Dancing Script', cursive; color: #92400e; letter-spacing: 0.01em; font-weight: 600;">
+                                {{ story.title }}
+                            </h3>
+                            
+                            <div class="d-flex align-items-center text-muted small mb-3">
+                                <i class="fa-regular fa-user me-1"></i>
+                                <span>{{ story.username }}</span>
+                                <span class="mx-2">•</span>
+                                <i class="fa-regular fa-calendar me-1"></i>
+                                <span>{{ story.published_at.strftime('%Y-%m-%d') if story.published_at else story.created_at.strftime('%Y-%m-%d') }}</span>
+                            </div>
+                            
+                            <p class="text-muted small mb-4 flex-grow-1">
+                                {{ story.excerpt[:150] + '...' if story.excerpt and story.excerpt|length > 150 else story.excerpt or 'No description available.' }}
+                            </p>
+                            
+                            <a href="{{ url_for('story_detail', story_id=story.id) }}" class="d-inline-flex align-items-center fw-medium mt-auto" 
+                               style="color: var(--color-primary); text-decoration: none; transition: color 0.2s ease;"
+                               onmouseover="this.style.color='var(--color-primary-dark)'" 
+                               onmouseout="this.style.color='var(--color-primary)'">
+                                Read Full Story
+                                <i class="fa-solid fa-arrow-right ms-1" style="font-size: 0.75rem;"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="col-md-6 col-lg-4">
-                <div class="story-card">
-                    <div class="position-relative" style="height: 200px; overflow: hidden;">
-                        <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-                             alt="The Old Principal of Mountain Village School" 
-                             class="story-card-image">
-                        <div class="position-absolute top-0 start-0 m-3">
-                            <span class="badge text-white px-3 py-2 rounded-pill" style="background-color: var(--color-primary); font-size: 0.75rem;">
-                                Character Memories
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div class="p-4 flex-grow-1 d-flex flex-column">
-                        <h3 class="h5 fw-bold mb-2" style="font-family: var(--font-serif); color: #92400e;">
-                            The Old Principal of Mountain Village School
-                        </h3>
-                        
-                        <div class="d-flex align-items-center text-muted small mb-3">
-                            <i class="fa-regular fa-user me-1"></i>
-                            <span>Wang Fang</span>
-                            <span class="mx-2">•</span>
-                            <i class="fa-regular fa-calendar me-1"></i>
-                            <span>2025-07-10</span>
+                {% endfor %}
+                
+                <!-- Fill empty slots if less than 3 stories -->
+                {% for i in range(3 - featured_stories|length) %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="story-card" style="opacity: 0.3; pointer-events: none;">
+                        <div class="position-relative" style="height: 200px; overflow: hidden; background: #f8f9fa;">
+                            <div class="d-flex align-items-center justify-content-center h-100">
+                                <div class="text-center text-muted">
+                                    <i class="fa-solid fa-book-open" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                                    <p class="mb-0">More stories coming soon...</p>
+                                </div>
+                            </div>
                         </div>
                         
-                        <p class="text-muted small mb-4 flex-grow-1">
-                            In those days of material scarcity, the old principal used his own salary to buy textbooks for students and carried school supplies from outside the mountains with a shoulder pole. He often said: 'Knowledge can change destiny, even if we live in the mountains...
-                        </p>
-                        
-                        <a href="#" class="d-inline-flex align-items-center fw-medium mt-auto" 
-                           style="color: var(--color-primary); text-decoration: none; transition: color 0.2s ease;"
-                           onmouseover="this.style.color='var(--color-primary-dark)'" 
-                           onmouseout="this.style.color='var(--color-primary)'">
-                            Read Full Story
-                            <i class="fa-solid fa-arrow-right ms-1" style="font-size: 0.75rem;"></i>
-                        </a>
+                        <div class="p-4 flex-grow-1 d-flex flex-column">
+                            <h3 class="h5 fw-bold mb-2" style="font-family: 'Dancing Script', cursive; color: #92400e; letter-spacing: 0.01em; font-weight: 600;">
+                                Story Slot Available
+                            </h3>
+                            
+                            <div class="d-flex align-items-center text-muted small mb-3">
+                                <i class="fa-regular fa-user me-1"></i>
+                                <span>-</span>
+                                <span class="mx-2">•</span>
+                                <i class="fa-regular fa-calendar me-1"></i>
+                                <span>-</span>
+                            </div>
+                            
+                            <p class="text-muted small mb-4 flex-grow-1">
+                                Share your story and it might be featured here as one of the most popular stories!
+                            </p>
+                            
+                            <a href="{{ url_for('record_story') }}" class="d-inline-flex align-items-center fw-medium mt-auto" 
+                               style="color: var(--color-primary); text-decoration: none;">
+                                Start Writing
+                                <i class="fa-solid fa-plus ms-1" style="font-size: 0.75rem;"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="col-md-6 col-lg-4">
-                <div class="story-card">
-                    <div class="position-relative" style="height: 200px; overflow: hidden;">
-                        <img src="https://images.unsplash.com/photo-1586953208448-b95a79798f07?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-                             alt="Grandpa's War Stories" 
-                             class="story-card-image">
-                        <div class="position-absolute top-0 start-0 m-3">
-                            <span class="badge text-white px-3 py-2 rounded-pill" style="background-color: var(--color-primary); font-size: 0.75rem;">
-                                Historical Memories
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div class="p-4 flex-grow-1 d-flex flex-column">
-                        <h3 class="h5 fw-bold mb-2" style="font-family: var(--font-serif); color: #92400e;">
-                            Grandpa's War Stories
-                        </h3>
-                        
-                        <div class="d-flex align-items-center text-muted small mb-3">
-                            <i class="fa-regular fa-user me-1"></i>
-                            <span>Zhang Wei</span>
-                            <span class="mx-2">•</span>
-                            <i class="fa-regular fa-calendar me-1"></i>
-                            <span>2025-07-05</span>
+                {% endfor %}
+            {% else %}
+                <!-- Show placeholder cards when no stories exist -->
+                {% for i in range(3) %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="story-card" style="opacity: 0.3; pointer-events: none;">
+                        <div class="position-relative" style="height: 200px; overflow: hidden; background: #f8f9fa;">
+                            <div class="d-flex align-items-center justify-content-center h-100">
+                                <div class="text-center text-muted">
+                                    <i class="fa-solid fa-book-open" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                                    <p class="mb-0">No stories yet...</p>
+                                </div>
+                            </div>
                         </div>
                         
-                        <p class="text-muted small mb-4 flex-grow-1">
-                            Grandpa rarely mentioned his wartime experiences, but on that rainy night, he finally told me about those turbulent years. He said what he remembered most wasn't the gunfire on the battlefield, but the mutual support among comrades...
-                        </p>
-                        
-                        <a href="#" class="d-inline-flex align-items-center fw-medium mt-auto" 
-                           style="color: var(--color-primary); text-decoration: none; transition: color 0.2s ease;"
-                           onmouseover="this.style.color='var(--color-primary-dark)'" 
-                           onmouseout="this.style.color='var(--color-primary)'">
-                            Read Full Story
-                            <i class="fa-solid fa-arrow-right ms-1" style="font-size: 0.75rem;"></i>
-                        </a>
+                        <div class="p-4 flex-grow-1 d-flex flex-column">
+                            <h3 class="h5 fw-bold mb-2" style="font-family: 'Dancing Script', cursive; color: #92400e; letter-spacing: 0.01em; font-weight: 600;">
+                                Be the First to Share
+                            </h3>
+                            
+                            <div class="d-flex align-items-center text-muted small mb-3">
+                                <i class="fa-regular fa-user me-1"></i>
+                                <span>Your Name</span>
+                                <span class="mx-2">•</span>
+                                <i class="fa-regular fa-calendar me-1"></i>
+                                <span>Today</span>
+                            </div>
+                            
+                            <p class="text-muted small mb-4 flex-grow-1">
+                                Share your first story and help build our community of storytellers!
+                            </p>
+                            
+                            <a href="{{ url_for('record_story') }}" class="d-inline-flex align-items-center fw-medium mt-auto" 
+                               style="color: var(--color-primary); text-decoration: none;">
+                                Start Recording
+                                <i class="fa-solid fa-microphone ms-1" style="font-size: 0.75rem;"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
+                {% endfor %}
+            {% endif %}
         </div>
         
         <div class="row mt-5">
@@ -525,77 +714,6 @@
     </div>
 </section>
 
-<!-- Call to Action Section -->
-{% if not current_user.is_authenticated %}
-<section class="cta-section py-5">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <div class="cta-card overflow-hidden">
-                    <div class="row g-0 align-items-center">
-                        <div class="col-md-6">
-                            <div class="p-5 text-center text-md-start">
-                                <h2 class="display-5 fw-bold mb-4" style="font-family: var(--font-serif); color: #92400e;">
-                                    Your Stories Deserve to be Recorded
-                                </h2>
-                                <p class="fs-5 text-muted mb-4">
-                                    Everyone has unique life experiences, and every experience is precious history. Join us to make your stories eternal memories, passed down to the next generation.
-                                </p>
-                                <div class="d-flex flex-column flex-sm-row gap-3 mb-4">
-                                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4">
-                                        <i class="fa-solid fa-microphone me-2"></i>Start Recording Now
-                                    </a>
-                                    <a href="{{ url_for('story_library') }}" class="btn btn-outline-primary btn-lg px-4">
-                                        <i class="fa-solid fa-book-open me-2"></i>Browse Story Library
-                                    </a>
-                                </div>
-                                
-                                <div class="row mt-4 pt-3" style="border-top: 1px solid rgba(217, 119, 6, 0.2);">
-                                    <div class="col-12 mb-3">
-                                        <div class="d-flex align-items-center">
-                                            <i class="fa-solid fa-shield-alt me-3 fs-5" style="color: var(--color-primary);"></i>
-                                            <div>
-                                                <h6 class="mb-0 fw-bold">Privacy Protection</h6>
-                                                <small class="text-muted">Your stories are safe and secure</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 mb-3">
-                                        <div class="d-flex align-items-center">
-                                            <i class="fa-solid fa-cloud me-3 fs-5" style="color: var(--color-primary);"></i>
-                                            <div>
-                                                <h6 class="mb-0 fw-bold">Cloud Storage</h6>
-                                                <small class="text-muted">Permanent storage, access anytime</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 mb-3">
-                                        <div class="d-flex align-items-center">
-                                            <i class="fa-solid fa-mobile me-3 fs-5" style="color: var(--color-primary);"></i>
-                                            <div>
-                                                <h6 class="mb-0 fw-bold">Multi-Device Sync</h6>
-                                                <small class="text-muted">Works on phone and computer</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="position-relative" style="height: 500px; overflow: hidden;">
-                                <img src="https://space.coze.cn/api/coze_space/gen_image?image_size=landscape_16_9&prompt=%24%7BctaImagePrompt%7D&sign=317ab8c2f8b5f0e9ca5a1ec645c4dbfa" 
-                                     alt="People gathering to share stories" 
-                                     class="h-100 w-100" 
-                                     style="object-fit: cover;">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-{% endif %}
 {% endblock %}
 
 {% block scripts %}

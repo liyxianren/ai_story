@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}{{ story.title }} - StoryKeeper{% endblock %}
+{% block title %}{{ story.title }} - 
+echoverse
+{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -380,7 +382,7 @@
                     <div class="story-cover-container">
                         {% if story.image_path %}
                         <img 
-                            src="{{ url_for('static', filename='uploads/stories/' + story.image_path) }}" 
+                            src="{{ url_for('serve_image', filename=story.image_path) }}" 
                             alt="{{ story.title }}" 
                             class="story-cover-image"
                             onerror="this.src='{{ url_for('static', filename='cover.png') }}'"
@@ -500,7 +502,7 @@
                         <a href="{{ url_for('story_detail', story_id=related.id) }}" class="related-story-card">
                             {% if related.image_path %}
                             <img 
-                                src="{{ url_for('static', filename='uploads/stories/' + related.image_path) }}" 
+                                src="{{ url_for('serve_image', filename=related.image_path) }}" 
                                 alt="{{ related.title }}" 
                                 class="related-story-image"
                                 onerror="this.src='{{ url_for('static', filename='cover.png') }}'"

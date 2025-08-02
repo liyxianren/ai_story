@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Publish Story - StoryKeeper{% endblock %}
+{% block title %}Publish Story - 
+echoverse
+{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -841,7 +843,22 @@ function setupFormValidation() {
                 window.location.href = '/my_stories';
             } else {
                 hideLoadingModal();
-                alert('Publishing failed: ' + result.error);
+                
+                // Provide better error handling with guidance
+                let errorMessage = result.error || 'Publishing failed';
+                let guidance = '';
+                
+                if (result.error_type === 'no_content') {
+                    guidance = '\n\n💡 Suggestion: ' + (result.suggestion || 'Please record your story first');
+                    
+                    // Show a more user-friendly dialog with options
+                    if (confirm(errorMessage + guidance + '\n\nWould you like to go back to the recording page now?')) {
+                        window.location.href = '/record_story';
+                        return;
+                    }
+                } else {
+                    alert('Publishing failed: ' + errorMessage + guidance);
+                }
             }
         } catch (error) {
             hideLoadingModal();

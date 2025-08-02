@@ -7,14 +7,23 @@ from datetime import datetime, timedelta
 import secrets
 from functools import wraps
 import time
+import logging
 from speech_service import speech_service
 from gemini_service import gemini_service
 from image_service import image_service
-from email_service import email_service
+from config import Config
 
 app = Flask(__name__)
-# Use a fixed secret key for development to maintain sessions across restarts
-app.secret_key = 'your-fixed-secret-key-for-development-only'  # Fixed key for development
+
+# Load configuration
+app.config.from_object(Config)
+app.secret_key = Config.SECRET_KEY
+
+# Production security settings
+if Config.FLASK_ENV == 'production':
+    app.config['SESSION_COOKIE_SECURE'] = True
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # Add built-in functions to Jinja2 environment
 app.jinja_env.globals.update(min=min, max=max)
@@ -24,19 +33,19 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
-login_manager.session_protection = 'basic'  # Use basic session protection for better compatibility
+login_manager.session_protection = 'strong' if Config.FLASK_ENV == 'production' else 'basic'
 
-# Initialize email service
-email_service.init_app(app)
 
-# Database configuration
-DB_CONFIG = {
-    'host': 'tpe1.clusters.zeabur.com',
-    'port': 32149,
-    'user': 'root',
-    'password': '69uc42U0oG7Js5Cm831ylixRqHODwXLI',
-    'database': 'zeabur'
-}
+# Database configuration from Config
+DB_CONFIG = Config.DB_CONFIG
+
+# Configure logging
+if Config.FLASK_ENV == 'production':
+    logging.basicConfig(level=logging.WARNING)
+else:
+    logging.basicConfig(level=logging.INFO)
+
+logger = logging.getLogger(__name__)
 
 class User(UserMixin):
     def __init__(self, id, username, email, phone_number=None, profile_picture=None, bio=None):
@@ -71,7 +80,7 @@ def load_user(user_id):
             )
         
     except Exception as e:
-        print(f"Database error: {e}")
+        logger.error(f"Database error: {e}")
         return None
     finally:
         if 'connection' in locals() and connection.open:
@@ -169,7 +178,47 @@ def _get_user_friendly_error(error_msg):
 @app.route('/')
 def index():
     """Home page"""
-    return render_template('index.html')
+    try:
+        # 获取访问量前三的已发布故事
+        connection = get_db_connection()
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        
+        cursor.execute("""
+            SELECT s.id, s.title, s.description, s.image_path, s.view_count, 
+                   s.created_at, s.published_at, u.username,
+                   COALESCE(s.description, LEFT(s.content, 200)) as excerpt
+            FROM stories s
+            JOIN users u ON s.user_id = u.id
+            WHERE s.status = 'published' AND s.deleted_at IS NULL
+            ORDER BY s.view_count DESC, s.published_at DESC
+            LIMIT 3
+        """)
+        
+        featured_stories = cursor.fetchall()
+        
+        # Process stories data to generate proper image URLs
+        for story in featured_stories:
+            story['image_url'] = image_service.get_image_url(story['image_path']) if story['image_path'] else None
+        
+        cursor.close()
+        connection.close()
+        
+        return render_template('index.html', featured_stories=featured_stories)
+        
+    except Exception as e:
+        logger.error(f"Error fetching featured stories: {e}")
+        return render_template('index.html', featured_stories=[])
+
+@app.route('/image/stories/<path:filename>')
+def serve_image(filename):
+    """Serve images from the /image directory"""
+    from flask import send_from_directory
+    try:
+        return send_from_directory('/image/stories', filename)
+    except Exception as e:
+        logger.error(f"Error serving image {filename}: {e}")
+        # Return default image if file not found
+        return send_from_directory('static', 'cover.png')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -265,6 +314,22 @@ def login():
             user_data = cursor.fetchone()
             
             if user_data and bcrypt.checkpw(password.encode('utf-8'), user_data[3].encode('utf-8')):
+                # Update last login time - first ensure column exists
+                try:
+                    cursor.execute("SHOW COLUMNS FROM users LIKE 'last_login'")
+                    if not cursor.fetchone():
+                        cursor.execute("ALTER TABLE users ADD COLUMN last_login DATETIME NULL")
+                    
+                    # Update last login time
+                    cursor.execute("""
+                        UPDATE users 
+                        SET last_login = %s 
+                        WHERE id = %s
+                    """, (datetime.now(), user_data[0]))
+                    connection.commit()
+                except Exception as e:
+                    logger.warning(f"Could not update last_login: {e}")
+                
                 # Create user object and log in
                 user = User(
                     id=user_data[0],
@@ -959,11 +1024,8 @@ def chat_with_gemini():
         # Import gemini service
         from gemini_service import gemini_service
         
-        # Create conversational prompt for story improvement
-        conversation_prompt = _create_chat_prompt(user_message, current_story, chat_history, language)
-        
-        # Process with Gemini
-        result = gemini_service.process_transcription(conversation_prompt, language)
+        # Use the dedicated chat conversation method
+        result = gemini_service.chat_conversation(user_message, current_story, chat_history, language)
         
         if result['success']:
             return jsonify({
@@ -986,93 +1048,7 @@ def chat_with_gemini():
             'error': f'Chat failed: {str(e)}'
         }), 500
 
-def _create_chat_prompt(user_message: str, current_story: str, chat_history: list, language: str) -> str:
-    """Create a conversational prompt for story improvement chat"""
-    
-    # Check if this is just a greeting or casual conversation
-    casual_patterns = ['hello', 'hi', 'hey', '你好', '嗨', '问好', 'how are you', '怎么样', '如何']
-    is_casual = any(pattern.lower() in user_message.lower() for pattern in casual_patterns)
-    
-    # Determine language for response
-    if language.startswith('zh') or language.startswith('cmn'):
-        language_instruction = "请用中文回应。"
-        if is_casual:
-            system_prompt = """你是一个友好的AI助手和故事编辑。用户刚刚向你打招呼。
 
-👤 **用户消息**：{user_message}
-
-请自然地回应用户的问候，并询问他们是否需要帮助改进故事，或者有其他问题。保持友好和对话的语调。
-
-{language_instruction}"""
-        else:
-            system_prompt = """你是一个专业的故事编辑和写作导师。用户正在和你对话。根据用户的消息判断他们需要什么：
-
-🎯 **对话模式**：
-- 如果用户想改进故事：提供具体建议和修改版本
-- 如果用户只是聊天：自然对话，询问是否需要故事帮助
-- 如果用户有问题：回答问题并提供帮助
-- 如果用户想讨论：参与讨论并适时引导到故事改进
-
-📝 **当前故事**：
-{current_story}
-
-💬 **对话历史**：
-{chat_history_text}
-
-👤 **用户最新消息**：
-{user_message}
-
-根据用户的具体需求回应。不要强制将所有对话都转向故事润色。如果用户只是想聊天或问候，就正常对话。
-
-{language_instruction}"""
-    else:
-        language_instruction = "Please respond in English."
-        if is_casual:
-            system_prompt = """You are a friendly AI assistant and story editor. The user just greeted you.
-
-👤 **User Message**: {user_message}
-
-Please respond naturally to their greeting and ask if they need help improving their story or have any other questions. Keep it friendly and conversational.
-
-{language_instruction}"""
-        else:
-            system_prompt = """You are a professional story editor and writing mentor. The user is chatting with you. Based on their message, determine what they need:
-
-🎯 **Conversation Modes**:
-- If user wants story improvement: Provide specific suggestions and revised versions
-- If user is just chatting: Have natural conversation, ask if they need story help
-- If user has questions: Answer questions and provide assistance
-- If user wants discussion: Engage in discussion and guide toward story improvement when appropriate
-
-📝 **Current Story**:
-{current_story}
-
-💬 **Chat History**:
-{chat_history_text}
-
-👤 **User's Latest Message**:
-{user_message}
-
-Respond based on the user's specific needs. Don't force every conversation toward story polishing. If they just want to chat or greet, have a normal conversation.
-
-{language_instruction}"""
-    
-    # Format chat history
-    chat_history_text = ""
-    if chat_history:
-        for i, chat in enumerate(chat_history[-5:]):  # Only include last 5 exchanges
-            role = chat.get('role', 'unknown')
-            content = chat.get('content', '')
-            chat_history_text += f"{role.title()}: {content}\n"
-    else:
-        chat_history_text = "No previous conversation."
-    
-    return system_prompt.format(
-        current_story=current_story,
-        chat_history_text=chat_history_text,
-        user_message=user_message,
-        language_instruction=language_instruction
-    )
 
 # =====================================================
 # Story Publishing Routes and APIs
@@ -1269,12 +1245,67 @@ def generate_description():
             'error': f'Description generation failed: {str(e)}'
         }), 500
 
+@app.route('/api/submit_feedback', methods=['POST'])
+@login_required
+def submit_feedback():
+    """Submit user feedback"""
+    try:
+        # Get form data
+        content = request.form.get('content', '').strip()
+        feedback_type = request.form.get('feedback_type', 'general')
+        
+        # Validate input
+        if not content:
+            return jsonify({
+                'success': False,
+                'error': 'Feedback content is required'
+            }), 400
+        
+        if len(content) > 2000:
+            return jsonify({
+                'success': False,
+                'error': 'Feedback is too long (maximum 2000 characters)'
+            }), 400
+        
+        # Validate feedback type
+        valid_types = ['suggestion', 'bug_report', 'general', 'compliment']
+        if feedback_type not in valid_types:
+            feedback_type = 'general'
+        
+        # Insert feedback into database
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        cursor.execute("""
+            INSERT INTO user_feedback (user_id, content, feedback_type)
+            VALUES (%s, %s, %s)
+        """, (current_user.id, content, feedback_type))
+        
+        connection.commit()
+        feedback_id = cursor.lastrowid
+        
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Feedback submitted successfully',
+            'feedback_id': feedback_id
+        })
+        
+    except Exception as e:
+        print(f"Error submitting feedback: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to submit feedback. Please try again.'
+        }), 500
+
 @app.route('/api/publish_story', methods=['POST'])
 @login_required
 def publish_story_api():
     """Publish a new story"""
     try:
-        print("🚀 Publishing story API called")
+        logger.info("Publishing story API called")
         
         # Get form data
         title = request.form.get('title', '').strip()
@@ -1356,22 +1387,25 @@ def publish_story_api():
         # Get selected story type
         story_type = request.form.get('story_type')
         
-        print(f"📝 Form data: title={title}, content_length={len(content) if content else 0}, status={status}, story_type={story_type}")
-        print(f"🌐 Language data: language='{language}' (len={len(language)}), language_name='{language_name}' (len={len(language_name)})")
+        # Log form data for debugging in development
+        if Config.FLASK_ENV != 'production':
+            logger.info(f"Form data: title={title}, content_length={len(content) if content else 0}, story_type={story_type}")
         
         # Validate required fields
         if not title:
-            print("❌ No title provided")
+            logger.warning("No title provided")
             return jsonify({
                 'success': False,
                 'error': 'Story title is required'
             }), 400
         
         if not content:
-            print("❌ No content provided")
+            logger.warning("No content provided")
             return jsonify({
                 'success': False,
-                'error': 'Story content is required'
+                'error': 'Story content is required. Please go back to the recording page to record your story first.',
+                'error_type': 'no_content',
+                'suggestion': 'Record your story on the previous page, or if Gemini AI enhancement failed, you can still submit with raw transcript.'
             }), 400
         
         # Calculate word count and reading time
@@ -1382,31 +1416,30 @@ def publish_story_api():
         image_path = None
         image_original_name = None
         
-        print("🖼️  Processing image upload...")
         
         if 'cover_image' in request.files:
             file = request.files['cover_image']
             if file and file.filename:
-                print(f"📸 Uploading image: {file.filename}")
+                logger.info(f"Uploading image: {file.filename}")
                 upload_result = image_service.upload_story_image(file, current_user.id)
                 if upload_result['success']:
                     image_path = upload_result['main_image_path']
                     image_original_name = upload_result['metadata']['original_filename']
-                    print(f"✅ Image uploaded successfully: {image_path}")
+                    logger.info("Image uploaded successfully")
                 else:
-                    print(f"❌ Image upload failed: {upload_result.get('error', 'Unknown error')}")
+                    logger.error(f"Image upload failed: {upload_result.get('error', 'Unknown error')}")
             else:
-                print("📸 No image file provided")
+                logger.info("No image file provided")
         else:
-            print("📸 No cover_image in request files")
+            logger.info("No cover_image in request files")
         
         # Insert story into database
-        print("💾 Connecting to database...")
+        logger.info("Connecting to database for story insertion")
         connection = pymysql.connect(**DB_CONFIG)
         cursor = connection.cursor()
         
         # Insert story
-        print("📚 Inserting story...")
+        logger.info("Inserting story into database")
         story_query = """
             INSERT INTO stories (user_id, title, content, language, language_name, description, 
                                image_path, image_original_name, reading_time, word_count, status, published_at)
@@ -1546,10 +1579,11 @@ def admin_dashboard():
         # Get system statistics
         stats = {}
         
-        # Story statistics by status
+        # Story statistics by status (exclude soft-deleted)
         cursor.execute("""
             SELECT status, COUNT(*) as count 
             FROM stories 
+            WHERE deleted_at IS NULL
             GROUP BY status
         """)
         status_stats = cursor.fetchall()
@@ -1559,23 +1593,23 @@ def admin_dashboard():
         cursor.execute("SELECT COUNT(*) as count FROM users")
         stats['total_users'] = cursor.fetchone()['count']
         
-        # Recent pending stories (last 10)
+        # Recent pending stories (last 10, exclude soft-deleted)
         cursor.execute("""
             SELECT s.id, s.title, s.created_at, u.username as author
             FROM stories s
             JOIN users u ON s.user_id = u.id
-            WHERE s.status = 'pending'
+            WHERE s.status = 'pending' AND s.deleted_at IS NULL
             ORDER BY s.created_at DESC
             LIMIT 10
         """)
         recent_pending = cursor.fetchall()
         
-        # Top viewed published stories
+        # Top viewed published stories (exclude soft-deleted)
         cursor.execute("""
             SELECT s.id, s.title, s.view_count, u.username as author
             FROM stories s
             JOIN users u ON s.user_id = u.id
-            WHERE s.status = 'published'
+            WHERE s.status = 'published' AND s.deleted_at IS NULL
             ORDER BY s.view_count DESC
             LIMIT 5
         """)
@@ -1610,7 +1644,7 @@ def admin_stories():
         per_page = 20
         offset = (page - 1) * per_page
         
-        # Get stories with pagination
+        # Get stories with pagination (exclude soft-deleted)
         cursor.execute("""
             SELECT s.id, s.title, s.description, s.status, s.created_at, s.updated_at,
                    s.view_count, s.like_count, s.word_count,
@@ -1620,7 +1654,7 @@ def admin_stories():
             JOIN users u ON s.user_id = u.id
             LEFT JOIN story_tags st ON s.id = st.story_id
             LEFT JOIN tags t ON st.tag_id = t.id
-            WHERE s.status = %s
+            WHERE s.status = %s AND s.deleted_at IS NULL
             GROUP BY s.id, s.title, s.description, s.status, s.created_at, s.updated_at,
                      s.view_count, s.like_count, s.word_count, u.username, u.email
             ORDER BY s.created_at DESC
@@ -1629,15 +1663,16 @@ def admin_stories():
         
         stories = cursor.fetchall()
         
-        # Get total count for pagination
-        cursor.execute("SELECT COUNT(*) as count FROM stories WHERE status = %s", (status,))
+        # Get total count for pagination (exclude soft-deleted)
+        cursor.execute("SELECT COUNT(*) as count FROM stories WHERE status = %s AND deleted_at IS NULL", (status,))
         total_count = cursor.fetchone()['count']
         total_pages = (total_count + per_page - 1) // per_page
         
-        # Get status counts for tabs
+        # Get status counts for tabs (exclude soft-deleted)
         cursor.execute("""
             SELECT status, COUNT(*) as count 
             FROM stories 
+            WHERE deleted_at IS NULL
             GROUP BY status
         """)
         status_counts = {stat['status']: stat['count'] for stat in cursor.fetchall()}
@@ -2056,22 +2091,824 @@ def update_story(story_id):
             'error': f'更新失败: {str(e)}'
         }), 500
 
+# =====================================================
+# Admin User Management Routes
+# =====================================================
+
+@app.route('/admin/users')
+@admin_required
+def admin_users():
+    """Admin user management page"""
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        
+        # Get query parameters
+        page = int(request.args.get('page', 1))
+        per_page = 20
+        search = request.args.get('search', '').strip()
+        status_filter = request.args.get('status', '')
+        sort_by = request.args.get('sort', 'created_at')
+        
+        # Build WHERE clause
+        where_conditions = []
+        params = []
+        
+        if search:
+            where_conditions.append("(u.username LIKE %s OR u.email LIKE %s)")
+            params.extend([f'%{search}%', f'%{search}%'])
+        
+        if status_filter == 'active':
+            where_conditions.append("u.is_active = 1")
+        elif status_filter == 'inactive':
+            where_conditions.append("u.is_active = 0")
+        
+        where_clause = " AND ".join(where_conditions)
+        if where_clause:
+            where_clause = "WHERE " + where_clause
+        
+        # Build ORDER BY clause
+        sort_mapping = {
+            'created_at': 'u.created_at DESC',
+            'username': 'u.username ASC',
+            'email': 'u.email ASC',
+            'last_login': 'u.last_login DESC'
+        }
+        order_by = sort_mapping.get(sort_by, 'u.created_at DESC')
+        
+        # Get total count
+        count_query = f"""
+            SELECT COUNT(*) as total
+            FROM users u
+            {where_clause}
+        """
+        cursor.execute(count_query, params)
+        total_users = cursor.fetchone()['total']
+        
+        # Calculate pagination
+        total_pages = (total_users + per_page - 1) // per_page
+        offset = (page - 1) * per_page
+        
+        # Get users with story count (exclude soft-deleted stories)
+        users_query = f"""
+            SELECT u.id, u.username, u.email, u.created_at, u.last_login,
+                   COALESCE(u.is_active, 1) as is_active,
+                   COUNT(CASE WHEN s.deleted_at IS NULL THEN s.id END) as story_count
+            FROM users u
+            LEFT JOIN stories s ON u.id = s.user_id
+            {where_clause}
+            GROUP BY u.id, u.username, u.email, u.created_at, u.last_login, u.is_active
+            ORDER BY {order_by}
+            LIMIT %s OFFSET %s
+        """
+        cursor.execute(users_query, params + [per_page, offset])
+        users = cursor.fetchall()
+        
+        # Get user statistics
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as total_users,
+                SUM(CASE WHEN COALESCE(is_active, 1) = 1 THEN 1 ELSE 0 END) as active_users,
+                SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as new_users_today,
+                SUM(CASE WHEN last_login >= NOW() - INTERVAL 15 MINUTE THEN 1 ELSE 0 END) as online_users
+            FROM users
+        """)
+        stats = cursor.fetchone()
+        
+        cursor.close()
+        connection.close()
+        
+        # Create pagination object
+        pagination = {
+            'page': page,
+            'per_page': per_page,
+            'total': total_users,
+            'pages': total_pages,
+            'has_prev': page > 1,
+            'has_next': page < total_pages,
+            'prev_num': page - 1 if page > 1 else None,
+            'next_num': page + 1 if page < total_pages else None,
+            'iter_pages': lambda: range(max(1, page - 2), min(total_pages + 1, page + 3))
+        }
+        
+        return render_template('admin/users.html', 
+                             users=users, 
+                             stats=stats, 
+                             pagination=pagination,
+                             search=search,
+                             status_filter=status_filter,
+                             sort_by=sort_by)
+        
+    except Exception as e:
+        flash(f'Failed to load users: {str(e)}', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+# Admin User API routes
+@app.route('/admin/api/user/<int:user_id>')
+@admin_required
+def admin_get_user(user_id):
+    """Get detailed user information"""
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        
+        # Get user details with story statistics (exclude soft-deleted stories)
+        cursor.execute("""
+            SELECT u.id, u.username, u.email, u.created_at, u.last_login,
+                   COALESCE(u.is_active, 1) as is_active,
+                   COUNT(CASE WHEN s.deleted_at IS NULL THEN s.id END) as total_stories,
+                   SUM(CASE WHEN s.status = 'published' AND s.deleted_at IS NULL THEN 1 ELSE 0 END) as published_stories,
+                   SUM(CASE WHEN s.status = 'pending' AND s.deleted_at IS NULL THEN 1 ELSE 0 END) as pending_stories,
+                   COALESCE(SUM(CASE WHEN s.deleted_at IS NULL THEN s.view_count ELSE 0 END), 0) as total_views
+            FROM users u
+            LEFT JOIN stories s ON u.id = s.user_id
+            WHERE u.id = %s
+            GROUP BY u.id, u.username, u.email, u.created_at, u.last_login, u.is_active
+        """, (user_id,))
+        
+        user = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        
+        if not user:
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+        
+        return jsonify({'success': True, 'user': user})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Failed to get user: {str(e)}'}), 500
+
+@app.route('/admin/api/reset_user_password/<int:user_id>', methods=['POST'])
+@admin_required
+def admin_reset_user_password(user_id):
+    """Reset user password"""
+    try:
+        data = request.get_json()
+        new_password = data.get('new_password')
+        
+        if not new_password:
+            return jsonify({'success': False, 'message': 'New password is required'}), 400
+        
+        # Hash the new password
+        password_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        # Update user password
+        cursor.execute("""
+            UPDATE users 
+            SET password_hash = %s, updated_at = %s
+            WHERE id = %s
+        """, (password_hash, datetime.now(), user_id))
+        
+        if cursor.rowcount > 0:
+            connection.commit()
+            cursor.close()
+            connection.close()
+            return jsonify({'success': True, 'message': 'Password reset successfully'})
+        else:
+            cursor.close()
+            connection.close()
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Failed to reset password: {str(e)}'}), 500
+
+@app.route('/admin/api/toggle_user_status/<int:user_id>', methods=['POST'])
+@admin_required
+def admin_toggle_user_status(user_id):
+    """Toggle user active status"""
+    try:
+        data = request.get_json()
+        new_status = data.get('status', True)
+        
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        # First check if is_active column exists, if not add it
+        cursor.execute("SHOW COLUMNS FROM users LIKE 'is_active'")
+        if not cursor.fetchone():
+            cursor.execute("ALTER TABLE users ADD COLUMN is_active TINYINT(1) DEFAULT 1")
+        
+        # Update user status
+        cursor.execute("""
+            UPDATE users 
+            SET is_active = %s, updated_at = %s
+            WHERE id = %s
+        """, (1 if new_status else 0, datetime.now(), user_id))
+        
+        if cursor.rowcount > 0:
+            connection.commit()
+            cursor.close()
+            connection.close()
+            action = 'activated' if new_status else 'deactivated'
+            return jsonify({'success': True, 'message': f'User {action} successfully'})
+        else:
+            cursor.close()
+            connection.close()
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Failed to toggle user status: {str(e)}'}), 500
+
+@app.route('/admin/feedback')
+@admin_required
+def admin_feedback():
+    """Admin feedback management page"""
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = 10
+        
+        # Get filter parameters
+        status_filter = request.args.get('status', '')
+        type_filter = request.args.get('type', '')
+        search_query = request.args.get('search', '')
+        
+        connection = get_db_connection()
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        
+        # Build WHERE clause
+        where_conditions = []
+        params = []
+        
+        if status_filter:
+            where_conditions.append("f.status = %s")
+            params.append(status_filter)
+        
+        if type_filter:
+            where_conditions.append("f.feedback_type = %s")
+            params.append(type_filter)
+        
+        if search_query:
+            where_conditions.append("f.content LIKE %s")
+            params.append(f"%{search_query}%")
+        
+        where_clause = "WHERE " + " AND ".join(where_conditions) if where_conditions else ""
+        
+        # Get statistics
+        stats_query = """
+            SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN status = 'new' THEN 1 ELSE 0 END) as new,
+                SUM(CASE WHEN status = 'reviewed' THEN 1 ELSE 0 END) as reviewed,
+                SUM(CASE WHEN status = 'resolved' THEN 1 ELSE 0 END) as resolved
+            FROM user_feedback
+        """
+        cursor.execute(stats_query)
+        stats = cursor.fetchone()
+        
+        # Get total count for pagination
+        count_query = f"""
+            SELECT COUNT(*) as total
+            FROM user_feedback f
+            LEFT JOIN users u ON f.user_id = u.id
+            {where_clause}
+        """
+        cursor.execute(count_query, params)
+        total_count = cursor.fetchone()['total']
+        
+        # Calculate pagination
+        total_pages = (total_count + per_page - 1) // per_page
+        offset = (page - 1) * per_page
+        
+        # Get feedback list
+        feedback_query = f"""
+            SELECT f.*, u.username
+            FROM user_feedback f
+            LEFT JOIN users u ON f.user_id = u.id
+            {where_clause}
+            ORDER BY f.created_at DESC
+            LIMIT %s OFFSET %s
+        """
+        cursor.execute(feedback_query, params + [per_page, offset])
+        feedback_list = cursor.fetchall()
+        
+        cursor.close()
+        connection.close()
+        
+        # Create pagination object
+        class Pagination:
+            def __init__(self, page, per_page, total, items):
+                self.page = page
+                self.per_page = per_page
+                self.total = total
+                self.items = items
+                self.pages = (total + per_page - 1) // per_page
+                self.has_prev = page > 1
+                self.has_next = page < self.pages
+                self.prev_num = page - 1 if self.has_prev else None
+                self.next_num = page + 1 if self.has_next else None
+            
+            def iter_pages(self, left_edge=2, left_current=2, right_current=3, right_edge=2):
+                last = self.pages
+                for num in range(1, last + 1):
+                    if num <= left_edge or \
+                       (self.page - left_current - 1 < num < self.page + right_current) or \
+                       num > last - right_edge:
+                        yield num
+        
+        pagination = Pagination(page, per_page, total_count, feedback_list)
+        
+        return render_template('admin/feedback.html', 
+                             feedback_list=feedback_list, 
+                             stats=stats, 
+                             pagination=pagination)
+        
+    except Exception as e:
+        print(f"Error loading feedback management: {e}")
+        return render_template('admin/feedback.html', 
+                             feedback_list=[], 
+                             stats={'total': 0, 'new': 0, 'reviewed': 0, 'resolved': 0},
+                             pagination=None)
+
+@app.route('/admin/api/feedback_response', methods=['POST'])
+@admin_required
+def admin_feedback_response():
+    """Update admin response for feedback"""
+    try:
+        data = request.get_json()
+        feedback_id = data.get('feedback_id')
+        admin_response = data.get('admin_response', '').strip()
+        
+        if not feedback_id:
+            return jsonify({'success': False, 'error': 'Feedback ID is required'}), 400
+        
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        # Update feedback with admin response
+        cursor.execute("""
+            UPDATE user_feedback 
+            SET admin_response = %s, 
+                status = CASE WHEN status = 'new' THEN 'reviewed' ELSE status END,
+                updated_at = CURRENT_TIMESTAMP,
+                admin_viewed_at = CASE WHEN admin_viewed_at IS NULL THEN CURRENT_TIMESTAMP ELSE admin_viewed_at END
+            WHERE id = %s
+        """, (admin_response, feedback_id))
+        
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
+        return jsonify({'success': True, 'message': 'Response updated successfully'})
+        
+    except Exception as e:
+        print(f"Error updating feedback response: {e}")
+        return jsonify({'success': False, 'error': 'Failed to update response'}), 500
+
+@app.route('/admin/api/feedback_status', methods=['POST'])
+@admin_required
+def admin_feedback_status():
+    """Update feedback status"""
+    try:
+        data = request.get_json()
+        feedback_id = data.get('feedback_id')
+        status = data.get('status')
+        
+        valid_statuses = ['new', 'reviewed', 'resolved', 'closed']
+        if not feedback_id or status not in valid_statuses:
+            return jsonify({'success': False, 'error': 'Invalid parameters'}), 400
+        
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        # Update feedback status
+        cursor.execute("""
+            UPDATE user_feedback 
+            SET status = %s, 
+                updated_at = CURRENT_TIMESTAMP,
+                admin_viewed_at = CASE WHEN admin_viewed_at IS NULL THEN CURRENT_TIMESTAMP ELSE admin_viewed_at END
+            WHERE id = %s
+        """, (status, feedback_id))
+        
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
+        return jsonify({'success': True, 'message': f'Status updated to {status}'})
+        
+    except Exception as e:
+        print(f"Error updating feedback status: {e}")
+        return jsonify({'success': False, 'error': 'Failed to update status'}), 500
+
+@app.route('/admin/api/delete_user/<int:user_id>', methods=['DELETE'])
+@admin_required
+def admin_delete_user(user_id):
+    """Delete user and all their data"""
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        # Delete user's stories first (cascade delete)
+        cursor.execute("DELETE FROM story_likes WHERE story_id IN (SELECT id FROM stories WHERE user_id = %s)", (user_id,))
+        cursor.execute("DELETE FROM story_tags WHERE story_id IN (SELECT id FROM stories WHERE user_id = %s)", (user_id,))
+        cursor.execute("DELETE FROM stories WHERE user_id = %s", (user_id,))
+        
+        # Delete user's likes on other stories
+        cursor.execute("DELETE FROM story_likes WHERE user_id = %s", (user_id,))
+        
+        # Delete password reset tokens
+        cursor.execute("DELETE FROM password_reset_tokens WHERE email IN (SELECT email FROM users WHERE id = %s)", (user_id,))
+        
+        # Finally delete the user
+        cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+        
+        if cursor.rowcount > 0:
+            connection.commit()
+            cursor.close()
+            connection.close()
+            return jsonify({'success': True, 'message': 'User deleted successfully'})
+        else:
+            cursor.close()
+            connection.close()
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Failed to delete user: {str(e)}'}), 500
+
+@app.route('/admin/api/batch_user_action', methods=['POST'])
+@admin_required
+def admin_batch_user_action():
+    """Perform batch actions on users"""
+    try:
+        data = request.get_json()
+        action = data.get('action')
+        user_ids = data.get('user_ids', [])
+        
+        if not action or not user_ids:
+            return jsonify({'success': False, 'message': 'Missing required parameters'}), 400
+        
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        # Ensure is_active column exists for toggle_status action
+        if action == 'toggle_status':
+            cursor.execute("SHOW COLUMNS FROM users LIKE 'is_active'")
+            if not cursor.fetchone():
+                cursor.execute("ALTER TABLE users ADD COLUMN is_active TINYINT(1) DEFAULT 1")
+        
+        affected_count = 0
+        
+        if action == 'toggle_status':
+            # Toggle user status for each user
+            for user_id in user_ids:
+                cursor.execute("SELECT COALESCE(is_active, 1) FROM users WHERE id = %s", (user_id,))
+                current_status = cursor.fetchone()
+                if current_status:
+                    new_status = 0 if current_status[0] else 1
+                    cursor.execute("UPDATE users SET is_active = %s WHERE id = %s", (new_status, user_id))
+                    affected_count += cursor.rowcount
+                    
+        elif action == 'delete':
+            # Delete multiple users
+            for user_id in user_ids:
+                # Delete cascade data
+                cursor.execute("DELETE FROM story_likes WHERE story_id IN (SELECT id FROM stories WHERE user_id = %s)", (user_id,))
+                cursor.execute("DELETE FROM story_tags WHERE story_id IN (SELECT id FROM stories WHERE user_id = %s)", (user_id,))
+                cursor.execute("DELETE FROM stories WHERE user_id = %s", (user_id,))
+                cursor.execute("DELETE FROM story_likes WHERE user_id = %s", (user_id,))
+                cursor.execute("DELETE FROM password_reset_tokens WHERE email IN (SELECT email FROM users WHERE id = %s)", (user_id,))
+                cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+                affected_count += cursor.rowcount
+        else:
+            return jsonify({'success': False, 'message': 'Invalid action'}), 400
+        
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Successfully processed {affected_count} users',
+            'affected_count': affected_count
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Batch operation failed: {str(e)}'}), 500
+
+
+@app.route('/admin/api/export_users')
+@admin_required
+def admin_export_users():
+    """Export users to CSV"""
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        
+        # Get all users with story statistics (exclude soft-deleted stories)
+        cursor.execute("""
+            SELECT u.id, u.username, u.email, u.created_at, u.last_login,
+                   COALESCE(u.is_active, 1) as is_active,
+                   COUNT(CASE WHEN s.deleted_at IS NULL THEN s.id END) as story_count,
+                   SUM(CASE WHEN s.status = 'published' AND s.deleted_at IS NULL THEN 1 ELSE 0 END) as published_stories,
+                   COALESCE(SUM(CASE WHEN s.deleted_at IS NULL THEN s.view_count ELSE 0 END), 0) as total_views
+            FROM users u
+            LEFT JOIN stories s ON u.id = s.user_id
+            GROUP BY u.id, u.username, u.email, u.created_at, u.last_login, u.is_active
+            ORDER BY u.created_at DESC
+        """)
+        
+        users = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        
+        # Create CSV content
+        import io
+        import csv
+        
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        writer.writerow(['User ID', 'Username', 'Email', 'Status', 'Registration Date', 
+                        'Last Login', 'Story Count', 'Published Stories', 'Total Views'])
+        
+        # Write data
+        for user in users:
+            status = 'Active' if user['is_active'] else 'Inactive'
+            reg_date = user['created_at'].strftime('%Y-%m-%d %H:%M:%S') if user['created_at'] else ''
+            last_login = user['last_login'].strftime('%Y-%m-%d %H:%M:%S') if user['last_login'] else 'Never'
+            
+            writer.writerow([
+                user['id'],
+                user['username'],
+                user['email'] or '',
+                status,
+                reg_date,
+                last_login,
+                user['story_count'] or 0,
+                user['published_stories'] or 0,
+                user['total_views'] or 0
+            ])
+        
+        output.seek(0)
+        csv_content = output.getvalue()
+        output.close()
+        
+        # Create response
+        from flask import make_response
+        response = make_response(csv_content)
+        response.headers['Content-Type'] = 'text/csv'
+        response.headers['Content-Disposition'] = f'attachment; filename=users_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        
+        return response
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Export failed: {str(e)}'}), 500
+
+# =====================================================
+# Enhanced Admin Story Management (with delete)
+# =====================================================
+
+@app.route('/admin/api/delete_story/<int:story_id>', methods=['DELETE'])
+@admin_required
+def admin_delete_story(story_id):
+    """Soft delete a story (move to recycling bin)"""
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        # First check if deleted_at column exists, if not add it
+        cursor.execute("SHOW COLUMNS FROM stories LIKE 'deleted_at'")
+        if not cursor.fetchone():
+            cursor.execute("ALTER TABLE stories ADD COLUMN deleted_at DATETIME NULL")
+        
+        # Soft delete the story by setting deleted_at timestamp
+        cursor.execute("""
+            UPDATE stories 
+            SET deleted_at = %s, updated_at = %s
+            WHERE id = %s AND deleted_at IS NULL
+        """, (datetime.now(), datetime.now(), story_id))
+        
+        if cursor.rowcount > 0:
+            connection.commit()
+            cursor.close()
+            connection.close()
+            return jsonify({'success': True, 'message': 'Story moved to recycling bin'})
+        else:
+            cursor.close()
+            connection.close()
+            return jsonify({'success': False, 'message': 'Story not found or already deleted'}), 404
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Failed to delete story: {str(e)}'}), 500
+
+@app.route('/admin/recycling-bin')
+@admin_required
+def admin_recycling_bin():
+    """Admin recycling bin page for deleted stories"""
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        
+        # Get query parameters
+        page = int(request.args.get('page', 1))
+        per_page = 20
+        search = request.args.get('search', '').strip()
+        
+        # Build WHERE clause for deleted stories
+        where_conditions = ["s.deleted_at IS NOT NULL"]
+        params = []
+        
+        if search:
+            where_conditions.append("(s.title LIKE %s OR u.username LIKE %s)")
+            params.extend([f'%{search}%', f'%{search}%'])
+        
+        where_clause = " AND ".join(where_conditions)
+        
+        # Get total count
+        count_query = f"""
+            SELECT COUNT(*) as total
+            FROM stories s
+            LEFT JOIN users u ON s.user_id = u.id
+            WHERE {where_clause}
+        """
+        cursor.execute(count_query, params)
+        total_stories = cursor.fetchone()['total']
+        
+        # Calculate pagination
+        total_pages = (total_stories + per_page - 1) // per_page
+        offset = (page - 1) * per_page
+        
+        # Get deleted stories
+        stories_query = f"""
+            SELECT s.id, s.title, s.description, s.status, s.word_count, s.view_count,
+                   s.created_at, s.updated_at, s.deleted_at,
+                   u.username as author_name, u.email as author_email,
+                   GROUP_CONCAT(t.name) as tags
+            FROM stories s
+            LEFT JOIN users u ON s.user_id = u.id
+            LEFT JOIN story_tags st ON s.id = st.story_id
+            LEFT JOIN tags t ON st.tag_id = t.id
+            WHERE {where_clause}
+            GROUP BY s.id, s.title, s.description, s.status, s.word_count, s.view_count,
+                     s.created_at, s.updated_at, s.deleted_at, u.username, u.email
+            ORDER BY s.deleted_at DESC
+            LIMIT %s OFFSET %s
+        """
+        cursor.execute(stories_query, params + [per_page, offset])
+        stories = cursor.fetchall()
+        
+        # Get recycling bin statistics
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as total_deleted,
+                SUM(CASE WHEN DATE(deleted_at) = CURDATE() THEN 1 ELSE 0 END) as deleted_today,
+                SUM(CASE WHEN deleted_at >= NOW() - INTERVAL 7 DAY THEN 1 ELSE 0 END) as deleted_this_week,
+                SUM(CASE WHEN deleted_at >= NOW() - INTERVAL 30 DAY THEN 1 ELSE 0 END) as deleted_this_month
+            FROM stories 
+            WHERE deleted_at IS NOT NULL
+        """)
+        stats = cursor.fetchone()
+        
+        cursor.close()
+        connection.close()
+        
+        # Create pagination object
+        pagination = {
+            'page': page,
+            'per_page': per_page,
+            'total': total_stories,
+            'pages': total_pages,
+            'has_prev': page > 1,
+            'has_next': page < total_pages,
+            'prev_num': page - 1 if page > 1 else None,
+            'next_num': page + 1 if page < total_pages else None,
+            'iter_pages': lambda: range(max(1, page - 2), min(total_pages + 1, page + 3))
+        }
+        
+        return render_template('admin/recycling_bin.html', 
+                             stories=stories, 
+                             stats=stats, 
+                             pagination=pagination,
+                             search=search)
+        
+    except Exception as e:
+        flash(f'Failed to load recycling bin: {str(e)}', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/api/restore_story/<int:story_id>', methods=['POST'])
+@admin_required
+def admin_restore_story(story_id):
+    """Restore a story from recycling bin"""
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        # Restore the story by clearing deleted_at timestamp
+        cursor.execute("""
+            UPDATE stories 
+            SET deleted_at = NULL, updated_at = %s
+            WHERE id = %s AND deleted_at IS NOT NULL
+        """, (datetime.now(), story_id))
+        
+        if cursor.rowcount > 0:
+            connection.commit()
+            cursor.close()
+            connection.close()
+            return jsonify({'success': True, 'message': 'Story restored successfully'})
+        else:
+            cursor.close()
+            connection.close()
+            return jsonify({'success': False, 'message': 'Story not found in recycling bin'}), 404
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Failed to restore story: {str(e)}'}), 500
+
+@app.route('/admin/api/permanently_delete_story/<int:story_id>', methods=['DELETE'])
+@admin_required
+def admin_permanently_delete_story(story_id):
+    """Permanently delete a story from recycling bin"""
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        # Verify story is in recycling bin
+        cursor.execute("SELECT id FROM stories WHERE id = %s AND deleted_at IS NOT NULL", (story_id,))
+        if not cursor.fetchone():
+            cursor.close()
+            connection.close()
+            return jsonify({'success': False, 'message': 'Story not found in recycling bin'}), 404
+        
+        # Delete related data first
+        cursor.execute("DELETE FROM story_likes WHERE story_id = %s", (story_id,))
+        cursor.execute("DELETE FROM story_tags WHERE story_id = %s", (story_id,))
+        
+        # Permanently delete the story
+        cursor.execute("DELETE FROM stories WHERE id = %s", (story_id,))
+        
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return jsonify({'success': True, 'message': 'Story permanently deleted'})
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Failed to permanently delete story: {str(e)}'}), 500
+
+@app.route('/admin/api/batch_recycling_action', methods=['POST'])
+@admin_required
+def admin_batch_recycling_action():
+    """Perform batch actions on stories in recycling bin"""
+    try:
+        data = request.get_json()
+        action = data.get('action')
+        story_ids = data.get('story_ids', [])
+        
+        if not action or not story_ids:
+            return jsonify({'success': False, 'message': 'Missing required parameters'}), 400
+        
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        affected_count = 0
+        
+        if action == 'restore':
+            # Batch restore stories
+            for story_id in story_ids:
+                cursor.execute("""
+                    UPDATE stories 
+                    SET deleted_at = NULL, updated_at = %s
+                    WHERE id = %s AND deleted_at IS NOT NULL
+                """, (datetime.now(), story_id))
+                affected_count += cursor.rowcount
+                
+        elif action == 'permanently_delete':
+            # Batch permanently delete stories
+            for story_id in story_ids:
+                # Verify story is in recycling bin first
+                cursor.execute("SELECT id FROM stories WHERE id = %s AND deleted_at IS NOT NULL", (story_id,))
+                if cursor.fetchone():
+                    # Delete related data
+                    cursor.execute("DELETE FROM story_likes WHERE story_id = %s", (story_id,))
+                    cursor.execute("DELETE FROM story_tags WHERE story_id = %s", (story_id,))
+                    cursor.execute("DELETE FROM stories WHERE id = %s", (story_id,))
+                    affected_count += 1
+        else:
+            return jsonify({'success': False, 'message': 'Invalid action'}), 400
+        
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
+        action_text = 'restored' if action == 'restore' else 'permanently deleted'
+        return jsonify({
+            'success': True, 
+            'message': f'Successfully {action_text} {affected_count} stories',
+            'affected_count': affected_count
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Batch operation failed: {str(e)}'}), 500
+
 if __name__ == '__main__':
     # Create upload folder for profile pictures
-    os.makedirs('static/uploads', exist_ok=True)
+    os.makedirs('/image', exist_ok=True)
     
-    print("🚀 Starting Flask Application")
-    print("=" * 40)
-    print("📊 Database: Connected to Zeabur MySQL")
-    print("🌐 URL: http://localhost:8080")
-    print("📋 Routes available:")
-    print("   - / (Home)")
-    print("   - /register (User Registration)")
-    print("   - /login (User Login)")
-    print("   - /dashboard (User Dashboard)")
-    print("   - /profile (User Profile)")
-    print("   - /logout (Logout)")
-    print("   - /api/users (API - All Users)")
-    print()
-    
-    app.run(debug=True, host='0.0.0.0', port=8080) 
+    # Production vs Development settings
+    if Config.FLASK_ENV == 'production':
+        logger.info("Starting Flask Application in Production Mode")
+        app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)
+    else:
+        logger.info("Starting Flask Application in Development Mode")
+        app.run(host='0.0.0.0', port=5000, debug=True)

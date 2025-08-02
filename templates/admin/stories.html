@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}故事管理 - 故事传承{% endblock %}
+{% block title %}Story Management - 
+echoverse
+{% endblock %}
 
 {% block content %}
 <!-- Admin Header -->
@@ -10,17 +12,17 @@
             <div class="col-md-8">
                 <h1 class="h3 mb-0 text-white">
                     <i class="fas fa-book me-3"></i>
-                    故事管理
+                    Story Management
                 </h1>
-                <p class="mb-0 mt-2 opacity-75">审核和管理用户提交的故事</p>
+                <p class="mb-0 mt-2 opacity-75">Review and manage user-submitted stories</p>
             </div>
             <div class="col-md-4 text-md-end">
                 <div class="d-flex justify-content-md-end gap-2">
                     <a href="{{ url_for('admin_dashboard') }}" class="btn btn-light btn-sm">
-                        <i class="fas fa-arrow-left me-2"></i>返回面板
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
                     </a>
                     <a href="{{ url_for('admin_logout') }}" class="btn btn-outline-light btn-sm">
-                        <i class="fas fa-sign-out-alt me-2"></i>退出
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
                     </a>
                 </div>
             </div>
@@ -36,7 +38,7 @@
                 <li class="nav-item">
                     <a class="nav-link {% if current_status == 'pending' %}active{% endif %}" 
                        href="{{ url_for('admin_stories', status='pending') }}">
-                        <i class="fas fa-clock me-2"></i>待审核
+                        <i class="fas fa-clock me-2"></i>Pending
                         {% if status_counts.get('pending', 0) > 0 %}
                             <span class="badge bg-warning ms-2">{{ status_counts.get('pending', 0) }}</span>
                         {% endif %}
@@ -45,7 +47,7 @@
                 <li class="nav-item">
                     <a class="nav-link {% if current_status == 'published' %}active{% endif %}" 
                        href="{{ url_for('admin_stories', status='published') }}">
-                        <i class="fas fa-check-circle me-2"></i>已发布
+                        <i class="fas fa-check-circle me-2"></i>Published
                         {% if status_counts.get('published', 0) > 0 %}
                             <span class="badge bg-success ms-2">{{ status_counts.get('published', 0) }}</span>
                         {% endif %}
@@ -54,7 +56,7 @@
                 <li class="nav-item">
                     <a class="nav-link {% if current_status == 'rejected' %}active{% endif %}" 
                        href="{{ url_for('admin_stories', status='rejected') }}">
-                        <i class="fas fa-times-circle me-2"></i>已拒绝
+                        <i class="fas fa-times-circle me-2"></i>Rejected
                         {% if status_counts.get('rejected', 0) > 0 %}
                             <span class="badge bg-danger ms-2">{{ status_counts.get('rejected', 0) }}</span>
                         {% endif %}
@@ -63,7 +65,7 @@
                 <li class="nav-item">
                     <a class="nav-link {% if current_status == 'draft' %}active{% endif %}" 
                        href="{{ url_for('admin_stories', status='draft') }}">
-                        <i class="fas fa-edit me-2"></i>草稿
+                        <i class="fas fa-edit me-2"></i>Draft
                         {% if status_counts.get('draft', 0) > 0 %}
                             <span class="badge bg-secondary ms-2">{{ status_counts.get('draft', 0) }}</span>
                         {% endif %}
@@ -79,15 +81,15 @@
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="selectAll">
                     <label class="form-check-label" for="selectAll">
-                        全选
+                        Select All
                     </label>
                 </div>
                 <div class="btn-group">
                     <button class="btn btn-success btn-sm" onclick="batchAction('approve')" disabled id="batchApprove">
-                        <i class="fas fa-check me-2"></i>批量通过
+                        <i class="fas fa-check me-2"></i>Batch Approve
                     </button>
                     <button class="btn btn-danger btn-sm" onclick="batchAction('reject')" disabled id="batchReject">
-                        <i class="fas fa-times me-2"></i>批量拒绝
+                        <i class="fas fa-times me-2"></i>Batch Reject
                     </button>
                 </div>
             </div>
@@ -106,18 +108,18 @@
                                     <input type="checkbox" class="form-check-input" id="selectAllTable">
                                 </th>
                                 {% endif %}
-                                <th>标题</th>
-                                <th>作者</th>
-                                <th>字数</th>
-                                <th>标签</th>
+                                <th>Title</th>
+                                <th>Author</th>
+                                <th>Word Count</th>
+                                <th>Tags</th>
                                 <th>
                                     {% if current_status == 'published' %}
-                                        浏览量
+                                        Views
                                     {% else %}
-                                        提交时间
+                                        Submitted
                                     {% endif %}
                                 </th>
-                                <th width="200px">操作</th>
+                                <th width="200px">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -152,7 +154,7 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="badge bg-info">{{ story.word_count or 0 }} 字</span>
+                                    <span class="badge bg-info">{{ story.word_count or 0 }} words</span>
                                 </td>
                                 <td>
                                     {% if story.tags %}
@@ -163,7 +165,7 @@
                                         <span class="text-muted">...</span>
                                         {% endif %}
                                     {% else %}
-                                        <small class="text-muted">无标签</small>
+                                        <small class="text-muted">No tags</small>
                                     {% endif %}
                                 </td>
                                 <td>
@@ -201,6 +203,11 @@
                                             <i class="fas fa-external-link-alt"></i>
                                         </a>
                                         {% endif %}
+                                        <button class="btn btn-outline-danger" 
+                                                onclick="deleteStory({{ story.id }})"
+                                                title="Move to Recycling Bin">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -211,7 +218,7 @@
 
                 <!-- Pagination -->
                 {% if total_pages > 1 %}
-                <nav aria-label="故事分页" class="mt-4">
+                <nav aria-label="Story pagination" class="mt-4">
                     <ul class="pagination justify-content-center">
                         {% if page > 1 %}
                         <li class="page-item">
@@ -251,8 +258,8 @@
                 <!-- Stats -->
                 <div class="text-center text-muted mt-3">
                     <small>
-                        显示第 {{ ((page - 1) * 20) + 1 }} - {{ min(page * 20, total_count) }} 项，
-                        共 {{ total_count }} 项
+                        Showing {{ ((page - 1) * 20) + 1 }} - {{ min(page * 20, total_count) }} items,
+                        total {{ total_count }} items
                     </small>
                 </div>
             {% else %}
@@ -260,16 +267,16 @@
                     <i class="fas fa-inbox" style="font-size: 4rem; color: #d1d5db;"></i>
                     <h4 class="text-muted mt-3">
                         {% if current_status == 'pending' %}
-                            暂无待审核的故事
+                            No pending stories
                         {% elif current_status == 'published' %}
-                            暂无已发布的故事
+                            No published stories
                         {% elif current_status == 'rejected' %}
-                            暂无被拒绝的故事
+                            No rejected stories
                         {% else %}
-                            暂无{{ current_status }}状态的故事
+                            No {{ current_status }} stories
                         {% endif %}
                     </h4>
-                    <p class="text-muted">请检查其他状态或等待用户提交新故事</p>
+                    <p class="text-muted">Please check other statuses or wait for users to submit new stories</p>
                 </div>
             {% endif %}
         </div>
@@ -323,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Individual story actions
 function approveStory(storyId) {
-    if (confirm('确认通过这个故事的审核吗？')) {
+    if (confirm('Are you sure you want to approve this story?')) {
         fetch(`/admin/api/approve_story/${storyId}`, {
             method: 'POST',
             headers: {
@@ -333,10 +340,10 @@ function approveStory(storyId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('故事审核通过！');
+                alert('Story approved successfully!');
                 location.reload();
             } else {
-                alert('操作失败: ' + data.error);
+                alert('Operation failed: ' + data.error);
             }
         })
         .catch(error => {
@@ -347,7 +354,7 @@ function approveStory(storyId) {
 }
 
 function rejectStory(storyId) {
-    if (confirm('确认拒绝这个故事吗？')) {
+    if (confirm('Are you sure you want to reject this story?')) {
         fetch(`/admin/api/reject_story/${storyId}`, {
             method: 'POST',
             headers: {
@@ -357,15 +364,39 @@ function rejectStory(storyId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('故事已被拒绝');
+                alert('Story has been rejected');
                 location.reload();
             } else {
-                alert('操作失败: ' + data.error);
+                alert('Operation failed: ' + data.error);
             }
         })
         .catch(error => {
             console.error('Error:', error);
             alert('网络错误，请重试');
+        });
+    }
+}
+
+function deleteStory(storyId) {
+    if (confirm('Are you sure you want to move this story to the recycling bin? You can restore it later.')) {
+        fetch(`/admin/api/delete_story/${storyId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Story moved to recycling bin!');
+                location.reload();
+            } else {
+                alert('Delete failed: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Network error, please try again');
         });
     }
 }
@@ -376,12 +407,12 @@ function batchAction(action) {
     const storyIds = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
     
     if (storyIds.length === 0) {
-        alert('请选择要操作的故事');
+        alert('Please select stories to operate on');
         return;
     }
     
-    const actionText = action === 'approve' ? '通过' : '拒绝';
-    if (confirm(`确认${actionText}选中的 ${storyIds.length} 个故事吗？`)) {
+    const actionText = action === 'approve' ? 'approve' : 'reject';
+    if (confirm(`Are you sure you want to ${actionText} the selected ${storyIds.length} stories?`)) {
         fetch('/admin/api/batch_action', {
             method: 'POST',
             headers: {
@@ -398,7 +429,7 @@ function batchAction(action) {
                 alert(data.message);
                 location.reload();
             } else {
-                alert('操作失败: ' + data.error);
+                alert('Operation failed: ' + data.error);
             }
         })
         .catch(error => {

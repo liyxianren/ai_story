@@ -68,6 +68,10 @@ static/uploads/*
 *.m4a
 
 # Sensitive information
-config.py
+google_key.txt
 *.secret
-*.key 
+*.pem
+
+# API Keys in env files
+.env.production
+.env.staging 

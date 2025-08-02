@@ -272,8 +272,8 @@
                                         <div class="language-option p-3 border-bottom" data-code="en-US" data-name="English (US)" data-flag="🇺🇸" style="cursor: pointer;">
                                             <span class="flag me-2">🇺🇸</span> English (US)
                                         </div>
-                                        <div class="language-option p-3 border-bottom" data-code="cmn-Hans-CN" data-name="中文 (Mandarin)" data-flag="🇨🇳" style="cursor: pointer;">
-                                            <span class="flag me-2">🇨🇳</span> 中文 (Mandarin)
+                                        <div class="language-option p-3 border-bottom" data-code="cmn-Hans-CN" data-name="Chinese (Mandarin)" data-flag="🇨🇳" style="cursor: pointer;">
+                                            <span class="flag me-2">🇨🇳</span> Chinese (Mandarin)
                                         </div>
                                         <div class="language-option p-3 border-bottom" data-code="es-ES" data-name="Español (Spanish)" data-flag="🇪🇸" style="cursor: pointer;">
                                             <span class="flag me-2">🇪🇸</span> Español (Spanish)
@@ -356,7 +356,7 @@
                                 
                                 <div class="file-actions">
                                     <button type="button" class="btn btn-success me-2" id="processFileBtn">
-                                        <i class="fas fa-magic me-2"></i>开始转录 | Start Transcription
+                                        <i class="fas fa-magic me-2"></i>Start Transcription
                                     </button>
                                     <button type="button" class="btn btn-outline-danger" id="removeFileBtn">
                                         <i class="fas fa-times me-2"></i>Remove File
@@ -547,41 +547,21 @@
                                         </div>
                                         </div>
                                             
-                                            <!-- Time Display -->
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <span id="currentTime" style="
-                                                    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
-                                                    color: var(--warm-primary-dark);
-                                                    font-size: 0.9rem;
-                                                    font-weight: 600;
-                                                ">00:00</span>
-                                                
-                                                <div class="audio-status" style="
-                                                    display: flex;
+                                            <!-- Simplified Audio Status -->
+                                            <div class="text-center" style="color: var(--warm-secondary); font-size: 0.9rem;">
+                                                <div class="audio-wave" style="
+                                                    display: inline-flex;
                                                     align-items: center;
-                                                    gap: 8px;
-                                                    color: var(--warm-secondary);
-                                                    font-size: 0.85rem;
+                                                    gap: 2px;
+                                                    height: 20px;
+                                                    margin-right: 8px;
                                                 ">
-                                                    <div class="audio-wave" style="
-                                                        display: flex;
-                                                        align-items: center;
-                                                        gap: 2px;
-                                                    ">
-                                                        <div style="width: 3px; height: 12px; background: var(--warm-success); border-radius: 2px; opacity: 0.6;"></div>
-                                                        <div style="width: 3px; height: 16px; background: var(--warm-success); border-radius: 2px; opacity: 0.8;"></div>
-                                                        <div style="width: 3px; height: 10px; background: var(--warm-success); border-radius: 2px; opacity: 0.5;"></div>
-                                                        <div style="width: 3px; height: 14px; background: var(--warm-success); border-radius: 2px; opacity: 0.7;"></div>
-                                    </div>
-                                                    <span>Audio Ready</span>
-                                </div>
-
-                                                <span id="totalTime" style="
-                                                    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
-                                                    color: var(--warm-secondary);
-                                                    font-size: 0.9rem;
-                                                    font-weight: 500;
-                                                ">Infinity:NaN</span>
+                                                    <div style="width: 3px; height: 12px; background: var(--warm-success); border-radius: 2px; opacity: 0.6;"></div>
+                                                    <div style="width: 3px; height: 16px; background: var(--warm-success); border-radius: 2px; opacity: 0.8;"></div>
+                                                    <div style="width: 3px; height: 10px; background: var(--warm-success); border-radius: 2px; opacity: 0.5;"></div>
+                                                    <div style="width: 3px; height: 14px; background: var(--warm-success); border-radius: 2px; opacity: 0.7;"></div>
+                                                </div>
+                                                <span>Audio Ready</span>
                                             </div>
                                         </div>
                                     </div>
@@ -610,7 +590,7 @@
                                     " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 35px rgba(34, 197, 94, 0.35)'" 
                                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(34, 197, 94, 0.25)'">
                                         <i class="fas fa-magic me-2"></i>
-                                        <span>开始Google识别 | Start Google Recognition</span>
+                                        <span>Start Google Recognition</span>
                                     </button>
                                     
                                     <!-- Save Audio -->
@@ -627,7 +607,7 @@
                                     " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 35px rgba(217, 119, 6, 0.35)'" 
                                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(217, 119, 6, 0.25)'">
                                         <i class="fas fa-save me-2"></i>
-                                        <span>仅保存录音 | Save Audio Only</span>
+                                        <span>Save Audio Only</span>
                                     </button>
                                 </div>
                                 
@@ -650,7 +630,7 @@
                                     " onmouseover="this.style.background='rgba(239, 68, 68, 0.15)'; this.style.borderColor='rgba(239, 68, 68, 0.3)'" 
                                        onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.borderColor='rgba(239, 68, 68, 0.2)'">
                                         <i class="fas fa-trash me-2"></i>
-                                        丢弃 | Discard
+                                        Discard
                                     </button>
                                     <button id="recordAgain" class="btn-modern-outline" style="
                                         background: rgba(217, 119, 6, 0.1);
@@ -664,7 +644,7 @@
                                     " onmouseover="this.style.background='rgba(217, 119, 6, 0.15)'; this.style.borderColor='rgba(217, 119, 6, 0.3)'" 
                                        onmouseout="this.style.background='rgba(217, 119, 6, 0.1)'; this.style.borderColor='rgba(217, 119, 6, 0.2)'">
                                         <i class="fas fa-redo me-2"></i>
-                                        重新录制 | Record Again
+                                        Record Again
                                     </button>
                                 </div>
                             </div>
@@ -726,7 +706,7 @@
                                         margin-bottom: 8px;
                                         letter-spacing: -0.02em;
                                     ">
-                                    故事转录 | Story Transcription
+                                    Story Transcription
                                 </h5>
                                     <p style="
                                         color: var(--warm-secondary);
@@ -744,7 +724,7 @@
                                     </div>
                                     <p class="mt-3 mb-0" style="color: var(--warm-secondary);">
                                         <i class="fas fa-magic me-2"></i>
-                                        正在将您的声音转换为文字... | Converting your voice to text...
+                                        Converting your voice to text...
                                     </p>
                                 </div>
                                 
@@ -776,7 +756,7 @@
                                                         margin-bottom: 4px;
                                                         font-size: 1.1rem;
                                                     ">
-                                                        润色后的故事 | Your Polished Story
+                                                        Your Polished Story
                                                     </h6>
                                                     <p style="
                                                         color: var(--warm-secondary);
@@ -785,7 +765,7 @@
                                                         opacity: 0.8;
                                                     ">
                                                         <i class="fas fa-edit me-1"></i>
-                                                        您可以直接编辑润色后的故事 | You can edit the polished story directly
+                                                        You can edit the polished story directly
                                                     </p>
                                                 </div>
                                             </div>
@@ -820,7 +800,7 @@
                                                 <div class="d-flex align-items-center justify-content-between">
                                                     <small class="text-muted d-flex align-items-center">
                                                         <i class="fas fa-robot me-2" style="color: var(--warm-accent);"></i>
-                                                        由 <span id="geminiModelUsed" class="fw-semibold">Gemini AI</span> 润色 | Polished by <span id="geminiModelUsedEn" class="fw-semibold">Gemini AI</span>
+                                                        Polished by <span id="geminiModelUsed" class="fw-semibold">Gemini AI</span>
                                                     </small>
                                                     <span id="polishedIndicator" class="badge" style="
                                                         background: linear-gradient(45deg, var(--warm-success), #22c55e);
@@ -830,7 +810,7 @@
                                                         font-size: 0.75rem;
                                                         font-weight: 500;
                                                     ">
-                                                            <i class="fas fa-check me-1"></i>已润色 | Polished
+                                                            <i class="fas fa-check me-1"></i>Polished
                                                         </span>
                                                 </div>
                                                 <div id="confidenceScore" class="mt-1"></div>
@@ -851,11 +831,11 @@
                                                 display: none;
                                             ">
                                                 <i class="fas fa-paper-plane me-2"></i>
-                                                发布我的故事 | Publish My Story
+                                                Publish My Story
                                             </button>
                                             <small class="d-block mt-2 text-muted">
                                                 <i class="fas fa-info-circle me-1"></i>
-                                                完善故事信息并分享给更多读者 | Complete story details and share with readers
+                                                Complete story details and share with readers
                                             </small>
                                         </div>
                                     </div>
@@ -864,12 +844,12 @@
                                     <div class="mb-3">
                                         <div class="d-flex align-items-center">
                                             <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#rawTranscriptionCollapse" aria-expanded="false">
-                                                <i class="fas fa-eye me-2"></i>查看原始转录 | View Raw Transcription
+                                                <i class="fas fa-eye me-2"></i>View Raw Transcription
                                             </button>
                                         </div>
                                         <div class="collapse mt-2" id="rawTranscriptionCollapse">
                                             <div class="card card-body" style="background: #f8f9fa; border: 1px solid #dee2e6;">
-                                                <small class="text-muted mb-2">原始转录文本 | Original Transcribed Text:</small>
+                                                <small class="text-muted mb-2">Original Transcribed Text:</small>
                                                 <div id="rawTranscriptionText" style="font-family: monospace; font-size: 0.9rem; color: #6c757d;"></div>
                                             </div>
                                         </div>
@@ -932,7 +912,7 @@
                                                         margin-bottom: 8px;
                                                         letter-spacing: -0.02em;
                                                     ">
-                                                    与AI对话继续润色 | Chat with AI to Polish Further
+                                                    Chat with AI to Polish Further
                                                     </h5>
                                                     <p style="
                                                         color: var(--warm-secondary);
@@ -971,7 +951,7 @@
                                                                 <i class="fas fa-robot" style="font-size: 1.5rem; color: white;"></i>
                                                             </div>
                                                             <p class="mb-0" style="color: var(--warm-secondary); font-size: 0.95rem;">
-                                                                开始与AI对话来改进您的故事<br>Start chatting with AI to improve your story
+                                                                Start chatting with AI to improve your story
                                                             </p>
                                                         </div>
                                                     </div>
@@ -987,7 +967,7 @@
                                                 ">
                                                     <div class="input-group" style="border-radius: 16px; overflow: hidden;">
                                                         <textarea id="chatInput" class="form-control" rows="2" 
-                                                                  placeholder="输入您的想法或请求... | Enter your thoughts or requests..."
+                                                                  placeholder="Enter your thoughts or requests..."
                                                                   style="
                                                                     border: 2px solid rgba(245, 158, 11, 0.2); 
                                                                     border-radius: 16px 0 0 16px; 
@@ -1011,7 +991,7 @@
                                                     <div class="form-text mt-2" style="padding-left: 4px;">
                                                         <small class="text-muted">
                                                             <i class="fas fa-lightbulb me-1" style="color: var(--warm-accent);"></i>
-                                                            示例：「让故事更生动」「添加对话」「改进结尾」 | Examples: "Make it more vivid", "Add dialogue", "Improve the ending"
+                                                            Examples: "Make it more vivid", "Add dialogue", "Improve the ending"
                                                         </small>
                                                     </div>
                                                 </div>
@@ -1027,7 +1007,7 @@
                                                         <div class="spinner-border spinner-border-sm me-3" style="color: var(--warm-accent);" role="status">
                                                             <span class="visually-hidden">Loading...</span>
                                                         </div>
-                                                        <small style="color: var(--warm-primary-dark); font-weight: 500;">AI正在思考... | AI is thinking...</small>
+                                                        <small style="color: var(--warm-primary-dark); font-weight: 500;">AI is thinking...</small>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1052,7 +1032,7 @@
                                             box-shadow: 0 8px 25px rgba(34, 197, 94, 0.25);
                                         ">
                                             <i class="fas fa-save me-2"></i>
-                                            <span>保存润色故事 | Save Polished Story</span>
+                                            <span>Save Polished Story</span>
                                         </button>
                                         <button id="retranscribe" class="btn-modern-outline" style="
                                             background: rgba(14, 165, 233, 0.1);
@@ -1064,7 +1044,7 @@
                                             font-size: 1rem;
                                         ">
                                             <i class="fas fa-redo me-2"></i>
-                                            <span>重新转录 | Transcribe Again</span>
+                                            <span>Transcribe Again</span>
                                         </button>
                                     </div>
                                 </div>
@@ -1087,7 +1067,7 @@
                                             <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem; color: white;"></i>
                                     </div>
                                         <p style="color: #dc2626; font-weight: 500; margin-bottom: 20px; font-size: 1rem;">
-                                            <span id="transcriptionErrorText">转录失败，请重试 | Transcription failed. Please try again.</span>
+                                            <span id="transcriptionErrorText">Transcription failed. Please try again.</span>
                                         </p>
                                         <button id="retryTranscription" class="btn-modern-outline" style="
                                             background: rgba(239, 68, 68, 0.1);
@@ -1098,7 +1078,7 @@
                                             font-weight: 500;
                                             font-size: 0.95rem;
                                         ">
-                                            <i class="fas fa-redo me-2"></i>重试 | Try Again
+                                            <i class="fas fa-redo me-2"></i>Try Again
                                         </button>
                                     </div>
                                 </div>
@@ -1216,13 +1196,13 @@ class VoiceRecorder {
         this.allLanguages = [
             // Most Popular (Top 10)
             { code: 'en-US', name: 'English (US)', flag: '🇺🇸', popular: true },
-            { code: 'cmn-Hans-CN', name: '中文 (Mandarin)', flag: '🇨🇳', popular: true },
+            { code: 'cmn-Hans-CN', name: 'Chinese (Mandarin)', flag: '🇨🇳', popular: true },
             { code: 'es-ES', name: 'Español (Spanish)', flag: '🇪🇸', popular: true },
             { code: 'hi-IN', name: 'हिन्दी (Hindi)', flag: '🇮🇳', popular: true },
             { code: 'ar-SA', name: 'العربية (Arabic)', flag: '🇸🇦', popular: true },
             { code: 'pt-BR', name: 'Português (Portuguese)', flag: '🇧🇷', popular: true },
             { code: 'ru-RU', name: 'Русский (Russian)', flag: '🇷🇺', popular: true },
-            { code: 'ja-JP', name: '日本語 (Japanese)', flag: '🇯🇵', popular: true },
+            { code: 'ja-JP', name: 'Japanese', flag: '🇯🇵', popular: true },
             { code: 'fr-FR', name: 'Français (French)', flag: '🇫🇷', popular: true },
             { code: 'de-DE', name: 'Deutsch (German)', flag: '🇩🇪', popular: true },
             
@@ -1308,8 +1288,8 @@ class VoiceRecorder {
         // Time elements
         this.recordingTime = document.getElementById('recordingTime');
         this.pausedTime = document.getElementById('pausedTime');
-        this.currentTime = document.getElementById('currentTime');
-        this.totalTime = document.getElementById('totalTime');
+        // this.currentTime = document.getElementById('currentTime'); // Removed time display
+        // this.totalTime = document.getElementById('totalTime'); // Removed time display
         this.progressBar = document.getElementById('progressBar');
         
         // Language select
@@ -1845,13 +1825,13 @@ class VoiceRecorder {
     
     async transcribeUploadedFile() {
         try {
-            console.log('🎯 === 开始转录上传文件 START TRANSCRIPTION ===');
+            console.log('🎯 === START TRANSCRIPTION ===');
             
             if (!this.uploadedFile) {
                 throw new Error('No audio file found');
             }
             
-            console.log('📁 文件信息 FILE INFO:', {
+            console.log('📁 FILE INFO:', {
                 name: this.uploadedFile.name,
                 size: this.uploadedFile.size,
                 type: this.uploadedFile.type
@@ -1861,19 +1841,19 @@ class VoiceRecorder {
             const duration = this.audioPreview.duration;
             const selectedLanguage = this.selectedLanguage;
             
-            console.log('⏱️ 音频时长 DURATION:', duration, 'seconds');
-            console.log('🌍 选择语言 LANGUAGE:', selectedLanguage);
+            console.log('⏱️ DURATION:', duration, 'seconds');
+            console.log('🌍 LANGUAGE:', selectedLanguage);
             
             // Choose processing strategy based on duration
-            console.log(`🤔 选择处理策略 CHOOSING STRATEGY: ${duration}s audio`);
+            console.log(`🤔 CHOOSING STRATEGY: ${duration}s audio`);
             
             if (duration < 60) {
                 // Short file: Direct Google API call (< 1 minute limit)
-                console.log('✅ 使用直接处理 DIRECT PROCESSING (< 60s)');
+                console.log('✅ DIRECT PROCESSING (< 60s)');
                 await this.transcribeShortFile(this.uploadedFile, selectedLanguage);
             } else {
                 // Long file: MUST use chunking (≥ 60 seconds)
-                console.log(`✂️ 使用分块处理 CHUNKING APPROACH for ${duration}s audio`);
+                console.log(`✂️ CHUNKING APPROACH for ${duration}s audio`);
                 await this.transcribeWithChunking(this.uploadedFile, selectedLanguage, duration);
             }
             
@@ -1885,20 +1865,20 @@ class VoiceRecorder {
     
     async transcribeShortFile(file, language) {
         try {
-            console.log('📤 === 直接处理短文件 DIRECT SHORT FILE PROCESSING ===');
-            console.log('📁 发送文件 SENDING FILE:', {
+            console.log('📤 === DIRECT SHORT FILE PROCESSING ===');
+            console.log('📁 SENDING FILE:', {
                 name: file.name,
                 size: file.size,
                 type: file.type
             });
-            console.log('🌍 语言 LANGUAGE:', language);
+            console.log('🌍 LANGUAGE:', language);
             
             const formData = new FormData();
             formData.append('audio', file, file.name);
             formData.append('language', language);
             formData.append('mode', 'sync');
             
-            console.log('🚀 发送API请求 SENDING API REQUEST...');
+            console.log('🚀 SENDING API REQUEST...');
             
             const response = await fetch('/api/transcribe', {
                 method: 'POST',
@@ -1906,24 +1886,24 @@ class VoiceRecorder {
                 credentials: 'same-origin'
             });
             
-            console.log('📨 API响应状态 RESPONSE STATUS:', response.status);
+            console.log('📨 API RESPONSE STATUS:', response.status);
             
             const result = await response.json();
             
-            console.log('📋 API响应结果 RESPONSE RESULT:', result);
+            console.log('📋 API RESPONSE RESULT:', result);
             
             document.getElementById('transcriptionLoading').classList.add('d-none');
             
             if (result.success) {
-                console.log('✅ 转录成功 TRANSCRIPTION SUCCESS');
+                console.log('✅ TRANSCRIPTION SUCCESS');
                 this.showTranscriptionResult(result);
             } else {
-                console.log('❌ 转录失败 TRANSCRIPTION FAILED:', result.error);
+                console.log('❌ TRANSCRIPTION FAILED:', result.error);
                 this.showTranscriptionError(result.error);
             }
             
         } catch (error) {
-            console.log('💥 直接处理异常 DIRECT PROCESSING ERROR:', error);
+            console.log('💥 DIRECT PROCESSING ERROR:', error);
             document.getElementById('transcriptionLoading').classList.add('d-none');
             this.showTranscriptionError(error.message);
         }
@@ -1931,8 +1911,8 @@ class VoiceRecorder {
     
     async transcribeWithChunking(file, language, totalDuration) {
         try {
-            console.log('✂️ === 开始分块处理 START CHUNKING PROCESS ===');
-            console.log('📁 原始文件 ORIGINAL FILE:', {
+            console.log('✂️ === START CHUNKING PROCESS ===');
+            console.log('📁 ORIGINAL FILE:', {
                 name: file.name,
                 size: file.size,
                 type: file.type,
@@ -1945,7 +1925,7 @@ class VoiceRecorder {
             const numChunks = Math.ceil(totalDuration / 59);
             const avgChunkDuration = totalDuration / numChunks;
             
-            console.log('🔢 分块计算 CHUNK CALCULATION:', {
+            console.log('🔢 CHUNK CALCULATION:', {
                 totalDuration,
                 numChunks,
                 avgChunkDuration
@@ -1953,15 +1933,15 @@ class VoiceRecorder {
             
             loadingText.innerHTML = `
                 <i class="fas fa-magic me-2"></i>
-                分割音频：${totalDuration.toFixed(1)}秒 → ${numChunks}个片段 (每个~${avgChunkDuration.toFixed(1)}秒)<br>
+                Splitting audio: ${totalDuration.toFixed(1)}s → ${numChunks} chunks (~${avgChunkDuration.toFixed(1)}s each)<br>
                 Splitting audio: ${totalDuration.toFixed(1)}s → ${numChunks} chunks (~${avgChunkDuration.toFixed(1)}s each)
             `;
             
-            console.log('🔨 创建音频分块 CREATING AUDIO CHUNKS...');
+            console.log('🔨 CREATING AUDIO CHUNKS...');
             // Create audio chunks
             const chunks = await this.createAudioChunks(file, totalDuration);
             
-            console.log('📊 分块创建完成 CHUNKS CREATED:', {
+            console.log('📊 CHUNKS CREATED:', {
                 totalChunks: chunks.length,
                 chunks: chunks.map(chunk => ({
                     index: chunk.index,
@@ -1972,24 +1952,24 @@ class VoiceRecorder {
                 }))
             });
             
-            console.log('🚀 开始批量处理分块 START BATCH PROCESSING...');
+            console.log('🚀 START BATCH PROCESSING...');
             // Process chunks in parallel (but limit concurrency)
             const results = await this.processChunksInBatches(chunks, language);
             
-            console.log('📋 分块处理结果 CHUNK PROCESSING RESULTS:', results);
+            console.log('📋 CHUNK PROCESSING RESULTS:', results);
             
             // Combine results
             const combinedTranscript = this.combineTranscripts(results);
             const averageConfidence = this.calculateAverageConfidence(results);
             
-            console.log('🔗 合并结果 COMBINED RESULTS:', {
+            console.log('🔗 COMBINED RESULTS:', {
                 transcript: combinedTranscript.substring(0, 100) + '...',
                 confidence: averageConfidence,
                 chunkCount: chunks.length
             });
             
             // Apply Gemini polishing to the combined transcript
-            console.log('✨ 开始Gemini润色 START GEMINI POLISHING...');
+            console.log('✨ START GEMINI POLISHING...');
             try {
                 const polishingResponse = await fetch('/api/test-gemini', {
                     method: 'POST',
@@ -2003,7 +1983,7 @@ class VoiceRecorder {
                 });
                 
                 const polishingResult = await polishingResponse.json();
-                console.log('✨ Gemini润色结果 GEMINI POLISHING RESULT:', polishingResult);
+                console.log('✨ GEMINI POLISHING RESULT:', polishingResult);
                 
                 document.getElementById('transcriptionLoading').classList.add('d-none');
                 
@@ -2022,15 +2002,15 @@ class VoiceRecorder {
                 } else {
                     // Check if it's an authentication error
                     if (polishingResult.error_type === 'authentication_required') {
-                        console.log('🔐 身份验证失败 AUTHENTICATION FAILED');
-                        alert('您的登录会话已过期，请重新登录后再试。\nYour login session has expired. Please log in again.');
+                        console.log('🔐 AUTHENTICATION FAILED');
+                        alert('Your login session has expired. Please log in again.');
                         window.location.href = '/login';
                         return;
                     }
                     
                     // Fallback: show raw transcript only
-                    console.log('⚠️ Gemini润色失败，显示原始转录 GEMINI POLISHING FAILED, SHOWING RAW');
-                    console.log('失败原因:', polishingResult.error || 'Unknown error');
+                    console.log('⚠️ GEMINI POLISHING FAILED, SHOWING RAW');
+                    console.log('Failure reason:', polishingResult.error || 'Unknown error');
                     this.showTranscriptionResult({
                         success: true,
                         transcript: combinedTranscript,  // Raw transcript as main
@@ -2044,7 +2024,7 @@ class VoiceRecorder {
                 }
                 
             } catch (error) {
-                console.log('💥 Gemini润色异常 GEMINI POLISHING ERROR:', error);
+                console.log('💥 GEMINI POLISHING ERROR:', error);
                 document.getElementById('transcriptionLoading').classList.add('d-none');
                 
                 // Fallback: show raw transcript only
@@ -2162,24 +2142,24 @@ class VoiceRecorder {
                     const numChunks = Math.ceil(totalDuration / maxChunkDuration);
                     const idealChunkDuration = totalDuration / numChunks;
                     
-                    console.log(`🔧 音频分割计划 AUDIO SPLITTING PLAN: ${totalDuration}s → ${numChunks} chunks (~${idealChunkDuration.toFixed(1)}s each)`);
+                    console.log(`🔧 AUDIO SPLITTING PLAN: ${totalDuration}s → ${numChunks} chunks (~${idealChunkDuration.toFixed(1)}s each)`);
                     
                     for (let i = 0; i < numChunks; i++) {
                         const startTime = i * idealChunkDuration;
                         const endTime = Math.min((i + 1) * idealChunkDuration, totalDuration);
                         const actualDuration = endTime - startTime;
                         
-                        console.log(`🎵 创建分块 ${i + 1} CREATING CHUNK ${i + 1}: ${startTime.toFixed(1)}s - ${endTime.toFixed(1)}s (${actualDuration.toFixed(1)}s)`);
+                        console.log(`🎵 CREATING CHUNK ${i + 1}: ${startTime.toFixed(1)}s - ${endTime.toFixed(1)}s (${actualDuration.toFixed(1)}s)`);
                         
-                        // 验证分块时长
+                        // Validate chunk duration
                         if (actualDuration >= 60) {
-                            console.log('🚨 错误 ERROR: 分块时长超过60秒！CHUNK DURATION EXCEEDS 60s!', actualDuration);
+                            console.log('🚨 ERROR: CHUNK DURATION EXCEEDS 60s!', actualDuration);
                         }
                         
                         const startSample = Math.floor(startTime * sampleRate);
                         const endSample = Math.floor(endTime * sampleRate);
                         
-                        console.log(`📊 采样信息 SAMPLE INFO: ${startSample} - ${endSample} (total: ${endSample - startSample} samples)`);
+                        console.log(`📊 SAMPLE INFO: ${startSample} - ${endSample} (total: ${endSample - startSample} samples)`);
                         
                         const chunkBuffer = audioContext.createBuffer(
                             audioBuffer.numberOfChannels,
@@ -2199,7 +2179,7 @@ class VoiceRecorder {
                         // Convert to WAV blob
                         const wavBlob = this.audioBufferToWav(chunkBuffer);
                         
-                        console.log(`💾 WAV分块大小 WAV CHUNK SIZE: ${wavBlob.size} bytes`);
+                        console.log(`💾 WAV CHUNK SIZE: ${wavBlob.size} bytes`);
                         
                         chunks.push({
                             blob: wavBlob,
@@ -2209,7 +2189,7 @@ class VoiceRecorder {
                             duration: actualDuration
                         });
                         
-                        console.log(`✅ 分块 ${i + 1} 创建完成 CHUNK ${i + 1} CREATED: ${actualDuration.toFixed(1)}s, ${wavBlob.size} bytes`);
+                        console.log(`✅ CHUNK ${i + 1} CREATED: ${actualDuration.toFixed(1)}s, ${wavBlob.size} bytes`);
                     }
                     
                     resolve(chunks);
@@ -2250,8 +2230,8 @@ class VoiceRecorder {
     }
     
     async transcribeChunk(chunk, language) {
-        console.log(`📤 === 处理分块 ${chunk.index + 1} PROCESSING CHUNK ${chunk.index + 1} ===`);
-        console.log('📁 分块信息 CHUNK INFO:', {
+        console.log(`📤 === PROCESSING CHUNK ${chunk.index + 1} ===`);
+        console.log('📁 CHUNK INFO:', {
             index: chunk.index,
             duration: chunk.duration,
             size: chunk.blob.size,
@@ -2261,7 +2241,7 @@ class VoiceRecorder {
         });
         
         if (chunk.duration >= 60) {
-            console.log('⚠️ 警告 WARNING: 分块时长超过60秒！', chunk.duration);
+            console.log('⚠️ WARNING: CHUNK DURATION EXCEEDS 60s!', chunk.duration);
         }
         
         const formData = new FormData();
@@ -2271,18 +2251,18 @@ class VoiceRecorder {
         formData.append('chunkIndex', chunk.index);
         formData.append('startTime', chunk.startTime);
         
-        console.log('🚀 发送分块API请求 SENDING CHUNK API REQUEST...');
+        console.log('🚀 SENDING CHUNK API REQUEST...');
         
         const response = await fetch('/api/transcribe', {
             method: 'POST',
             body: formData
         });
         
-        console.log(`📨 分块 ${chunk.index + 1} API响应状态 CHUNK ${chunk.index + 1} RESPONSE STATUS:`, response.status);
+        console.log(`📨 CHUNK ${chunk.index + 1} RESPONSE STATUS:`, response.status);
         
         const result = await response.json();
         
-        console.log(`📋 分块 ${chunk.index + 1} API响应结果 CHUNK ${chunk.index + 1} RESPONSE:`, result);
+        console.log(`📋 CHUNK ${chunk.index + 1} RESPONSE:`, result);
         
         return result;
     }
@@ -2315,7 +2295,7 @@ class VoiceRecorder {
     }
     
     audioBufferToWav(buffer) {
-        console.log('🎵 转换音频缓冲为WAV CONVERTING AUDIO BUFFER TO WAV:', {
+        console.log('🎵 CONVERTING AUDIO BUFFER TO WAV:', {
             length: buffer.length,
             sampleRate: buffer.sampleRate,
             numberOfChannels: buffer.numberOfChannels,
@@ -2358,7 +2338,7 @@ class VoiceRecorder {
         writeString(36, 'data');                          // Subchunk2ID
         view.setUint32(40, dataSize, true);               // Subchunk2Size
         
-        console.log('📊 WAV文件头信息 WAV HEADER INFO:', {
+        console.log('📊 WAV HEADER INFO:', {
             channels: numberOfChannels,
             sampleRate: sampleRate,
             byteRate: byteRate,
@@ -2378,7 +2358,7 @@ class VoiceRecorder {
             }
         }
         
-        console.log('✅ WAV转换完成 WAV CONVERSION COMPLETE:', {
+        console.log('✅ WAV CONVERSION COMPLETE:', {
             finalSize: arrayBuffer.byteLength,
             expectedSize: 44 + dataSize
         });
@@ -2568,14 +2548,16 @@ class VoiceRecorder {
         this.audioElement = new Audio();
         this.audioElement.src = URL.createObjectURL(this.recordedBlob);
         
-        this.audioElement.addEventListener('loadedmetadata', () => {
-            this.totalTime.textContent = this.formatTime(this.audioElement.duration);
-        });
+        // Simplified - no duration display needed
         
         this.audioElement.addEventListener('timeupdate', () => {
+            // Simplified progress bar update
+            if (this.audioElement.currentTime && 
+                this.audioElement.duration && 
+                this.audioElement.duration > 0) {
             const progress = (this.audioElement.currentTime / this.audioElement.duration) * 100;
-            this.progressBar.style.width = progress + '%';
-            this.currentTime.textContent = this.formatTime(this.audioElement.currentTime);
+                this.progressBar.style.width = Math.min(100, Math.max(0, progress)) + '%';
+            }
         });
         
         this.audioElement.addEventListener('ended', () => {
@@ -2602,13 +2584,13 @@ class VoiceRecorder {
     
     async transcribeAudio() {
         try {
-            console.log('🎯 === 开始转录录音 START RECORDING TRANSCRIPTION ===');
+            console.log('🎯 === START RECORDING TRANSCRIPTION ===');
             
             if (!this.recordedBlob) {
                 throw new Error('No audio recording found');
             }
             
-            console.log('📁 录音信息 RECORDING INFO:', {
+            console.log('📁 RECORDING INFO:', {
                 size: this.recordedBlob.size,
                 type: this.recordedBlob.type
             });
@@ -2667,18 +2649,18 @@ class VoiceRecorder {
             console.log('⏱️ 最终录音时长 FINAL RECORDING DURATION:', duration, 'seconds');
             
             const selectedLanguage = this.selectedLanguage;
-            console.log('🌍 选择语言 LANGUAGE:', selectedLanguage);
+            console.log('🌍 LANGUAGE:', selectedLanguage);
             
             // Choose processing strategy based on duration
-            console.log(`🤔 选择处理策略 CHOOSING STRATEGY: ${duration}s recording`);
+            console.log(`🤔 CHOOSING STRATEGY: ${duration}s recording`);
             
             if (duration < 60) {
                 // Short recording: Direct Google API call
-                console.log('✅ 使用直接处理 DIRECT PROCESSING (< 60s)');
+                console.log('✅ DIRECT PROCESSING (< 60s)');
                 await this.transcribeRecordingDirect(this.recordedBlob, selectedLanguage);
             } else {
                 // Long recording: Use chunking
-                console.log(`✂️ 使用分块处理 CHUNKING APPROACH for ${duration}s recording`);
+                console.log(`✂️ CHUNKING APPROACH for ${duration}s recording`);
                 await this.transcribeRecordingWithChunking(this.recordedBlob, selectedLanguage, duration);
             }
             
@@ -2823,14 +2805,14 @@ class VoiceRecorder {
                     // Check if it's an authentication error
                     if (polishingResult.error_type === 'authentication_required') {
                         console.log('🔐 录音身份验证失败 RECORDING AUTHENTICATION FAILED');
-                        alert('您的登录会话已过期，请重新登录后再试。\nYour login session has expired. Please log in again.');
+                        alert('Your login session has expired. Please log in again.');
                         window.location.href = '/login';
                         return;
                     }
                     
                     // Fallback: show raw transcript only
                     console.log('⚠️ 录音Gemini润色失败，显示原始转录 RECORDING GEMINI POLISHING FAILED, SHOWING RAW');
-                    console.log('失败原因:', polishingResult.error || 'Unknown error');
+                    console.log('Failure reason:', polishingResult.error || 'Unknown error');
                     this.showTranscriptionResult({
                         success: true,
                         transcript: combinedTranscript,  // Raw transcript as main
@@ -2938,7 +2920,7 @@ class VoiceRecorder {
                         const endSample = Math.floor(endTime * sampleRate);
                         const sampleCount = endSample - startSample;
                         
-                        console.log(`📊 采样信息 SAMPLE INFO: ${startSample} - ${endSample} (count: ${sampleCount})`);
+                        console.log(`📊 SAMPLE INFO: ${startSample} - ${endSample} (count: ${sampleCount})`);
                         
                         // Validate sample count
                         if (sampleCount <= 0 || !isFinite(sampleCount)) {
@@ -3008,38 +2990,7 @@ class VoiceRecorder {
         });
     }
     
-    showTranscriptionResult(result) {
-        const transcriptionText = document.getElementById('transcriptionText');
-        const confidenceScore = document.getElementById('confidenceScore');
-        
-        transcriptionText.textContent = result.transcript;
-        
-        if (result.confidence) {
-            const confidencePercent = Math.round(result.confidence * 100);
-            let confidenceText = `(Confidence: ${confidencePercent}%)`;
-            
-            // Add chunking information if applicable
-            if (result.chunked) {
-                confidenceText += ` | Processed in ${result.chunkCount} chunks`;
-            } else if (result.fallback) {
-                confidenceText += ` | Used fallback method`;
-            }
-            
-            confidenceScore.textContent = confidenceText;
-            confidenceScore.style.color = confidencePercent > 80 ? 'var(--warm-success)' : 
-                                        confidencePercent > 60 ? 'var(--warm-warning)' : 
-                                        'var(--warm-danger)';
-        }
-        
-        // Handle Gemini AI analysis results
-        this.showGeminiResults(result.gemini);
-        
-        document.getElementById('transcriptionResult').classList.remove('d-none');
-        
-        // Add event listeners for transcription buttons
-        document.getElementById('saveTranscription').onclick = () => this.saveStoryWithTranscription();
-        document.getElementById('retranscribe').onclick = () => this.transcribeAudio();
-    }
+
     
 
     
@@ -3079,7 +3030,8 @@ class VoiceRecorder {
     }
     
     async saveStoryWithTranscription() {
-        const transcriptionText = document.getElementById('transcriptionText').textContent;
+        const polishedStoryText = document.getElementById('polishedStoryText');
+        const transcriptionText = polishedStoryText ? polishedStoryText.textContent : '';
         const selectedLanguage = this.selectedLanguage;
         
         // TODO: Save both audio and transcription to database
@@ -3097,8 +3049,110 @@ class VoiceRecorder {
     }
     
     saveRecording() {
-        // TODO: Save audio only to database
-        alert('录音已保存！您可以点击"开始Google识别"来获取文字转录。\n\nAudio saved! You can click "Start Google Recognition" to get text transcription.');
+        if (!this.recordedBlob) {
+            alert('No recording available to save.');
+            return;
+        }
+
+        // Ask user for format preference
+        const format = confirm('Choose download format:\n\n• Click OK for WAV format (higher quality, larger file)\n• Click Cancel for WebM format (smaller file)');
+        
+        if (format) {
+            // Download as WAV
+            this.downloadAsWAV();
+        } else {
+            // Download as WebM
+            this.downloadAsWebM();
+        }
+    }
+    
+    downloadAsWebM() {
+        try {
+            // Create a download link for the recorded audio
+            const url = URL.createObjectURL(this.recordedBlob);
+            const link = document.createElement('a');
+            link.style.display = 'none';
+            link.href = url;
+            
+            // Generate filename with timestamp
+            const now = new Date();
+            const timestamp = now.toISOString().replace(/[:.]/g, '-').split('.')[0];
+            link.download = `echoverse-recording-${timestamp}.webm`;
+            
+            // Add to document and trigger download
+            document.body.appendChild(link);
+            link.click();
+            
+            // Clean up
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            // Show success message
+            this.showSuccessToast('🎵 WebM recording downloaded successfully!');
+            
+        } catch (error) {
+            console.error('WebM download error:', error);
+            alert('Failed to download WebM recording: ' + error.message);
+        }
+    }
+    
+    async downloadAsWAV() {
+        try {
+            console.log('🎵 Converting to WAV for download...');
+            
+            // Create AudioContext for conversion
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const reader = new FileReader();
+            
+            reader.onload = async (e) => {
+                try {
+                    // Decode the audio data
+                    const arrayBuffer = e.target.result;
+                    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                    
+                    // Convert to WAV
+                    const wavBlob = this.audioBufferToWav(audioBuffer);
+                    
+                    // Create download link
+                    const url = URL.createObjectURL(wavBlob);
+                    const link = document.createElement('a');
+                    link.style.display = 'none';
+                    link.href = url;
+                    
+                    // Generate filename with timestamp
+                    const now = new Date();
+                    const timestamp = now.toISOString().replace(/[:.]/g, '-').split('.')[0];
+                    link.download = `echoverse-recording-${timestamp}.wav`;
+                    
+                    // Add to document and trigger download
+                    document.body.appendChild(link);
+                    link.click();
+                    
+                    // Clean up
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    
+                    // Show success message
+                    this.showSuccessToast('🎵 WAV recording downloaded successfully!');
+                    
+                } catch (error) {
+                    console.error('WAV conversion error:', error);
+                    alert('Failed to convert to WAV: ' + error.message);
+                }
+            };
+            
+            reader.onerror = (error) => {
+                console.error('File read error:', error);
+                alert('Failed to read audio file for WAV conversion.');
+            };
+            
+            // Read the recorded blob
+            reader.readAsArrayBuffer(this.recordedBlob);
+            
+        } catch (error) {
+            console.error('WAV download error:', error);
+            alert('Failed to download WAV recording: ' + error.message);
+        }
     }
     
     discardRecording() {
@@ -3185,8 +3239,19 @@ class VoiceRecorder {
     }
     
     formatTime(seconds) {
+        // Validate input - return default for invalid values
+        if (!seconds || !isFinite(seconds) || seconds < 0) {
+            return '00:00';
+        }
+        
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
+        
+        // Double-check the calculated values are valid
+        if (!isFinite(mins) || !isFinite(secs)) {
+            return '00:00';
+        }
+        
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
     
@@ -3523,7 +3588,6 @@ class VoiceRecorder {
     showTranscriptionResult(result) {
         console.log('📋 显示转录结果 SHOWING TRANSCRIPTION RESULT:', result);
         
-        const transcriptionText = document.getElementById('transcriptionText');
         const polishedStoryText = document.getElementById('polishedStoryText');
         const rawTranscriptionText = document.getElementById('rawTranscriptionText');
         const confidenceScore = document.getElementById('confidenceScore');
@@ -3591,28 +3655,79 @@ class VoiceRecorder {
         // Update Gemini model info
         if (geminiModelUsed && result.gemini?.model) {
             geminiModelUsed.textContent = result.gemini.model;
-            document.getElementById('geminiModelUsedEn').textContent = result.gemini.model;
+            const geminiModelUsedEn = document.getElementById('geminiModelUsedEn');
+            if (geminiModelUsedEn) {
+                geminiModelUsedEn.textContent = result.gemini.model;
+            }
         }
         
         // Update polished indicator
         if (polishedIndicator) {
             if (isPolished) {
                 polishedIndicator.className = 'badge bg-success ms-2';
-                polishedIndicator.innerHTML = '<i class="fas fa-check me-1"></i>已润色 | Polished';
+                polishedIndicator.innerHTML = '<i class="fas fa-check me-1"></i>Polished';
             } else {
                 polishedIndicator.className = 'badge bg-warning ms-2';
-                polishedIndicator.innerHTML = '<i class="fas fa-exclamation me-1"></i>未润色 | Not Polished';
+                polishedIndicator.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>AI Enhancement Failed';
+                polishedIndicator.title = 'Gemini AI enhancement failed, but you can still publish your raw transcript';
+                
+                // Add a helpful message below the indicator
+                const confidenceContainer = polishedIndicator.parentElement;
+                if (confidenceContainer && !confidenceContainer.querySelector('.polish-fail-message')) {
+                    const helpMessage = document.createElement('div');
+                    helpMessage.className = 'polish-fail-message mt-2 p-2 text-center';
+                    helpMessage.style.cssText = `
+                        background: rgba(255, 193, 7, 0.1);
+                        border: 1px solid rgba(255, 193, 7, 0.3);
+                        border-radius: 8px;
+                        font-size: 0.85rem;
+                        color: #856404;
+                    `;
+                    helpMessage.innerHTML = `
+                        <i class="fas fa-info-circle me-1"></i>
+                        <strong>Don't worry!</strong> You can still publish your story with the raw transcript.
+                        <br><small>The AI enhancement service is temporarily unavailable.</small>
+                    `;
+                    confidenceContainer.appendChild(helpMessage);
+                }
             }
         }
         
 
         
         // Show the transcription result section
-        document.getElementById('transcriptionResult').classList.remove('d-none');
+        const transcriptionResult = document.getElementById('transcriptionResult');
+        if (transcriptionResult) {
+            transcriptionResult.classList.remove('d-none');
+        }
         
-        // Show publish button if story is polished
-        if (isPolished && this.currentStoryText) {
-            document.getElementById('publishStoryBtn').style.display = 'inline-block';
+        // Show publish button if we have any content (polished or raw)
+        if (this.currentStoryText) {
+            const publishStoryBtn = document.getElementById('publishStoryBtn');
+            if (publishStoryBtn) {
+                publishStoryBtn.style.display = 'inline-block';
+                
+                // Update button text and style based on polish status
+                if (isPolished) {
+                    publishStoryBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Publish My Story';
+                    publishStoryBtn.style.background = 'linear-gradient(135deg, var(--warm-primary) 0%, var(--warm-primary-light) 100%)';
+                } else {
+                    publishStoryBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Publish Story (Raw Transcript)';
+                    publishStoryBtn.style.background = 'linear-gradient(135deg, #6c757d 0%, #495057 100%)';
+                    publishStoryBtn.title = 'AI enhancement failed, but you can still publish your raw transcript';
+                }
+            }
+        }
+        
+        // Add event listeners for transcription buttons
+        const saveTranscriptionBtn = document.getElementById('saveTranscription');
+        const retranscribeBtn = document.getElementById('retranscribe');
+        
+        if (saveTranscriptionBtn) {
+            saveTranscriptionBtn.onclick = () => this.saveStoryWithTranscription();
+        }
+        if (retranscribeBtn) {
+            retranscribeBtn.onclick = () => this.transcribeAudio();
         }
         
         console.log('✅ 转录结果显示完成 TRANSCRIPTION RESULT DISPLAY COMPLETE');
@@ -3622,9 +3737,20 @@ class VoiceRecorder {
 
     
     showError(message) {
-        document.getElementById('errorMessage').textContent = message;
-        const modal = new bootstrap.Modal(document.getElementById('errorModal'));
+        const errorMessage = document.getElementById('errorMessage');
+        const errorModal = document.getElementById('errorModal');
+        
+        if (errorMessage) {
+            errorMessage.textContent = message;
+        }
+        
+        if (errorModal) {
+            const modal = new bootstrap.Modal(errorModal);
         modal.show();
+        } else {
+            // Fallback to browser alert if modal elements don't exist
+            alert('Error: ' + message);
+        }
     }
     
     getLanguageName(languageCode) {
@@ -3889,10 +4015,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Show publish button if there's content
                 const publishBtn = document.getElementById('publishStoryBtn');
+                if (publishBtn) {
                 if (this.textContent.trim()) {
                     publishBtn.style.display = 'inline-block';
                 } else {
                     publishBtn.style.display = 'none';
+                    }
                 }
             }
         });

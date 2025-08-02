@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}My Stories - StoryKeeper{% endblock %}
+{% block title %}My Stories - 
+echoverse
+{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -408,7 +410,7 @@
                     <div class="position-relative">
                         {% if story.image_path %}
                         <img 
-                            src="{{ url_for('static', filename='uploads/stories/' + story.image_path) }}" 
+                            src="{{ url_for('serve_image', filename=story.image_path) }}" 
                             alt="{{ story.title }}" 
                             class="w-100 story-image-modern"
                             onerror="this.src='{{ url_for('static', filename='cover.png') }}'"

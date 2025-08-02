@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 class ImageService:
     """Service for handling image uploads and processing"""
     
-    def __init__(self, upload_folder: str = 'static/uploads/stories'):
+    def __init__(self, upload_folder: str = '/image/stories'):
         """
         Initialize the image service
         
@@ -281,7 +281,7 @@ class ImageService:
             
             for size_name, relative_path in image_paths.items():
                 if relative_path:
-                    full_path = os.path.join('static/uploads/stories', relative_path)
+                    full_path = os.path.join('/image/stories', relative_path)
                     try:
                         if os.path.exists(full_path):
                             os.remove(full_path)
@@ -310,7 +310,7 @@ class ImageService:
             str: Full image URL
         """
         if not relative_path:
-            return '/static/images/default_story_cover.jpg'  # Default placeholder
+            return '/static/cover.png'  # Default placeholder
         
         # Replace size in filename if needed
         if size != 'medium':  # medium is default
@@ -318,7 +318,7 @@ class ImageService:
             if '_medium.' in base_path:
                 relative_path = base_path.replace('_medium', f'_{size}') + ext
         
-        return f'/static/uploads/stories/{relative_path}'
+        return f'/image/stories/{relative_path}'
 
 # Global instance
 image_service = ImageService()

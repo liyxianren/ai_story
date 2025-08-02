@@ -192,7 +192,7 @@
                         <div class="col-md-6">
                             <h6>Change Password</h6>
                             <p class="text-muted small">Update your account password for better security.</p>
-                            <button class="btn btn-outline-warning btn-sm" disabled>
+                            <button class="btn btn-outline-warning btn-sm" id="changePasswordBtn">
                                 <i class="fas fa-key me-1"></i>Change Password
                             </button>
                         </div>
@@ -204,9 +204,57 @@
                             </button>
                         </div>
                     </div>
-                    <div class="alert alert-info mt-3 mb-0">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <small>These features are coming soon in future updates.</small>
+                    <!-- Password Change Form (Hidden by default) -->
+                    <div id="passwordChangeForm" class="mt-3" style="display: none;">
+                        <div class="card">
+                            <div class="card-header bg-warning text-dark">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-key me-2"></i>Change Password
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <form id="passwordForm">
+                                    <div class="mb-3">
+                                        <label for="current_password" class="form-label">
+                                            <i class="fas fa-lock me-2"></i>Current Password
+                                        </label>
+                                        <input type="password" class="form-control" id="current_password" 
+                                               name="current_password" required>
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="new_password" class="form-label">
+                                            <i class="fas fa-key me-2"></i>New Password
+                                        </label>
+                                        <input type="password" class="form-control" id="new_password" 
+                                               name="new_password" required minlength="8">
+                                        <div class="form-text">
+                                            Password must be at least 8 characters long and include letters and numbers.
+                                        </div>
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="confirm_password" class="form-label">
+                                            <i class="fas fa-check me-2"></i>Confirm New Password
+                                        </label>
+                                        <input type="password" class="form-control" id="confirm_password" 
+                                               name="confirm_password" required>
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                    
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="fas fa-save me-2"></i>Update Password
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" id="cancelPasswordChange">
+                                            <i class="fas fa-times me-2"></i>Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -329,5 +377,192 @@
             setTimeout(calculateCompletion, 100);
         });
     });
+    
+    // Password Change Functionality
+    const changePasswordBtn = document.getElementById('changePasswordBtn');
+    const passwordChangeForm = document.getElementById('passwordChangeForm');
+    const cancelPasswordChange = document.getElementById('cancelPasswordChange');
+    const passwordForm = document.getElementById('passwordForm');
+    
+    // Show password change form
+    changePasswordBtn.addEventListener('click', function() {
+        passwordChangeForm.style.display = 'block';
+        changePasswordBtn.style.display = 'none';
+        document.getElementById('current_password').focus();
+    });
+    
+    // Cancel password change
+    cancelPasswordChange.addEventListener('click', function() {
+        passwordChangeForm.style.display = 'none';
+        changePasswordBtn.style.display = 'inline-block';
+        passwordForm.reset();
+        clearValidationErrors();
+    });
+    
+    // Password validation
+    const newPasswordInput = document.getElementById('new_password');
+    const confirmPasswordInput = document.getElementById('confirm_password');
+    
+    function validatePassword(password) {
+        const minLength = password.length >= 8;
+        const hasLetter = /[a-zA-Z]/.test(password);
+        const hasNumber = /\d/.test(password);
+        return minLength && hasLetter && hasNumber;
+    }
+    
+    function clearValidationErrors() {
+        document.querySelectorAll('.is-invalid').forEach(input => {
+            input.classList.remove('is-invalid');
+            input.nextElementSibling.textContent = '';
+        });
+    }
+    
+    function showValidationError(input, message) {
+        input.classList.add('is-invalid');
+        const feedback = input.nextElementSibling;
+        if (feedback && feedback.classList.contains('invalid-feedback')) {
+            feedback.textContent = message;
+        }
+    }
+    
+    // Real-time password validation
+    newPasswordInput.addEventListener('input', function() {
+        const password = this.value;
+        this.classList.remove('is-invalid');
+        
+        if (password && !validatePassword(password)) {
+            showValidationError(this, 'Password must be at least 8 characters long and include letters and numbers.');
+        }
+        
+        // Check confirm password match
+        if (confirmPasswordInput.value && confirmPasswordInput.value !== password) {
+            showValidationError(confirmPasswordInput, 'Passwords do not match.');
+        } else if (confirmPasswordInput.value === password) {
+            confirmPasswordInput.classList.remove('is-invalid');
+        }
+    });
+    
+    confirmPasswordInput.addEventListener('input', function() {
+        const password = newPasswordInput.value;
+        const confirmPassword = this.value;
+        
+        this.classList.remove('is-invalid');
+        
+        if (confirmPassword && confirmPassword !== password) {
+            showValidationError(this, 'Passwords do not match.');
+        }
+    });
+    
+    // Password form submission
+    passwordForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const currentPassword = document.getElementById('current_password').value;
+        const newPassword = newPasswordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        
+        // Clear previous errors
+        clearValidationErrors();
+        
+        // Validation
+        let hasErrors = false;
+        
+        if (!currentPassword) {
+            showValidationError(document.getElementById('current_password'), 'Current password is required.');
+            hasErrors = true;
+        }
+        
+        if (!validatePassword(newPassword)) {
+            showValidationError(newPasswordInput, 'Password must be at least 8 characters long and include letters and numbers.');
+            hasErrors = true;
+        }
+        
+        if (newPassword !== confirmPassword) {
+            showValidationError(confirmPasswordInput, 'Passwords do not match.');
+            hasErrors = true;
+        }
+        
+        if (currentPassword === newPassword) {
+            showValidationError(newPasswordInput, 'New password must be different from current password.');
+            hasErrors = true;
+        }
+        
+        if (hasErrors) return;
+        
+        // Show loading state
+        const submitBtn = passwordForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
+        submitBtn.disabled = true;
+        
+        // Submit password change
+        fetch('/api/change-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                current_password: currentPassword,
+                new_password: newPassword
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Success feedback
+                passwordChangeForm.style.display = 'none';
+                changePasswordBtn.style.display = 'inline-block';
+                passwordForm.reset();
+                
+                // Show success message
+                showSuccessMessage('Password updated successfully!');
+            } else {
+                // Show error
+                if (data.field && data.field === 'current_password') {
+                    showValidationError(document.getElementById('current_password'), data.error);
+                } else {
+                    showErrorMessage(data.error || 'Failed to update password. Please try again.');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showErrorMessage('An error occurred. Please try again.');
+        })
+        .finally(() => {
+            // Restore button state
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+    
+    // Message display functions
+    function showSuccessMessage(message) {
+        const alertHtml = `
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        document.querySelector('.container').insertAdjacentHTML('afterbegin', alertHtml);
+        setTimeout(() => {
+            const alert = document.querySelector('.alert-success');
+            if (alert) alert.remove();
+        }, 5000);
+    }
+    
+    function showErrorMessage(message) {
+        const alertHtml = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        document.querySelector('.container').insertAdjacentHTML('afterbegin', alertHtml);
+        setTimeout(() => {
+            const alert = document.querySelector('.alert-danger');
+            if (alert) alert.remove();
+        }, 5000);
+    }
 </script>
 {% endblock %} 

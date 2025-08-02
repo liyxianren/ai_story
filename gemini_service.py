@@ -2,8 +2,7 @@ import os
 import logging
 import time
 from typing import Dict, Any, Optional
-from google import genai
-from google.genai import types
+import google.generativeai as genai
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -15,19 +14,15 @@ class GeminiService:
     def __init__(self):
         """Initialize the Gemini service with API key authentication"""
         try:
-            # Get the directory where this script is located
-            script_dir = os.path.dirname(os.path.abspath(__file__))
-            key_file_path = os.path.join(script_dir, 'google_key.txt')
-            
-            # Read API key from google_key.txt file
-            with open(key_file_path, 'r', encoding='utf-8') as f:
-                self.api_key = f.read().strip()
+            # Get API key from environment variable
+            self.api_key = os.environ.get('GOOGLE_API_KEY')
             
             if not self.api_key:
-                raise ValueError("API key is empty in google_key.txt")
+                raise ValueError("GOOGLE_API_KEY environment variable not found")
             
-            # Create client with API key and SSL configuration
-            self.client = genai.Client(api_key=self.api_key)
+            # Configure API key
+            genai.configure(api_key=self.api_key)
+            self.model = genai.GenerativeModel('gemini-2.5-flash')
             
             logger.info("Gemini service initialized successfully")
             
@@ -107,10 +102,9 @@ class GeminiService:
             try:
                 logger.info(f"Gemini API call attempt {attempt + 1}/{max_retries}")
                 
-                response = self.client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=prompt,
-                    config=types.GenerateContentConfig(
+                response = self.model.generate_content(
+                    prompt,
+                    generation_config=genai.types.GenerationConfig(
                         temperature=0.7  # Balanced creativity
                     )
                 )
@@ -321,6 +315,183 @@ Please provide the polished English story directly without any explanations or m
         return prompt_template.format(
             transcript=transcript,
             source_language=source_language,
+            language_instruction=language_instruction
+        )
+    
+    def chat_conversation(self, user_message: str, current_story: str, chat_history: list, language: str = 'en-US') -> Dict[str, Any]:
+        """
+        Have a natural conversation with the user about their story
+        
+        Args:
+            user_message (str): The user's message
+            current_story (str): The current story text
+            chat_history (list): Previous conversation history
+            language (str): The language for the conversation
+            
+        Returns:
+            Dict[str, Any]: Conversation result with success status and content
+        """
+        try:
+            if not user_message or not user_message.strip():
+                return {
+                    'success': False,
+                    'error': 'Empty message provided',
+                    'content': '',
+                    'model': ''
+                }
+            
+            logger.info(f"Processing chat conversation: {user_message[:50]}...")
+            
+            # Create a conversational prompt
+            prompt = self._create_chat_prompt(user_message, current_story, chat_history, language)
+            
+            # Generate content using Gemini with retry mechanism
+            response = self._generate_content_with_retry(prompt)
+            
+            if response and response.text:
+                logger.info(f"Gemini chat successful: {response.text[:50]}...")
+                return {
+                    'success': True,
+                    'content': response.text.strip(),
+                    'model': 'gemini-2.5-flash',
+                    'language': language
+                }
+            else:
+                logger.warning("Gemini returned empty response for chat")
+                return {
+                    'success': False,
+                    'error': 'Gemini returned empty response',
+                    'content': '',
+                    'model': 'gemini-2.5-flash'
+                }
+                
+        except Exception as e:
+            logger.error(f"Gemini chat error: {str(e)}")
+            return {
+                'success': False,
+                'error': f"Gemini chat failed: {str(e)}",
+                'content': '',
+                'model': 'gemini-2.5-flash'
+            }
+    
+    def _create_chat_prompt(self, user_message: str, current_story: str, chat_history: list, language: str) -> str:
+        """
+        Create a conversational prompt for natural chat interaction
+        
+        Args:
+            user_message (str): The user's latest message
+            current_story (str): The current story text
+            chat_history (list): Previous conversation history
+            language (str): The language for the conversation
+            
+        Returns:
+            str: The prompt for natural conversation
+        """
+        # Determine language for response
+        if language.startswith('zh') or language.startswith('cmn'):
+            language_instruction = "请用中文自然地回应。"
+            greeting_words = ['hello', 'hi', 'hey', '你好', '嗨', '问好', 'how are you', '怎么样', '如何']
+            
+            # Check if this is a casual conversation
+            is_casual = any(word.lower() in user_message.lower() for word in greeting_words)
+            
+            if is_casual or len(user_message.strip()) < 20:
+                # For casual/short messages, be more conversational
+                prompt_template = """你是一个友好的AI写作助手。用户正在和你聊天。
+
+📖 **当前故事**：
+{current_story}
+
+💬 **聊天历史**：
+{chat_history_text}
+
+👤 **用户消息**：{user_message}
+
+请自然地回应用户。如果他们只是打招呼或聊天，就正常对话。如果他们询问故事改进，再提供建议。不要强制将每个对话都转向故事润色。保持友好和自然的语调。
+
+{language_instruction}"""
+            else:
+                # For longer messages, provide more detailed assistance
+                prompt_template = """你是一个专业的写作导师和故事编辑。用户正在和你交流关于他们的故事。
+
+📖 **当前故事**：
+{current_story}
+
+💬 **聊天历史**：
+{chat_history_text}
+
+👤 **用户消息**：{user_message}
+
+根据用户的消息内容自然回应：
+- 如果用户想要改进故事：提供具体的建议和可能的修改版本
+- 如果用户询问写作技巧：分享相关的写作知识和技巧
+- 如果用户只是想讨论故事：进行有意义的讨论
+- 如果用户有其他问题：友好地回答并提供帮助
+
+保持对话的自然性，不要总是推销故事润色服务。
+
+{language_instruction}"""
+        else:
+            language_instruction = "Please respond naturally in English."
+            greeting_words = ['hello', 'hi', 'hey', 'how are you', 'what\'s up', 'good morning', 'good afternoon', 'good evening']
+            
+            # Check if this is a casual conversation
+            is_casual = any(word.lower() in user_message.lower() for word in greeting_words)
+            
+            if is_casual or len(user_message.strip()) < 20:
+                # For casual/short messages, be more conversational
+                prompt_template = """You are a friendly AI writing assistant. The user is chatting with you.
+
+📖 **Current Story**:
+{current_story}
+
+💬 **Chat History**:
+{chat_history_text}
+
+👤 **User Message**: {user_message}
+
+Please respond naturally to the user. If they're just greeting or chatting, have a normal conversation. Only offer story improvement suggestions if they specifically ask for help with their story. Don't force every conversation toward story polishing. Keep it friendly and natural.
+
+{language_instruction}"""
+            else:
+                # For longer messages, provide more detailed assistance
+                prompt_template = """You are a professional writing mentor and story editor. The user is communicating with you about their story.
+
+📖 **Current Story**:
+{current_story}
+
+💬 **Chat History**:
+{chat_history_text}
+
+👤 **User Message**: {user_message}
+
+Respond naturally based on the user's message:
+- If user wants story improvement: Provide specific suggestions and possible revisions
+- If user asks about writing techniques: Share relevant writing knowledge and tips
+- If user wants to discuss the story: Have a meaningful discussion
+- If user has other questions: Answer helpfully and friendly
+
+Keep the conversation natural and don't always push story polishing services.
+
+{language_instruction}"""
+        
+        # Format chat history
+        chat_history_text = ""
+        if chat_history:
+            for i, chat in enumerate(chat_history[-5:]):  # Only include last 5 exchanges
+                role = chat.get('role', 'unknown')
+                content = chat.get('content', '')
+                if role.lower() == 'user':
+                    chat_history_text += f"User: {content}\n"
+                elif role.lower() == 'assistant':
+                    chat_history_text += f"AI: {content}\n"
+        else:
+            chat_history_text = "No previous conversation."
+        
+        return prompt_template.format(
+            current_story=current_story,
+            chat_history_text=chat_history_text,
+            user_message=user_message,
             language_instruction=language_instruction
         )
 
