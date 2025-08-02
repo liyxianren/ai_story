@@ -18,8 +18,7 @@ class Config:
     }
     
     # API Keys
-    GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', 'AIzaSyCa9L2B-RvmJ_J3zaHu_h-evWlnLxnPNJE')
-    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyBkY8DMErBO-qBrP763ox5rWKb9UWLWyfs')
+    GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
     
     # Upload Configuration
     UPLOAD_FOLDER = '/image'

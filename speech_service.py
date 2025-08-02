@@ -20,6 +20,8 @@ class SpeechTranscriptionService:
     def __init__(self):
         """Initialize the speech service with API key authentication"""
         self.api_key = Config.GOOGLE_API_KEY
+        if not self.api_key:
+            raise ValueError("GOOGLE_API_KEY environment variable not found")
         self.language_mapping = Config.LANGUAGE_MAPPING
         
     def transcribe_audio_rest_api(self, audio_data: bytes, language_code: str = 'en-US') -> Dict[str, Any]:
