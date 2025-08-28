@@ -188,7 +188,7 @@ echoverse
                                 <div class="col-md-6">
                                     <div class="form-floating">
                                         <input type="text" class="form-control" id="username" name="username" 
-                                               required placeholder="用户名" maxlength="50">
+                                               required placeholder="Username" maxlength="50">
                                         <label for="username">
                                             <i class="fa-solid fa-user me-2"></i>Username *
                                         </label>
@@ -198,7 +198,7 @@ echoverse
                                 <div class="col-md-6">
                                     <div class="form-floating">
                                         <input type="email" class="form-control" id="email" name="email" 
-                                               required placeholder="邮箱地址">
+                                               required placeholder="Email Address">
                                         <label for="email">
                                             <i class="fa-solid fa-envelope me-2"></i>Email Address *
                                         </label>
@@ -210,23 +210,23 @@ echoverse
                                 <div class="col-md-6">
                                     <div class="form-floating">
                                         <input type="password" class="form-control" id="password" name="password" 
-                                               required placeholder="密码" minlength="6">
+                                               required placeholder="Password" minlength="6">
                                         <label for="password">
-                                            <i class="fa-solid fa-lock me-2"></i>密码 *
+                                            <i class="fa-solid fa-lock me-2"></i>Password *
                                         </label>
                                     </div>
                                     <div class="password-strength" id="passwordStrength" style="display: none;">
                                         <div class="password-strength-bar" id="passwordStrengthBar"></div>
                                     </div>
-                                    <div class="form-text" id="passwordHelp">最少 6 个字符</div>
+                                    <div class="form-text" id="passwordHelp">Minimum 6 characters</div>
                                 </div>
                                 
                                 <div class="col-md-6">
                                     <div class="form-floating">
                                         <input type="password" class="form-control" id="confirm_password" name="confirm_password" 
-                                               required placeholder="确认密码">
+                                               required placeholder="Confirm Password">
                                         <label for="confirm_password">
-                                            <i class="fa-solid fa-lock me-2"></i>确认密码 *
+                                            <i class="fa-solid fa-lock me-2"></i>Confirm Password *
                                         </label>
                                     </div>
                                 </div>
@@ -234,43 +234,43 @@ echoverse
                             
                             <div class="form-floating">
                                 <input type="tel" class="form-control" id="phone_number" name="phone_number" 
-                                       placeholder="手机号码" maxlength="20">
+                                       placeholder="Phone Number" maxlength="20">
                                 <label for="phone_number">
-                                    <i class="fa-solid fa-phone me-2"></i>手机号码 (可选)
+                                    <i class="fa-solid fa-phone me-2"></i>Phone Number (Optional)
                                 </label>
                             </div>
                             
                             <div class="form-floating">
                                 <textarea class="form-control" id="bio" name="bio" rows="3" 
-                                          placeholder="介绍一下您自己..." maxlength="500" style="height: 100px;"></textarea>
+                                          placeholder="Tell us about yourself..." maxlength="500" style="height: 100px;"></textarea>
                                 <label for="bio">
-                                    <i class="fa-solid fa-user-edit me-2"></i>个人简介 (可选)
+                                    <i class="fa-solid fa-user-edit me-2"></i>Bio (Optional)
                                 </label>
                             </div>
-                            <div class="form-text mb-3" id="bioCounter">0/500 字符</div>
+                            <div class="form-text mb-3" id="bioCounter">0/500 characters</div>
                             
                             <div class="mb-4">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="terms" required>
                                     <label class="form-check-label" for="terms">
-                                        我同意 <a href="#" style="color: var(--color-primary);">服务条款</a> 和 
-                                        <a href="#" style="color: var(--color-primary);">隐私政策</a> *
+                                        I agree to the <a href="#" style="color: var(--color-primary);">Terms of Service</a> and 
+                                        <a href="#" style="color: var(--color-primary);">Privacy Policy</a> *
                                     </label>
                                 </div>
                             </div>
                             
                             <div class="d-grid mb-4">
                                 <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="fa-solid fa-user-plus me-2"></i>创建账户
+                                    <i class="fa-solid fa-user-plus me-2"></i>Create Account
                                 </button>
                             </div>
                         </form>
                         
                         <div class="text-center pt-3" style="border-top: 1px solid rgba(217, 119, 6, 0.1);">
                             <p class="text-muted mb-0">
-                                已有账户？
+                                Already have an account?
                                 <a href="{{ url_for('login') }}" class="fw-bold text-decoration-none" style="color: var(--color-primary);">
-                                    <i class="fa-solid fa-sign-in-alt me-1"></i>立即登录
+                                    <i class="fa-solid fa-sign-in-alt me-1"></i>Login Now
                                 </a>
                             </p>
                         </div>
@@ -342,7 +342,7 @@ echoverse
             
             if (password.length === 0) {
                 strengthContainer.style.display = 'none';
-                helpText.textContent = '最少 6 个字符';
+                helpText.textContent = 'Minimum 6 characters';
                 helpText.className = 'form-text text-muted';
                 return;
             }
@@ -350,7 +350,7 @@ echoverse
             strengthContainer.style.display = 'block';
             let strength = 0;
             let color = '#dc3545';
-            let text = '弱';
+            let text = 'Weak';
             
             // 计算密码强度
             if (password.length >= 6) strength += 25;
@@ -360,15 +360,15 @@ echoverse
             
             if (strength >= 75) {
                 color = '#10b981';
-                text = '强';
+                text = 'Strong';
             } else if (strength >= 50) {
                 color = '#f59e0b';
-                text = '中等';
+                text = 'Medium';
             }
             
             strengthBar.style.width = strength + '%';
             strengthBar.style.backgroundColor = color;
-            helpText.textContent = `密码强度: ${text}`;
+            helpText.textContent = `Password strength: ${text}`;
             helpText.style.color = color;
         });
         
@@ -392,7 +392,7 @@ echoverse
             const maxLength = 500;
             const counter = document.getElementById('bioCounter');
             
-            counter.textContent = `${currentLength}/${maxLength} 字符`;
+            counter.textContent = `${currentLength}/${maxLength} characters`;
             
             if (currentLength > maxLength * 0.9) {
                 counter.style.color = '#f59e0b';
@@ -414,31 +414,31 @@ echoverse
             
             if (!username || username.length < 3) {
                 isValid = false;
-                errorMessage = '用户名至少需3个字符';
+                errorMessage = 'Username must be at least 3 characters';
                 usernameInput.style.borderColor = '#dc3545';
             }
             
             if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                 isValid = false;
-                errorMessage = '请输入有效的邮箱地址';
+                errorMessage = 'Please enter a valid email address';
                 emailInput.style.borderColor = '#dc3545';
             }
             
             if (!password || password.length < 6) {
                 isValid = false;
-                errorMessage = '密码至少需6个字符';
+                errorMessage = 'Password must be at least 6 characters';
                 passwordInput.style.borderColor = '#dc3545';
             }
             
             if (password !== confirmPassword) {
                 isValid = false;
-                errorMessage = '两次输入的密码不一致';
+                errorMessage = 'Passwords do not match';
                 confirmPasswordInput.style.borderColor = '#dc3545';
             }
             
             if (!terms) {
                 isValid = false;
-                errorMessage = '请同意服务条款和隐私政策';
+                errorMessage = 'Please agree to the terms of service and privacy policy';
             }
             
             if (!isValid) {
@@ -448,7 +448,7 @@ echoverse
                 // 添加加载状态
                 const submitBtn = form.querySelector('button[type="submit"]');
                 const originalText = submitBtn.innerHTML;
-                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>创建中...';
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Creating...';
                 submitBtn.disabled = true;
             }
         });

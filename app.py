@@ -665,7 +665,7 @@ def forgot_password():
         print(f"Forgot password error: {str(e)}")
         return jsonify({
             'success': False,
-            'error': '服务暂时不可用，请稍后重试'
+            'error': 'Service temporarily unavailable, please try again later'
         }), 500
     finally:
         if 'connection' in locals() and connection.open:
@@ -690,7 +690,7 @@ def reset_password(token):
         token_data = cursor.fetchone()
         
         if not token_data:
-            flash('重置链接无效或已过期', 'error')
+            flash('Reset link is invalid or expired', 'error')
             return redirect(url_for('forgot_password'))
         
         token_id, user_id, expires_at, used, username, email = token_data
@@ -698,12 +698,12 @@ def reset_password(token):
         # Check if token is expired
         from datetime import datetime
         if datetime.now() > expires_at:
-            flash('重置链接已过期，请重新申请', 'error')
+            flash('Reset link has expired, please request a new one', 'error')
             return redirect(url_for('forgot_password'))
         
         # Check if token is already used
         if used:
-            flash('此重置链接已被使用', 'error')
+            flash('This reset link has already been used', 'error')
             return redirect(url_for('login'))
         
         cursor.close()
@@ -714,7 +714,7 @@ def reset_password(token):
         
     except Exception as e:
         print(f"Password reset page error: {str(e)}")
-        flash('服务暂时不可用，请稍后重试', 'error')
+        flash('Service temporarily unavailable, please try again later', 'error')
         return redirect(url_for('forgot_password'))
     finally:
         if 'connection' in locals() and connection.open:
@@ -788,7 +788,7 @@ def reset_password_api():
         if not token_data:
             return jsonify({
                 'success': False,
-                'error': '重置链接无效或已过期'
+                'error': 'Reset link is invalid or expired'
             }), 400
         
         token_id, user_id, expires_at, used, username = token_data
@@ -798,14 +798,14 @@ def reset_password_api():
         if datetime.now() > expires_at:
             return jsonify({
                 'success': False,
-                'error': '重置链接已过期，请重新申请密码重置'
+                'error': 'Reset link has expired, please request a new password reset'
             }), 400
         
         # Check if token is already used
         if used:
             return jsonify({
                 'success': False,
-                'error': '此重置链接已被使用'
+                'error': 'This reset link has already been used'
             }), 400
         
         # Hash new password
@@ -1089,7 +1089,7 @@ def story_detail(story_id):
         story = cursor.fetchone()
         
         if not story:
-            flash('故事不存在或暂未发布', 'error')
+            flash('Story does not exist or is not published yet', 'error')
             return redirect(url_for('story_library'))
         
         # 更新浏览次数
@@ -1117,7 +1117,7 @@ def story_detail(story_id):
         
     except Exception as e:
         print(f"Error fetching story detail: {e}")
-        flash('获取故事详情失败', 'error')
+        flash('Failed to get story details', 'error')
         return redirect(url_for('story_library'))
 
 @app.route('/story_library')
@@ -1552,10 +1552,10 @@ def admin_login():
         if verify_admin_credentials(username, password):
             session['admin_logged_in'] = True
             session['admin_username'] = username
-            flash('管理员登录成功！', 'success')
+            flash('Administrator login successful!', 'success')
             return redirect(url_for('admin_dashboard'))
         else:
-            flash('用户名或密码错误！', 'error')
+            flash('Invalid username or password!', 'error')
     
     return render_template('admin/login.html')
 
@@ -1565,7 +1565,7 @@ def admin_logout():
     """Admin logout"""
     session.pop('admin_logged_in', None)
     session.pop('admin_username', None)
-    flash('已安全退出管理后台', 'info')
+    flash('Safely logged out from admin panel', 'info')
     return redirect(url_for('index'))
 
 @app.route('/admin/dashboard')
@@ -1624,7 +1624,7 @@ def admin_dashboard():
                              top_stories=top_stories)
         
     except Exception as e:
-        flash(f'获取统计数据失败: {str(e)}', 'error')
+        flash(f'Failed to get statistics: {str(e)}', 'error')
         return render_template('admin/dashboard.html', 
                              stats={'stories': {}},
                              recent_pending=[],
@@ -1689,7 +1689,7 @@ def admin_stories():
                              total_count=total_count)
         
     except Exception as e:
-        flash(f'获取故事列表失败: {str(e)}', 'error')
+        flash(f'Failed to get story list: {str(e)}', 'error')
         return render_template('admin/stories.html',
                              stories=[],
                              current_status='pending',
@@ -1724,7 +1724,7 @@ def admin_story_detail(story_id):
         story = cursor.fetchone()
         
         if not story:
-            flash('故事不存在', 'error')
+            flash('Story does not exist', 'error')
             return redirect(url_for('admin_stories'))
         
         cursor.close()
@@ -1733,7 +1733,7 @@ def admin_story_detail(story_id):
         return render_template('admin/story_detail.html', story=story)
         
     except Exception as e:
-        flash(f'获取故事详情失败: {str(e)}', 'error')
+        flash(f'Failed to get story details: {str(e)}', 'error')
         return redirect(url_for('admin_stories'))
 
 # Admin API routes
@@ -1760,7 +1760,7 @@ def admin_approve_story(story_id):
         else:
             cursor.close()
             connection.close()
-            return jsonify({'success': False, 'error': '故事不存在或状态不正确'}), 400
+            return jsonify({'success': False, 'error': 'Story does not exist or status is incorrect'}), 400
             
     except Exception as e:
         return jsonify({'success': False, 'error': f'审核失败: {str(e)}'}), 500
@@ -1788,7 +1788,7 @@ def admin_reject_story(story_id):
         else:
             cursor.close()
             connection.close()
-            return jsonify({'success': False, 'error': '故事不存在或状态不正确'}), 400
+            return jsonify({'success': False, 'error': 'Story does not exist or status is incorrect'}), 400
             
     except Exception as e:
         return jsonify({'success': False, 'error': f'拒绝失败: {str(e)}'}), 500
@@ -1847,51 +1847,82 @@ def admin_batch_action():
 # =====================================================
 
 @app.route('/api/like_story/<int:story_id>', methods=['POST'])
-@login_required
 def like_story(story_id):
-    """Like a story"""
+    """Like a story - supports both logged in and anonymous users"""
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
         
-        # Check if user already liked this story
-        cursor.execute("""
-            SELECT id FROM story_likes 
-            WHERE user_id = %s AND story_id = %s
-        """, (current_user.id, story_id))
-        
-        existing_like = cursor.fetchone()
-        
-        if existing_like:
-            # Unlike: Remove the like
+        if current_user.is_authenticated:
+            # Logged in user - use database
             cursor.execute("""
-                DELETE FROM story_likes 
+                SELECT id FROM story_likes 
                 WHERE user_id = %s AND story_id = %s
             """, (current_user.id, story_id))
             
-            # Decrease like count
-            cursor.execute("""
-                UPDATE stories 
-                SET like_count = GREATEST(0, like_count - 1) 
-                WHERE id = %s
-            """, (story_id,))
+            existing_like = cursor.fetchone()
             
-            action = 'unliked'
+            if existing_like:
+                # Unlike: Remove the like
+                cursor.execute("""
+                    DELETE FROM story_likes 
+                    WHERE user_id = %s AND story_id = %s
+                """, (current_user.id, story_id))
+                
+                # Decrease like count
+                cursor.execute("""
+                    UPDATE stories 
+                    SET like_count = GREATEST(0, like_count - 1) 
+                    WHERE id = %s
+                """, (story_id,))
+                
+                action = 'unliked'
+            else:
+                # Like: Add the like
+                cursor.execute("""
+                    INSERT INTO story_likes (user_id, story_id) 
+                    VALUES (%s, %s)
+                """, (current_user.id, story_id))
+                
+                # Increase like count
+                cursor.execute("""
+                    UPDATE stories 
+                    SET like_count = like_count + 1 
+                    WHERE id = %s
+                """, (story_id,))
+                
+                action = 'liked'
         else:
-            # Like: Add the like
-            cursor.execute("""
-                INSERT INTO story_likes (user_id, story_id) 
-                VALUES (%s, %s)
-            """, (current_user.id, story_id))
+            # Anonymous user - use session
+            if 'liked_stories' not in session:
+                session['liked_stories'] = []
             
-            # Increase like count
-            cursor.execute("""
-                UPDATE stories 
-                SET like_count = like_count + 1 
-                WHERE id = %s
-            """, (story_id,))
-            
-            action = 'liked'
+            if story_id in session['liked_stories']:
+                # Unlike: Remove from session and decrease count
+                session['liked_stories'].remove(story_id)
+                session.modified = True
+                
+                # Decrease like count
+                cursor.execute("""
+                    UPDATE stories 
+                    SET like_count = GREATEST(0, like_count - 1) 
+                    WHERE id = %s
+                """, (story_id,))
+                
+                action = 'unliked'
+            else:
+                # Like: Add to session and increase count
+                session['liked_stories'].append(story_id)
+                session.modified = True
+                
+                # Increase like count
+                cursor.execute("""
+                    UPDATE stories 
+                    SET like_count = like_count + 1 
+                    WHERE id = %s
+                """, (story_id,))
+                
+                action = 'liked'
         
         # Get updated like count
         cursor.execute("SELECT like_count FROM stories WHERE id = %s", (story_id,))
@@ -1914,22 +1945,29 @@ def like_story(story_id):
         }), 500
 
 @app.route('/api/check_like_status/<int:story_id>')
-@login_required
 def check_like_status(story_id):
-    """Check if current user has liked a story"""
+    """Check if current user has liked a story - supports both logged in and anonymous users"""
     try:
-        connection = get_db_connection()
-        cursor = connection.cursor()
+        liked = False
         
-        cursor.execute("""
-            SELECT id FROM story_likes 
-            WHERE user_id = %s AND story_id = %s
-        """, (current_user.id, story_id))
-        
-        liked = cursor.fetchone() is not None
-        
-        cursor.close()
-        connection.close()
+        if current_user.is_authenticated:
+            # Logged in user - check database
+            connection = get_db_connection()
+            cursor = connection.cursor()
+            
+            cursor.execute("""
+                SELECT id FROM story_likes 
+                WHERE user_id = %s AND story_id = %s
+            """, (current_user.id, story_id))
+            
+            liked = cursor.fetchone() is not None
+            
+            cursor.close()
+            connection.close()
+        else:
+            # Anonymous user - check session
+            if 'liked_stories' in session:
+                liked = story_id in session['liked_stories']
         
         return jsonify({
             'success': True,
@@ -1968,7 +2006,7 @@ def edit_story(story_id):
         story = cursor.fetchone()
         
         if not story:
-            flash('故事不存在或您无权编辑', 'error')
+            flash('Story does not exist or you do not have permission to edit', 'error')
             return redirect(url_for('my_stories'))
         
         # Get available story types
@@ -1986,7 +2024,7 @@ def edit_story(story_id):
         return render_template('edit_story.html', story=story, story_types=story_types)
         
     except Exception as e:
-        flash(f'获取故事信息失败: {str(e)}', 'error')
+        flash(f'Failed to get story information: {str(e)}', 'error')
         return redirect(url_for('my_stories'))
 
 @app.route('/api/update_story/<int:story_id>', methods=['POST'])
@@ -2019,7 +2057,7 @@ def update_story(story_id):
         if not story:
             return jsonify({
                 'success': False,
-                'error': '故事不存在或您无权编辑'
+                'error': 'Story does not exist or you do not have permission to edit'
             }), 403
         
         # Calculate word count and reading time

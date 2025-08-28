@@ -487,6 +487,12 @@ echoverse
                     <a href="#" class="btn-action btn-like" onclick="likeStory({{ story.id }})">
                         <i class="fas fa-heart"></i>Like Story
                     </a>
+                    {% if not current_user.is_authenticated %}
+                        <small class="text-muted mt-2 d-block text-center">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Like this story! Your preferences are saved locally. <a href="{{ url_for('register') }}" class="text-decoration-none">Join us</a> to save across devices.
+                        </small>
+                    {% endif %}
                 </div>
             </div>
 
@@ -532,7 +538,7 @@ echoverse
 
 {% block extra_js %}
 <script>
-// Check like status on page load
+// Check like status on page load (for all users)
 function checkLikeStatus() {
     const storyId = {{ story.id }};
     fetch(`/api/check_like_status/${storyId}`)
@@ -544,6 +550,8 @@ function checkLikeStatus() {
         })
         .catch(error => console.error('Error checking like status:', error));
 }
+
+
 
 function likeStory(storyId) {
     const btn = event.target.closest('.btn-like');

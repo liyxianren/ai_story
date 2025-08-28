@@ -254,12 +254,12 @@ echoverse
                 }
                 
                 // 显示错误消息
-                showMessage('请填写所有必填字段', 'error');
+                showMessage('Please fill in all required fields', 'error');
             } else {
                 // 添加加载状态
                 const submitBtn = form.querySelector('button[type="submit"]');
                 const originalText = submitBtn.innerHTML;
-                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>登录中...';
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Logging in...';
                 submitBtn.disabled = true;
                 
                 // 如果登录失败，恢复按钮状态
