@@ -1,0 +1,9 @@
+项目代码统计 - ai storytelling project
+生成时间: Sat Aug  2 15:34:00 CST 2025
+总文件数: 32
+总行数: 18,185
+
+Python: 8 文件, 4,403 行
+HTML: 20 文件, 13,467 行
+JSON: 1 文件, 21 行
+Text: 3 文件, 294 行

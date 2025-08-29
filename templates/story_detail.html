@@ -1,0 +1,669 @@
+{% extends "base.html" %}
+
+{% block title %}{{ story.title }} - 
+echoverse
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Story Detail Page Styles - Beautiful design consistent with my_stories */
+    .story-hero {
+        background: linear-gradient(135deg, rgba(255, 248, 225, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
+        position: relative;
+        overflow: hidden;
+        min-height: 500px;
+        border-radius: 24px;
+        margin-bottom: 40px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 20px 60px rgba(217, 119, 6, 0.08), 0 8px 25px rgba(0, 0, 0, 0.06);
+    }
+    
+    .hero-blob {
+        position: absolute;
+        border-radius: 50%;
+        mix-blend-mode: multiply;
+        filter: blur(3rem);
+        opacity: 0.3;
+    }
+    
+    .hero-blob-1 {
+        top: -10rem;
+        right: -10rem;
+        width: 20rem;
+        height: 20rem;
+        background: linear-gradient(45deg, rgba(217, 119, 6, 0.3), rgba(251, 191, 36, 0.3));
+    }
+    
+    .hero-blob-2 {
+        bottom: -8rem;
+        left: -6rem;
+        width: 18rem;
+        height: 18rem;
+        background: linear-gradient(45deg, rgba(16, 163, 74, 0.3), rgba(34, 197, 94, 0.3));
+    }
+
+    .story-cover-container {
+        position: relative;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        background: white;
+        backdrop-filter: blur(10px);
+    }
+
+    .story-cover-image {
+        width: 100%;
+        height: 350px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .story-cover-container:hover .story-cover-image {
+        transform: scale(1.02);
+    }
+
+    .story-meta-section {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 20px;
+        padding: 32px;
+        box-shadow: 0 10px 40px rgba(217, 119, 6, 0.08);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(217, 119, 6, 0.15);
+        margin-bottom: 32px;
+    }
+
+    .story-title {
+        font-family: var(--font-serif);
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: var(--warm-primary-dark);
+        margin-bottom: 20px;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+    }
+
+    .story-meta-info {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        margin-bottom: 24px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid rgba(217, 119, 6, 0.1);
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        color: var(--warm-secondary);
+        font-size: 0.95rem;
+        opacity: 0.9;
+    }
+
+    .meta-item i {
+        margin-right: 8px;
+        color: var(--warm-primary);
+        width: 16px;
+    }
+
+    .story-description {
+        font-size: 1.1rem;
+        color: var(--warm-secondary);
+        line-height: 1.6;
+        margin-bottom: 24px;
+        opacity: 0.9;
+    }
+
+    .status-badge {
+        padding: 8px 16px;
+        border-radius: 25px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-published {
+        background: linear-gradient(45deg, var(--warm-success), #22c55e);
+        color: white;
+    }
+    
+    .status-pending {
+        background: linear-gradient(45deg, var(--warm-info), #38bdf8);
+        color: white;
+    }
+    
+    .status-rejected {
+        background: linear-gradient(45deg, #ef4444, #dc2626);
+        color: white;
+    }
+
+    .story-content-section {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 10px 40px rgba(217, 119, 6, 0.08);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(217, 119, 6, 0.15);
+        margin-bottom: 40px;
+    }
+
+    .story-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: var(--warm-secondary);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .story-content p {
+        margin-bottom: 20px;
+        text-align: justify;
+    }
+
+    .story-content p:first-child::first-letter {
+        font-size: 3.5rem;
+        font-weight: bold;
+        float: left;
+        line-height: 3rem;
+        margin: 0 8px 0 0;
+        color: var(--warm-primary);
+        font-family: var(--font-serif);
+    }
+
+    .story-stats-section {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 10px 40px rgba(217, 119, 6, 0.08);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(217, 119, 6, 0.15);
+        margin-bottom: 40px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 20px;
+        text-align: center;
+    }
+
+    .stat-item {
+        padding: 16px;
+        border-radius: 12px;
+        background: rgba(217, 119, 6, 0.05);
+        border: 1px solid rgba(217, 119, 6, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .stat-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(217, 119, 6, 0.15);
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--warm-primary);
+        margin-bottom: 4px;
+    }
+
+    .stat-label {
+        color: var(--warm-secondary);
+        font-size: 0.85rem;
+        opacity: 0.8;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 24px;
+    }
+
+    .btn-action {
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.95rem;
+    }
+
+    .btn-back {
+        background: rgba(108, 117, 125, 0.1);
+        border: 1px solid rgba(108, 117, 125, 0.2);
+        color: var(--warm-secondary);
+    }
+
+    .btn-back:hover {
+        background: var(--warm-secondary);
+        color: white;
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .btn-like {
+        background: rgba(220, 38, 127, 0.1);
+        border: 1px solid rgba(220, 38, 127, 0.2);
+        color: #dc2670;
+    }
+
+    .btn-like:hover {
+        background: #dc2670;
+        color: white;
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .related-stories-section {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 20px;
+        padding: 32px;
+        box-shadow: 0 10px 40px rgba(217, 119, 6, 0.08);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(217, 119, 6, 0.15);
+    }
+
+    .related-story-card {
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid rgba(217, 119, 6, 0.1);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        height: 100%;
+    }
+
+    .related-story-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(217, 119, 6, 0.15);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .related-story-image {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 12px;
+        margin-bottom: 12px;
+    }
+
+    .related-story-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--warm-primary-dark);
+        margin-bottom: 8px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .related-story-stats {
+        font-size: 0.8rem;
+        color: var(--warm-secondary);
+        opacity: 0.8;
+        display: flex;
+        gap: 12px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .story-hero {
+            min-height: 400px;
+            margin: 0 -15px 32px -15px;
+            border-radius: 20px;
+        }
+        
+        .story-title {
+            font-size: 2rem;
+        }
+        
+        .story-meta-section,
+        .story-content-section,
+        .story-stats-section,
+        .related-stories-section {
+            padding: 24px;
+            margin-left: -15px;
+            margin-right: -15px;
+            border-radius: 20px;
+        }
+        
+        .story-meta-info {
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .story-cover-image {
+            height: 250px;
+        }
+        
+        .story-content p:first-child::first-letter {
+            font-size: 2.5rem;
+            line-height: 2.2rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Hero Section with Cover Image -->
+    <section class="story-hero">
+        <div class="hero-blob hero-blob-1"></div>
+        <div class="hero-blob hero-blob-2"></div>
+        
+        <div class="container position-relative" style="z-index: 10; padding: 40px 32px;">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <div class="story-cover-container">
+                        {% if story.image_path %}
+                        <img 
+                            src="{% if story.image_path.startswith('/static/') %}{{ story.image_path }}{% else %}{{ url_for('serve_image', filename=story.image_path) }}{% endif %}" 
+                            alt="{{ story.title }}" 
+                            class="story-cover-image"
+                            onerror="this.src='{{ url_for('static', filename='cover.png') }}'"
+                        />
+                        {% else %}
+                        <img 
+                            src="{{ url_for('static', filename='cover.png') }}" 
+                            alt="{{ story.title }}" 
+                            class="story-cover-image"
+                        />
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="story-meta-section">
+                        <h1 class="story-title">{{ story.title }}</h1>
+                        
+                        <div class="story-meta-info">
+                            <div class="meta-item">
+                                <i class="fas fa-user"></i>
+                                <span>{{ story.author }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>{{ story.created_at.strftime('%B %d, %Y') }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-clock"></i>
+                                <span>{{ story.reading_time or 5 }} min read</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-globe"></i>
+                                <span>{{ story.language_name or 'Chinese' }}</span>
+                            </div>
+                            {% if story.categories %}
+                            <div class="meta-item">
+                                <i class="fas fa-tag"></i>
+                                <span>{{ story.categories.split(',')[0] }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        {% if story.description %}
+                        <p class="story-description">{{ story.description }}</p>
+                        {% endif %}
+
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="status-badge status-{{ story.status }}">
+                                {% if story.status == 'published' %}
+                                    <i class="fas fa-check-circle"></i>Approved
+                                {% elif story.status == 'pending' %}
+                                    <i class="fas fa-clock"></i>Pending
+                                {% elif story.status == 'rejected' %}
+                                    <i class="fas fa-times-circle"></i>Rejected
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Story Content -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="story-content-section">
+                <div class="story-content">
+                    {% for paragraph in story.content.split('\n') %}
+                        {% if paragraph.strip() %}
+                            <p>{{ paragraph.strip() }}</p>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Story Stats -->
+            <div class="story-stats-section">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ story.view_count or 0 }}</div>
+                        <div class="stat-label">Views</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ story.like_count or 0 }}</div>
+                        <div class="stat-label">Likes</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ story.word_count or 0 }}</div>
+                        <div class="stat-label">Words</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ story.reading_time or 5 }}</div>
+                        <div class="stat-label">Read Time (min)</div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="{{ url_for('story_library') }}" class="btn-action btn-back">
+                        <i class="fas fa-arrow-left"></i>Back to Library
+                    </a>
+                    <a href="#" class="btn-action btn-like" onclick="likeStory({{ story.id }})">
+                        <i class="fas fa-heart"></i>Like Story
+                    </a>
+                    {% if not current_user.is_authenticated %}
+                        <small class="text-muted mt-2 d-block text-center">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Like this story! Your preferences are saved locally. <a href="{{ url_for('register') }}" class="text-decoration-none">Join us</a> to save across devices.
+                        </small>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Related Stories -->
+            {% if related_stories %}
+            <div class="related-stories-section">
+                <h3 style="color: var(--warm-primary-dark); font-family: var(--font-serif); margin-bottom: 24px;">
+                    <i class="fas fa-book-open me-2"></i>Related Stories
+                </h3>
+                <div class="row g-3">
+                    {% for related in related_stories %}
+                    <div class="col-md-4">
+                        <a href="{{ url_for('story_detail', story_id=related.id) }}" class="related-story-card">
+                            {% if related.image_path %}
+                            <img 
+                                src="{% if related.image_path.startswith('/static/') %}{{ related.image_path }}{% else %}{{ url_for('serve_image', filename=related.image_path) }}{% endif %}" 
+                                alt="{{ related.title }}" 
+                                class="related-story-image"
+                                onerror="this.src='{{ url_for('static', filename='cover.png') }}'"
+                            />
+                            {% else %}
+                            <img 
+                                src="{{ url_for('static', filename='cover.png') }}" 
+                                alt="{{ related.title }}" 
+                                class="related-story-image"
+                            />
+                            {% endif %}
+                            <h4 class="related-story-title">{{ related.title }}</h4>
+                            <div class="related-story-stats">
+                                <span><i class="fas fa-eye me-1"></i>{{ related.view_count or 0 }}</span>
+                                <span><i class="fas fa-heart me-1"></i>{{ related.like_count or 0 }}</span>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Check like status on page load (for all users)
+function checkLikeStatus() {
+    const storyId = {{ story.id }};
+    fetch(`/api/check_like_status/${storyId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.liked) {
+                updateLikeButton(true);
+            }
+        })
+        .catch(error => console.error('Error checking like status:', error));
+}
+
+
+
+function likeStory(storyId) {
+    const btn = event.target.closest('.btn-like');
+    const originalContent = btn.innerHTML;
+    
+    // Show loading state
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>Processing...';
+    btn.disabled = true;
+    
+    fetch(`/api/like_story/${storyId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update like count in stats
+            const likeCountElement = document.querySelector('.story-stats .text-success');
+            if (likeCountElement) {
+                likeCountElement.textContent = data.like_count;
+            }
+            
+            // Update button state
+            updateLikeButton(data.action === 'liked');
+            
+            // Show success message
+            if (data.action === 'liked') {
+                showToast('Liked!', 'success');
+            } else {
+                showToast('Like removed', 'info');
+            }
+        } else {
+            // Show error
+            showToast(data.error || 'Operation failed, please try again', 'error');
+            btn.innerHTML = originalContent;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Network error, please try again', 'error');
+        btn.innerHTML = originalContent;
+    })
+    .finally(() => {
+        btn.disabled = false;
+    });
+}
+
+function updateLikeButton(liked) {
+    const btn = document.querySelector('.btn-like');
+    if (liked) {
+        btn.innerHTML = '<i class="fas fa-heart"></i>Liked';
+        btn.style.background = '#dc2626';
+        btn.style.color = 'white';
+        btn.classList.add('liked');
+    } else {
+        btn.innerHTML = '<i class="fas fa-heart"></i>Like Story';
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.classList.remove('liked');
+    }
+}
+
+function showToast(message, type) {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} alert-dismissible fade show position-fixed`;
+    toast.style.cssText = 'top: 100px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+            <span>${message}</span>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.remove();
+        }
+    }, 3000);
+}
+
+    // Add scroll animation effects
+document.addEventListener('DOMContentLoaded', function() {
+    // Check like status on page load
+    checkLikeStatus();
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Add animations to all sections
+    document.querySelectorAll('.story-content-section, .story-stats-section, .related-stories-section').forEach(section => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(20px)';
+        section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(section);
+    });
+});
+</script>
+{% endblock %}

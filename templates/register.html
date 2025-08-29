@@ -1,0 +1,488 @@
+{% extends "base.html" %}
+
+{% block title %}Register - 
+echoverse
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .register-section {
+        background: linear-gradient(135deg, var(--color-neutral-light) 0%, #fff 100%);
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        padding: 2rem 0;
+    }
+    
+    /* 背景装饰球体 */
+    .register-section .blob {
+        position: absolute;
+        border-radius: 50%;
+        mix-blend-mode: multiply;
+        filter: blur(3rem);
+        opacity: 0.15;
+        pointer-events: none;
+    }
+    
+    .register-section .blob-1 {
+        top: 5%;
+        right: 15%;
+        width: 18rem;
+        height: 18rem;
+        background-color: #fbbf24;
+        animation: blob 10s infinite;
+    }
+    
+    .register-section .blob-2 {
+        bottom: 10%;
+        left: 5%;
+        width: 15rem;
+        height: 15rem;
+        background-color: #f59e0b;
+        animation: blob 10s infinite 3s;
+    }
+    
+    .register-section .blob-3 {
+        top: 60%;
+        right: 5%;
+        width: 12rem;
+        height: 12rem;
+        background-color: #fcd34d;
+        animation: blob 10s infinite 5s;
+    }
+    
+    @keyframes blob {
+        0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+        25% { transform: translate(20px, -20px) scale(1.1) rotate(90deg); }
+        50% { transform: translate(-15px, 25px) scale(0.9) rotate(180deg); }
+        75% { transform: translate(25px, 10px) scale(1.05) rotate(270deg); }
+    }
+    
+    .register-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(217, 119, 6, 0.1);
+        border-radius: 2rem;
+        box-shadow: 0 25px 70px rgba(217, 119, 6, 0.1);
+        overflow: hidden;
+    }
+    
+    .register-header {
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+    }
+    
+    .register-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 8s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: rotate(0deg); }
+        50% { transform: rotate(180deg); }
+    }
+    
+    .form-floating {
+        position: relative;
+        margin-bottom: 1.25rem;
+    }
+    
+    .form-floating .form-control,
+    .form-floating .form-select {
+        border: 2px solid rgba(217, 119, 6, 0.1);
+        border-radius: 0.75rem;
+        padding: 0.875rem 1rem;
+        font-size: 0.95rem;
+        background: rgba(255, 255, 255, 0.8);
+        transition: all 0.3s ease;
+    }
+    
+    .form-floating .form-control:focus,
+    .form-floating .form-select:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 0.2rem rgba(217, 119, 6, 0.25);
+        background: rgba(255, 255, 255, 0.95);
+    }
+    
+    .form-floating label {
+        color: var(--color-neutral-dark);
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+    }
+    
+    .form-check-input:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 0.2rem rgba(217, 119, 6, 0.25);
+    }
+    
+    .welcome-text {
+        font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+        font-size: 1.6rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .welcome-subtitle {
+        opacity: 0.9;
+        font-size: 0.95rem;
+    }
+    
+    .brand-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.9;
+    }
+    
+    .password-strength {
+        height: 4px;
+        border-radius: 2px;
+        background-color: #e9ecef;
+        margin-top: 0.5rem;
+        overflow: hidden;
+    }
+    
+    .password-strength-bar {
+        height: 100%;
+        transition: all 0.3s ease;
+        border-radius: 2px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="register-section d-flex align-items-center">
+    <!-- 背景装饰球体 -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-md-9">
+                <div class="register-card">
+                    <div class="register-header">
+                        <i class="fa-solid fa-user-plus brand-icon"></i>
+                                        <h1 class="welcome-text">Join 
+echoverse
+</h1>
+                <p class="welcome-subtitle mb-0">Start your storytelling journey</p>
+                    </div>
+                    
+                    <div class="p-4 p-md-5">
+                        <form method="POST" action="{{ url_for('register') }}" novalidate>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="username" name="username" 
+                                               required placeholder="Username" maxlength="50">
+                                        <label for="username">
+                                            <i class="fa-solid fa-user me-2"></i>Username *
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="email" class="form-control" id="email" name="email" 
+                                               required placeholder="Email Address">
+                                        <label for="email">
+                                            <i class="fa-solid fa-envelope me-2"></i>Email Address *
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="password" class="form-control" id="password" name="password" 
+                                               required placeholder="Password" minlength="6">
+                                        <label for="password">
+                                            <i class="fa-solid fa-lock me-2"></i>Password *
+                                        </label>
+                                    </div>
+                                    <div class="password-strength" id="passwordStrength" style="display: none;">
+                                        <div class="password-strength-bar" id="passwordStrengthBar"></div>
+                                    </div>
+                                    <div class="form-text" id="passwordHelp">Minimum 6 characters</div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" 
+                                               required placeholder="Confirm Password">
+                                        <label for="confirm_password">
+                                            <i class="fa-solid fa-lock me-2"></i>Confirm Password *
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-floating">
+                                <input type="tel" class="form-control" id="phone_number" name="phone_number" 
+                                       placeholder="Phone Number" maxlength="20">
+                                <label for="phone_number">
+                                    <i class="fa-solid fa-phone me-2"></i>Phone Number (Optional)
+                                </label>
+                            </div>
+                            
+                            <div class="form-floating">
+                                <textarea class="form-control" id="bio" name="bio" rows="3" 
+                                          placeholder="Tell us about yourself..." maxlength="500" style="height: 100px;"></textarea>
+                                <label for="bio">
+                                    <i class="fa-solid fa-user-edit me-2"></i>Bio (Optional)
+                                </label>
+                            </div>
+                            <div class="form-text mb-3" id="bioCounter">0/500 characters</div>
+                            
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="terms" required>
+                                    <label class="form-check-label" for="terms">
+                                        I agree to the <a href="#" style="color: var(--color-primary);">Terms of Service</a> and 
+                                        <a href="#" style="color: var(--color-primary);">Privacy Policy</a> *
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid mb-4">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fa-solid fa-user-plus me-2"></i>Create Account
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <div class="text-center pt-3" style="border-top: 1px solid rgba(217, 119, 6, 0.1);">
+                            <p class="text-muted mb-0">
+                                Already have an account?
+                                <a href="{{ url_for('login') }}" class="fw-bold text-decoration-none" style="color: var(--color-primary);">
+                                    <i class="fa-solid fa-sign-in-alt me-1"></i>Login Now
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 注册表单增强交互体验
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm_password');
+        const phoneInput = document.getElementById('phone_number');
+        const bioInput = document.getElementById('bio');
+        const termsCheckbox = document.getElementById('terms');
+        
+        // 输入框动画效果
+        const inputs = [usernameInput, emailInput, passwordInput, confirmPasswordInput, phoneInput, bioInput];
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'translateY(-2px)';
+                this.parentElement.style.transition = 'transform 0.3s ease';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'translateY(0)';
+            });
+        });
+        
+        // 用户名验证
+        usernameInput.addEventListener('input', function() {
+            const username = this.value;
+            if (username.length < 3 && username.length > 0) {
+                this.style.borderColor = '#fbbf24';
+            } else if (username.length >= 3) {
+                this.style.borderColor = '#10b981';
+            } else {
+                this.style.borderColor = '';
+            }
+        });
+        
+        // 邮箱验证
+        emailInput.addEventListener('input', function() {
+            const email = this.value;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (email && !emailRegex.test(email)) {
+                this.style.borderColor = '#f59e0b';
+            } else if (email && emailRegex.test(email)) {
+                this.style.borderColor = '#10b981';
+            } else {
+                this.style.borderColor = '';
+            }
+        });
+        
+        // 密码强度指示器
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            const strengthBar = document.getElementById('passwordStrengthBar');
+            const strengthContainer = document.getElementById('passwordStrength');
+            const helpText = document.getElementById('passwordHelp');
+            
+            if (password.length === 0) {
+                strengthContainer.style.display = 'none';
+                helpText.textContent = 'Minimum 6 characters';
+                helpText.className = 'form-text text-muted';
+                return;
+            }
+            
+            strengthContainer.style.display = 'block';
+            let strength = 0;
+            let color = '#dc3545';
+            let text = 'Weak';
+            
+            // 计算密码强度
+            if (password.length >= 6) strength += 25;
+            if (password.length >= 8) strength += 25;
+            if (/[A-Z]/.test(password)) strength += 25;
+            if (/[0-9]/.test(password) || /[^A-Za-z0-9]/.test(password)) strength += 25;
+            
+            if (strength >= 75) {
+                color = '#10b981';
+                text = 'Strong';
+            } else if (strength >= 50) {
+                color = '#f59e0b';
+                text = 'Medium';
+            }
+            
+            strengthBar.style.width = strength + '%';
+            strengthBar.style.backgroundColor = color;
+            helpText.textContent = `Password strength: ${text}`;
+            helpText.style.color = color;
+        });
+        
+        // 密码确认验证
+        confirmPasswordInput.addEventListener('input', function() {
+            const password = passwordInput.value;
+            const confirmPassword = this.value;
+            
+            if (confirmPassword && password !== confirmPassword) {
+                this.style.borderColor = '#dc3545';
+            } else if (confirmPassword && password === confirmPassword) {
+                this.style.borderColor = '#10b981';
+            } else {
+                this.style.borderColor = '';
+            }
+        });
+        
+        // 个人简介字数统计
+        bioInput.addEventListener('input', function() {
+            const currentLength = this.value.length;
+            const maxLength = 500;
+            const counter = document.getElementById('bioCounter');
+            
+            counter.textContent = `${currentLength}/${maxLength} characters`;
+            
+            if (currentLength > maxLength * 0.9) {
+                counter.style.color = '#f59e0b';
+            } else {
+                counter.style.color = '#6b7280';
+            }
+        });
+        
+        // 表单提交验证
+        form.addEventListener('submit', function(e) {
+            const username = usernameInput.value.trim();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            const terms = termsCheckbox.checked;
+            
+            let isValid = true;
+            let errorMessage = '';
+            
+            if (!username || username.length < 3) {
+                isValid = false;
+                errorMessage = 'Username must be at least 3 characters';
+                usernameInput.style.borderColor = '#dc3545';
+            }
+            
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                isValid = false;
+                errorMessage = 'Please enter a valid email address';
+                emailInput.style.borderColor = '#dc3545';
+            }
+            
+            if (!password || password.length < 6) {
+                isValid = false;
+                errorMessage = 'Password must be at least 6 characters';
+                passwordInput.style.borderColor = '#dc3545';
+            }
+            
+            if (password !== confirmPassword) {
+                isValid = false;
+                errorMessage = 'Passwords do not match';
+                confirmPasswordInput.style.borderColor = '#dc3545';
+            }
+            
+            if (!terms) {
+                isValid = false;
+                errorMessage = 'Please agree to the terms of service and privacy policy';
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+                showMessage(errorMessage, 'error');
+            } else {
+                // 添加加载状态
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Creating...';
+                submitBtn.disabled = true;
+            }
+        });
+        
+        // 消息显示函数
+        function showMessage(message, type = 'info') {
+            const alertClass = type === 'error' ? 'alert-danger' : 'alert-success';
+            const icon = type === 'error' ? 'fa-exclamation-triangle' : 'fa-check-circle';
+            
+            const alertHtml = `
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert" style="border-radius: 1rem; border: none;">
+                    <i class="fa-solid ${icon} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            // 移除旧的警告
+            const existingAlert = form.querySelector('.alert');
+            if (existingAlert) {
+                existingAlert.remove();
+            }
+            
+            form.insertAdjacentHTML('afterbegin', alertHtml);
+            
+            // 自动隐藏
+            setTimeout(() => {
+                const alert = form.querySelector('.alert');
+                if (alert) {
+                    alert.classList.remove('show');
+                    setTimeout(() => alert.remove(), 300);
+                }
+            }, 5000);
+        }
+    });
+</script>
+{% endblock %} 
