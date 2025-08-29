@@ -47,6 +47,33 @@ else:
 
 logger = logging.getLogger(__name__)
 
+def get_safe_image_url(image_path):
+    """
+    Get a safe image URL that handles both local and cloud image paths
+    Returns default image if the image doesn't exist
+    """
+    if not image_path:
+        return '/static/cover.png'
+    
+    # Local image path (from GUI uploads)
+    if image_path.startswith('/static/uploads/'):
+        return image_path
+    
+    # Cloud image path - check if it exists
+    if image_path.startswith('2025/') or 'temp_' in image_path:
+        cloud_image_path = f"/image/stories/{image_path}"
+        if os.path.exists(cloud_image_path):
+            return f"/image/stories/{image_path}"
+        else:
+            # Cloud image doesn't exist, return default
+            return '/static/cover.png'
+    
+    # Other cases, try to use image service
+    try:
+        return image_service.get_image_url(image_path)
+    except:
+        return '/static/cover.png'
+
 class User(UserMixin):
     def __init__(self, id, username, email, phone_number=None, profile_picture=None, bio=None):
         self.id = id
@@ -198,7 +225,24 @@ def index():
         
         # Process stories data to generate proper image URLs
         for story in featured_stories:
-            story['image_url'] = image_service.get_image_url(story['image_path']) if story['image_path'] else None
+            if story['image_path']:
+                # Check if image exists, if not use default
+                if story['image_path'].startswith('/static/uploads/'):
+                    # Local image path
+                    story['image_url'] = story['image_path']
+                elif story['image_path'].startswith('2025/') or 'temp_' in story['image_path']:
+                    # Cloud image path - check if file exists
+                    cloud_image_path = f"/image/stories/{story['image_path']}"
+                    if os.path.exists(cloud_image_path):
+                        story['image_url'] = image_service.get_image_url(story['image_path'])
+                    else:
+                        # Cloud image doesn't exist, use default
+                        story['image_url'] = '/static/cover.png'
+                        story['image_path'] = None  # Clear the invalid path
+                else:
+                    story['image_url'] = image_service.get_image_url(story['image_path'])
+            else:
+                story['image_url'] = None
         
         cursor.close()
         connection.close()
@@ -213,18 +257,47 @@ def index():
 def serve_image(filename):
     """Serve images from the /image directory or static/uploads directory"""
     from flask import send_from_directory
+    import os
     try:
         # Check if it's a local static upload path (starts with /static/uploads/)
         if filename.startswith('/static/uploads/'):
             # Extract the actual filename from the path
             actual_filename = filename.replace('/static/uploads/', '')
-            return send_from_directory(os.path.join(os.path.dirname(__file__), 'static', 'uploads'), actual_filename)
+            local_path = os.path.join(os.path.dirname(__file__), 'static', 'uploads', actual_filename)
+            if os.path.exists(local_path):
+                return send_from_directory(os.path.join(os.path.dirname(__file__), 'static', 'uploads'), actual_filename)
         else:
-            # Cloud image path - serve from /image/stories
-            return send_from_directory('/image/stories', filename)
+            # Try cloud image path first - serve from /image/stories
+            cloud_path = os.path.join('/image/stories', filename)
+            if os.path.exists(cloud_path):
+                return send_from_directory('/image/stories', filename)
+            
+            # If cloud path doesn't exist, try local fallback
+            # This handles cases where images were uploaded locally but accessed via cloud path format
+            local_fallback_path = os.path.join(os.path.dirname(__file__), 'static', 'uploads')
+            if os.path.exists(local_fallback_path):
+                # Try to find any matching image in local uploads
+                for local_file in os.listdir(local_fallback_path):
+                    if local_file.endswith(('.jpg', '.jpeg', '.png', '.webp', '.gif')):
+                        return send_from_directory(local_fallback_path, local_file)
+        
+        # If nothing found, return default image
+        raise FileNotFoundError("Image not found in any location")
+        
     except Exception as e:
         logger.error(f"Error serving image {filename}: {e}")
         # Return default image if file not found
+        return send_from_directory('static', 'cover.png')
+
+@app.route('/static/uploads/<filename>')
+def serve_uploads(filename):
+    """Serve files from static/uploads directory"""
+    from flask import send_from_directory
+    try:
+        uploads_dir = os.path.join(os.path.dirname(__file__), 'static', 'uploads')
+        return send_from_directory(uploads_dir, filename)
+    except Exception as e:
+        logger.error(f"Error serving upload file {filename}: {e}")
         return send_from_directory('static', 'cover.png')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -1074,7 +1147,7 @@ def story_detail(story_id):
         connection = get_db_connection()
         cursor = connection.cursor(pymysql.cursors.DictCursor)
         
-        # 获取故事详情和作者信息
+        # 获取故事详情和作者信息（确保故事已发布且未删除）
         cursor.execute("""
             SELECT 
                 s.id, s.title, s.content, s.description, s.language_name,
@@ -1086,7 +1159,7 @@ def story_detail(story_id):
             JOIN users u ON s.user_id = u.id
             LEFT JOIN story_tags st ON s.id = st.story_id
             LEFT JOIN tags t ON st.tag_id = t.id
-            WHERE s.id = %s AND s.status = 'published'
+            WHERE s.id = %s AND s.status = 'published' AND s.deleted_at IS NULL
             GROUP BY s.id, s.title, s.content, s.description, s.language_name,
                      s.image_path, s.image_original_name, s.reading_time, s.word_count,
                      s.status, s.view_count, s.like_count, s.created_at, s.updated_at, s.published_at,
@@ -1104,11 +1177,11 @@ def story_detail(story_id):
         connection.commit()
         story['view_count'] = (story['view_count'] or 0) + 1
         
-        # 获取相关故事推荐（同标签或同作者）
+        # 获取相关故事推荐（同标签或同作者，确保未删除）
         cursor.execute("""
             SELECT s.id, s.title, s.image_path, s.view_count, s.like_count
             FROM stories s
-            WHERE s.id != %s AND s.status = 'published'
+            WHERE s.id != %s AND s.status = 'published' AND s.deleted_at IS NULL
             ORDER BY s.view_count DESC, s.created_at DESC
             LIMIT 3
         """, (story_id,))
@@ -1859,6 +1932,17 @@ def like_story(story_id):
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
+        
+        # First verify the story exists, is published and not deleted
+        cursor.execute("""
+            SELECT id FROM stories 
+            WHERE id = %s AND status = 'published' AND deleted_at IS NULL
+        """, (story_id,))
+        
+        if not cursor.fetchone():
+            cursor.close()
+            connection.close()
+            return jsonify({'success': False, 'error': 'Story not found or not available'}), 404
         
         if current_user.is_authenticated:
             # Logged in user - use database
@@ -2710,34 +2794,58 @@ def admin_export_users():
 @admin_required
 def admin_delete_story(story_id):
     """Soft delete a story (move to recycling bin)"""
+    connection = None
+    cursor = None
     try:
+        logger.info(f"Admin attempting to delete story {story_id}")
+        
         connection = get_db_connection()
         cursor = connection.cursor()
+        
+        # First check if the story exists and is not already deleted
+        cursor.execute("SELECT id, title, deleted_at FROM stories WHERE id = %s", (story_id,))
+        story = cursor.fetchone()
+        
+        if not story:
+            logger.warning(f"Story {story_id} not found")
+            return jsonify({'success': False, 'message': 'Story not found'}), 404
+        
+        if story[2] is not None:  # deleted_at is not None
+            logger.warning(f"Story {story_id} already deleted")
+            return jsonify({'success': False, 'message': 'Story already deleted'}), 400
         
         # First check if deleted_at column exists, if not add it
         cursor.execute("SHOW COLUMNS FROM stories LIKE 'deleted_at'")
         if not cursor.fetchone():
-            cursor.execute("ALTER TABLE stories ADD COLUMN deleted_at DATETIME NULL")
+            logger.info("Adding deleted_at column to stories table")
+            cursor.execute("ALTER TABLE stories ADD COLUMN deleted_at TIMESTAMP NULL")
         
         # Soft delete the story by setting deleted_at timestamp
+        now = datetime.now()
         cursor.execute("""
             UPDATE stories 
             SET deleted_at = %s, updated_at = %s
             WHERE id = %s AND deleted_at IS NULL
-        """, (datetime.now(), datetime.now(), story_id))
+        """, (now, now, story_id))
         
         if cursor.rowcount > 0:
             connection.commit()
-            cursor.close()
-            connection.close()
+            logger.info(f"Successfully deleted story {story_id}")
             return jsonify({'success': True, 'message': 'Story moved to recycling bin'})
         else:
-            cursor.close()
-            connection.close()
-            return jsonify({'success': False, 'message': 'Story not found or already deleted'}), 404
+            logger.warning(f"Failed to delete story {story_id} - no rows affected")
+            return jsonify({'success': False, 'message': 'Failed to delete story - no changes made'}), 400
             
     except Exception as e:
+        logger.error(f"Error deleting story {story_id}: {str(e)}")
+        if connection:
+            connection.rollback()
         return jsonify({'success': False, 'message': f'Failed to delete story: {str(e)}'}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
 
 @app.route('/admin/recycling-bin')
 @admin_required

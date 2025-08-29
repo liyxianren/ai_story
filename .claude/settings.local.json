@@ -18,7 +18,10 @@
       "Bash(ssh-keygen:*)",
       "Read(C:\\Users\\ly\\.ssh/**)",
       "Bash(git config:*)",
-      "Bash(git init:*)"
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   }

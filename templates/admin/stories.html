@@ -379,24 +379,34 @@ function rejectStory(storyId) {
 
 function deleteStory(storyId) {
     if (confirm('Are you sure you want to move this story to the recycling bin? You can restore it later.')) {
+        console.log('Attempting to delete story:', storyId);
+        
         fetch(`/admin/api/delete_story/${storyId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
-            }
+            },
+            credentials: 'same-origin'  // Include session cookies
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Delete response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Delete response data:', data);
             if (data.success) {
                 alert('Story moved to recycling bin!');
                 location.reload();
             } else {
-                alert('Delete failed: ' + data.message);
+                alert('Delete failed: ' + (data.message || 'Unknown error'));
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('Network error, please try again');
+            console.error('Delete error:', error);
+            alert('Error occurred: ' + error.message + '. Please check the console and try again.');
         });
     }
 }
