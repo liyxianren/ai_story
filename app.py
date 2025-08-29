@@ -1207,7 +1207,7 @@ def story_library():
         connection = pymysql.connect(**DB_CONFIG)
         cursor = connection.cursor(pymysql.cursors.DictCursor)
         
-        # Get all published stories with user info and tags
+        # Get all published stories with user info and tags (exclude soft-deleted)
         cursor.execute("""
             SELECT 
                 s.id,
@@ -1223,20 +1223,20 @@ def story_library():
             JOIN users u ON s.user_id = u.id
             LEFT JOIN story_tags st ON s.id = st.story_id
             LEFT JOIN tags t ON st.tag_id = t.id
-            WHERE s.status = 'published'
+            WHERE s.status = 'published' AND s.deleted_at IS NULL
             GROUP BY s.id, s.title, s.description, s.image_path, s.created_at, s.view_count, s.like_count, u.username
             ORDER BY s.created_at DESC
         """)
         
         stories = cursor.fetchall()
         
-        # Get unique categories for filtering
+        # Get unique categories for filtering (exclude soft-deleted stories)
         cursor.execute("""
             SELECT DISTINCT t.name
             FROM tags t
             JOIN story_tags st ON t.id = st.tag_id
             JOIN stories s ON st.story_id = s.id
-            WHERE s.status = 'published'
+            WHERE s.status = 'published' AND s.deleted_at IS NULL
             ORDER BY t.name
         """)
         
