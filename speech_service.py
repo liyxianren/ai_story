@@ -27,9 +27,31 @@ class SpeechTranscriptionService:
     def transcribe_audio_rest_api(self, audio_data: bytes, language_code: str = 'en-US') -> Dict[str, Any]:
         """Transcribe audio using Google Speech-to-Text REST API"""
         try:
+            # Log raw audio size
+            raw_size_mb = len(audio_data) / (1024 * 1024)
+            logger.info(f"📊 RAW AUDIO SIZE: {len(audio_data)} bytes ({raw_size_mb:.2f} MB)")
+
             # Convert audio to base64 for REST API
             audio_base64 = base64.b64encode(audio_data).decode('utf-8')
-            
+            base64_size_mb = len(audio_base64) / (1024 * 1024)
+
+            # Log base64 encoded size (this is what Google receives)
+            logger.info(f"📦 BASE64 ENCODED SIZE: {len(audio_base64)} bytes ({base64_size_mb:.2f} MB)")
+            logger.info(f"🔍 SIZE INCREASE: {((len(audio_base64) / len(audio_data)) - 1) * 100:.1f}%")
+
+            # Check if base64 size exceeds Google's limit
+            google_limit = 10 * 1024 * 1024  # 10 MB
+            if len(audio_base64) > google_limit:
+                logger.error(f"❌ BASE64 SIZE EXCEEDS GOOGLE LIMIT: {base64_size_mb:.2f} MB > 10 MB")
+                return {
+                    'success': False,
+                    'error': f'Audio chunk too large after encoding: {base64_size_mb:.2f} MB (Google limit: 10 MB). Please reduce chunk duration in frontend.',
+                    'transcript': '',
+                    'confidence': 0.0
+                }
+            else:
+                logger.info(f"✅ BASE64 SIZE OK: {base64_size_mb:.2f} MB < 10 MB limit")
+
             # Map frontend language code to Google's format
             google_language_code = self.language_mapping.get(language_code, language_code)
             
