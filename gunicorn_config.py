@@ -5,13 +5,16 @@ import os
 # Server socket
 bind = f"0.0.0.0:{os.environ.get('PORT', '8080')}"
 
-# Worker processes
-workers = multiprocessing.cpu_count() * 2 + 1
+# Worker processes - reduce workers to avoid memory issues with large uploads
+workers = min(multiprocessing.cpu_count() * 2 + 1, 4)  # Max 4 workers
 worker_class = 'sync'
+worker_connections = 1000
+max_requests = 1000
+max_requests_jitter = 50
 
 # Timeout settings for large file uploads
-timeout = 300  # 5 minutes - enough time for 30MB audio file uploads
-graceful_timeout = 30
+timeout = 600  # 10 minutes - enough time for 30MB audio file uploads and processing
+graceful_timeout = 120  # 2 minutes for graceful shutdown
 keepalive = 5
 
 # Request settings

@@ -907,10 +907,10 @@ def transcribe_audio():
         
         # Read audio data
         audio_data = audio_file.read()
-        
-        # Validate audio size (limit to 25MB)
-        if len(audio_data) > 25 * 1024 * 1024:
-            return jsonify({'success': False, 'error': 'Audio file too large (max 25MB)'}), 400
+
+        # Validate audio size (limit to 30MB)
+        if len(audio_data) > 30 * 1024 * 1024:
+            return jsonify({'success': False, 'error': 'Audio file too large (max 30MB)'}), 400
         
         # Transcribe audio using speech service
         result = speech_service.transcribe_audio(
