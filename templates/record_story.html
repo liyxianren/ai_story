@@ -1922,7 +1922,7 @@ class VoiceRecorder {
             // Update loading message
             document.getElementById('transcriptionLoading').classList.remove('d-none');
             const loadingText = document.querySelector('#transcriptionLoading p');
-            const numChunks = Math.ceil(totalDuration / 59);
+            const numChunks = Math.ceil(totalDuration / this.chunkDuration);  // Use this.chunkDuration instead of hardcoded 59
             const avgChunkDuration = totalDuration / numChunks;
             
             console.log('🔢 CHUNK CALCULATION:', {
@@ -2136,8 +2136,8 @@ class VoiceRecorder {
                     // Smart chunking: calculate optimal chunk sizes
                     const chunks = [];
                     const sampleRate = audioBuffer.sampleRate;
-                    const maxChunkDuration = 59; // Google API limit
-                    
+                    const maxChunkDuration = this.chunkDuration; // Use configured chunk duration (35s for Google 10MB limit)
+
                     // Calculate number of chunks needed
                     const numChunks = Math.ceil(totalDuration / maxChunkDuration);
                     const idealChunkDuration = totalDuration / numChunks;
@@ -2898,8 +2898,8 @@ class VoiceRecorder {
                     
                     const chunks = [];
                     const sampleRate = audioBuffer.sampleRate;
-                    const maxChunkDuration = 59;
-                    
+                    const maxChunkDuration = this.chunkDuration; // Use configured chunk duration (35s)
+
                     const numChunks = Math.ceil(actualDuration / maxChunkDuration);
                     const idealChunkDuration = actualDuration / numChunks;
                     
