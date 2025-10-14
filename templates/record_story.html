@@ -1187,7 +1187,7 @@ class VoiceRecorder {
         this.maxFileSize = 30 * 1024 * 1024; // 30MB
         this.supportedFormats = ['mp3', 'wav', 'm4a', 'mp4', 'ogg', 'webm', 'flac'];
         this.maxSyncDuration = 59; // seconds for synchronous API
-        this.chunkDuration = 50; // seconds per chunk (safe buffer for Google API)
+        this.chunkDuration = 35; // seconds per chunk - reduced to fit Google's 10MB limit after base64 encoding
         this.maxAsyncDuration = 600; // 10 minutes for async API
         this.audioChunks = [];
         this.transcriptionResults = [];
