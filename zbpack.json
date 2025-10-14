@@ -1,0 +1,4 @@
+{
+  "build_command": "pip install -r requirements.txt",
+  "start_command": "gunicorn app:app --config gunicorn_config.py --timeout 600 --graceful-timeout 120 --log-level info --bind 0.0.0.0:${PORT:-8080}"
+}
