@@ -15,7 +15,11 @@
       "Bash(timeout:*)",
       "Bash(grep:*)",
       "Bash(sed:*)",
-      "Bash(git init:*)"
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(git branch:*)",
+      "Bash(git pull:*)"
     ],
     "deny": []
   }
