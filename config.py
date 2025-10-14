@@ -22,7 +22,7 @@ class Config:
     
     # Upload Configuration
     UPLOAD_FOLDER = '/image'
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
+    MAX_CONTENT_LENGTH = 35 * 1024 * 1024  # 35MB (30MB audio + 5MB overhead)
     
     # Environment
     FLASK_ENV = os.environ.get('FLASK_ENV', 'development')
