@@ -1,0 +1,4 @@
+1.0.1-chunk-size-fix
+Build: 2025-10-14
+Commit: db60903
+Change: Reduced audio chunk from 50s to 35s to fit Google 10MB limit
