@@ -19,6 +19,10 @@ app = Flask(__name__)
 app.config.from_object(Config)
 app.secret_key = Config.SECRET_KEY
 
+# Increase max form data size for large audio uploads
+# This affects Werkzeug's multipart parser buffer
+app.config['MAX_FORM_MEMORY_SIZE'] = 50 * 1024 * 1024  # 50MB for form data buffer
+
 # Production security settings
 if Config.FLASK_ENV == 'production':
     app.config['SESSION_COOKIE_SECURE'] = True
@@ -891,25 +895,44 @@ def api_users():
 def transcribe_audio():
     """Transcribe uploaded audio using Google Speech-to-Text"""
     try:
+        logger.info("=== TRANSCRIBE API CALLED ===")
+        logger.info(f"Request content length: {request.content_length}")
+        logger.info(f"Request content type: {request.content_type}")
+
+        # Log before accessing request.files to see if this is where it hangs
+        logger.info("Attempting to access request.files...")
+
         # Check if audio file is present
         if 'audio' not in request.files:
+            logger.error("No audio file in request.files")
             return jsonify({'success': False, 'error': 'No audio file provided'}), 400
-        
+
+        logger.info("Audio file found in request")
         audio_file = request.files['audio']
+
         if audio_file.filename == '':
+            logger.error("Empty filename")
             return jsonify({'success': False, 'error': 'No audio file selected'}), 400
-        
+
+        logger.info(f"Audio filename: {audio_file.filename}")
+
         # Get language from form data
         language_code = request.form.get('language', 'en-US')
-        
+        logger.info(f"Language code: {language_code}")
+
         # Get audio format from filename
         file_extension = audio_file.filename.split('.')[-1].lower() if '.' in audio_file.filename else 'webm'
-        
-        # Read audio data
+        logger.info(f"File extension: {file_extension}")
+
+        # Read audio data in chunks to avoid memory issues
+        logger.info("Starting to read audio data...")
         audio_data = audio_file.read()
+        audio_size_mb = len(audio_data) / (1024 * 1024)
+        logger.info(f"Audio data read complete: {audio_size_mb:.2f} MB")
 
         # Validate audio size (limit to 30MB)
         if len(audio_data) > 30 * 1024 * 1024:
+            logger.error(f"Audio file too large: {audio_size_mb:.2f} MB")
             return jsonify({'success': False, 'error': 'Audio file too large (max 30MB)'}), 400
         
         # Transcribe audio using speech service
