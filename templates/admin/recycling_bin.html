@@ -1,0 +1,524 @@
+{% extends "base.html" %}
+
+{% block title %}Recycling Bin - 
+echoverse
+ Admin{% endblock %}
+
+{% block content %}
+<!-- Admin Header -->
+<div class="bg-gradient-primary text-white py-4 mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="h3 mb-0 text-white">
+                    <i class="fas fa-trash-restore me-3"></i>
+                    Recycling Bin
+                </h1>
+                <p class="mb-0 mt-2 opacity-75">Manage deleted stories - restore or permanently delete</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="d-flex justify-content-md-end gap-2">
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_logout') }}" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-warm h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-trash" style="font-size: 2.5rem; color: #dc2626;"></i>
+                    </div>
+                    <h3 class="h4 mb-2">{{ stats.total_deleted or 0 }}</h3>
+                    <p class="text-muted mb-0">Total Deleted</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-warm h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-calendar-day" style="font-size: 2.5rem; color: #f59e0b;"></i>
+                    </div>
+                    <h3 class="h4 mb-2">{{ stats.deleted_today or 0 }}</h3>
+                    <p class="text-muted mb-0">Deleted Today</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-warm h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-calendar-week" style="font-size: 2.5rem; color: #0ea5e9;"></i>
+                    </div>
+                    <h3 class="h4 mb-2">{{ stats.deleted_this_week or 0 }}</h3>
+                    <p class="text-muted mb-0">This Week</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-warm h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-calendar-alt" style="font-size: 2.5rem; color: #16a34a;"></i>
+                    </div>
+                    <h3 class="h4 mb-2">{{ stats.deleted_this_month or 0 }}</h3>
+                    <p class="text-muted mb-0">This Month</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="card border-0 shadow-warm mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">Search Deleted Stories</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="searchInput" 
+                               placeholder="Search by title or author..." value="{{ search }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-primary w-100" onclick="applySearch()">
+                        <i class="fas fa-search me-2"></i>Search
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-outline-secondary w-100" onclick="clearSearch()">
+                        <i class="fas fa-times me-2"></i>Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stories Table -->
+    <div class="card border-0 shadow-warm">
+        <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2 text-primary"></i>
+                Deleted Stories
+            </h5>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-primary" onclick="refreshTable()">
+                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% if stories %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="px-4 py-3">
+                                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                            </th>
+                            <th class="px-4 py-3">Story</th>
+                            <th class="px-4 py-3">Author</th>
+                            <th class="px-4 py-3">Status</th>
+                            <th class="px-4 py-3">Deleted Date</th>
+                            <th class="px-4 py-3 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for story in stories %}
+                        <tr data-story-id="{{ story.id }}">
+                            <td class="px-4 py-3">
+                                <input type="checkbox" class="story-checkbox" value="{{ story.id }}">
+                            </td>
+                            <td class="px-4 py-3">
+                                <div>
+                                    <div class="fw-semibold">{{ story.title[:50] }}{% if story.title|length > 50 %}...{% endif %}</div>
+                                    <small class="text-muted">
+                                        {% if story.description %}
+                                            {{ story.description[:80] }}{% if story.description|length > 80 %}...{% endif %}
+                                        {% else %}
+                                            No description
+                                        {% endif %}
+                                    </small>
+                                    <br>
+                                    <small class="text-info">
+                                        <i class="fas fa-eye me-1"></i>{{ story.view_count or 0 }} views
+                                        <i class="fas fa-file-word ms-2 me-1"></i>{{ story.word_count or 0 }} words
+                                    </small>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div>
+                                    <div class="fw-semibold">{{ story.author_name }}</div>
+                                    <small class="text-muted">{{ story.author_email }}</small>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="badge 
+                                    {% if story.status == 'published' %}bg-success
+                                    {% elif story.status == 'pending' %}bg-warning
+                                    {% elif story.status == 'rejected' %}bg-danger
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ story.status.title() }}
+                                </span>
+                                {% if story.tags %}
+                                <br>
+                                <small class="text-muted">
+                                    {% for tag in story.tags.split(',')[:2] %}
+                                    <span class="badge bg-light text-dark">{{ tag.strip() }}</span>
+                                    {% endfor %}
+                                </small>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3">
+                                <small class="text-muted">
+                                    {{ story.deleted_at.strftime('%Y-%m-%d') if story.deleted_at else 'Unknown' }}
+                                    <br>
+                                    {{ story.deleted_at.strftime('%H:%M') if story.deleted_at else '' }}
+                                </small>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-success" 
+                                            onclick="restoreStory({{ story.id }})"
+                                            title="Restore Story">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                    <button class="btn btn-danger" 
+                                            onclick="permanentlyDeleteStory({{ story.id }})"
+                                            title="Permanently Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-trash-restore" style="font-size: 4rem; color: #cbd5e1;"></i>
+                </div>
+                <h5 class="text-muted">Recycling Bin is Empty</h5>
+                <p class="text-muted">No deleted stories found.</p>
+                {% if search %}
+                <button class="btn btn-outline-primary" onclick="clearSearch()">
+                    <i class="fas fa-times me-2"></i>Clear Search
+                </button>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+        <div class="card-footer bg-light border-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="text-muted">
+                    Showing {{ (pagination.page - 1) * pagination.per_page + 1 }} to 
+                    {{ min(pagination.page * pagination.per_page, pagination.total) }} of 
+                    {{ pagination.total }} deleted stories
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        {% if pagination.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ pagination.prev_num }}{% if search %}&search={{ search }}{% endif %}">Previous</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for page_num in pagination.iter_pages() %}
+                        {% if page_num %}
+                        {% if page_num != pagination.page %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_num }}{% if search %}&search={{ search }}{% endif %}">{{ page_num }}</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                        
+                        {% if pagination.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ pagination.next_num }}{% if search %}&search={{ search }}{% endif %}">Next</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Batch Actions -->
+    {% if stories %}
+    <div class="card border-0 shadow-warm mt-4" id="batchActions" style="display: none;">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span id="selectedCount">0</span> stories selected
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-success btn-sm" onclick="batchRestore()">
+                        <i class="fas fa-undo me-1"></i>Restore Selected
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="batchPermanentlyDelete()">
+                        <i class="fas fa-trash me-1"></i>Permanently Delete Selected
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.table th {
+    font-weight: 600;
+    color: var(--color-text-primary);
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.table td {
+    vertical-align: middle;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+.btn-group .btn {
+    border: 1px solid #dee2e6;
+}
+
+.pagination .page-link {
+    border: none;
+    color: var(--color-primary);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+</style>
+
+<script>
+let selectedStories = new Set();
+
+// Toggle select all checkboxes
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.story-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+        if (selectAll.checked) {
+            selectedStories.add(parseInt(checkbox.value));
+        } else {
+            selectedStories.delete(parseInt(checkbox.value));
+        }
+    });
+    
+    updateBatchActions();
+}
+
+// Handle individual checkbox changes
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('story-checkbox')) {
+        const storyId = parseInt(e.target.value);
+        if (e.target.checked) {
+            selectedStories.add(storyId);
+        } else {
+            selectedStories.delete(storyId);
+        }
+        updateBatchActions();
+    }
+});
+
+// Update batch actions visibility
+function updateBatchActions() {
+    const batchActions = document.getElementById('batchActions');
+    const selectedCount = document.getElementById('selectedCount');
+    
+    if (batchActions && selectedCount) {
+        if (selectedStories.size > 0) {
+            batchActions.style.display = 'block';
+            selectedCount.textContent = selectedStories.size;
+        } else {
+            batchActions.style.display = 'none';
+        }
+    }
+}
+
+// Restore single story
+function restoreStory(storyId) {
+    if (!confirm('Are you sure you want to restore this story?')) {
+        return;
+    }
+    
+    fetch(`/admin/api/restore_story/${storyId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Story restored successfully!');
+            location.reload();
+        } else {
+            alert('Failed to restore story: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Network error, please try again');
+    });
+}
+
+// Permanently delete single story
+function permanentlyDeleteStory(storyId) {
+    if (!confirm('Are you sure you want to permanently delete this story? This action cannot be undone.')) {
+        return;
+    }
+    
+    fetch(`/admin/api/permanently_delete_story/${storyId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Story permanently deleted!');
+            location.reload();
+        } else {
+            alert('Failed to delete story: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Network error, please try again');
+    });
+}
+
+// Batch restore stories
+function batchRestore() {
+    if (selectedStories.size === 0) {
+        alert('Please select stories first');
+        return;
+    }
+    
+    if (!confirm(`Restore ${selectedStories.size} selected stories?`)) {
+        return;
+    }
+    
+    fetch('/admin/api/batch_recycling_action', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            action: 'restore',
+            story_ids: Array.from(selectedStories)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`${data.affected_count} stories restored successfully`);
+            location.reload();
+        } else {
+            alert('Batch restore failed: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred during batch restore');
+    });
+}
+
+// Batch permanently delete stories
+function batchPermanentlyDelete() {
+    if (selectedStories.size === 0) {
+        alert('Please select stories first');
+        return;
+    }
+    
+    if (!confirm(`Permanently delete ${selectedStories.size} selected stories? This action cannot be undone.`)) {
+        return;
+    }
+    
+    fetch('/admin/api/batch_recycling_action', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            action: 'permanently_delete',
+            story_ids: Array.from(selectedStories)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`${data.affected_count} stories permanently deleted`);
+            location.reload();
+        } else {
+            alert('Batch deletion failed: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred during batch deletion');
+    });
+}
+
+// Search functions
+function applySearch() {
+    const search = document.getElementById('searchInput').value.trim();
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    window.location.href = `${window.location.pathname}?${params.toString()}`;
+}
+
+function clearSearch() {
+    window.location.href = window.location.pathname;
+}
+
+function refreshTable() {
+    location.reload();
+}
+
+// Auto-search on Enter key
+document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        applySearch();
+    }
+});
+</script>
+{% endblock %}

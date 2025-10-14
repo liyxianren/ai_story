@@ -1,0 +1,883 @@
+{% extends "base.html" %}
+
+{% block title %}Publish Story - 
+echoverse
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Publish Page Modern Styles */
+.publish-container {
+    background: linear-gradient(135deg, rgba(255, 248, 225, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 20px 60px rgba(217, 119, 6, 0.08), 0 8px 25px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.publish-container::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(45deg, rgba(217, 119, 6, 0.1), rgba(251, 191, 36, 0.1));
+    border-radius: 50%;
+    z-index: 0;
+}
+
+.publish-container::after {
+    content: '';
+    position: absolute;
+    bottom: -30px;
+    left: -30px;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(45deg, rgba(16, 163, 74, 0.1), rgba(34, 197, 94, 0.1));
+    border-radius: 50%;
+    z-index: 0;
+}
+
+.publish-header {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.publish-icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(45deg, var(--warm-primary), var(--warm-primary-light));
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(217, 119, 6, 0.25);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.modern-card {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(217, 119, 6, 0.15);
+    border-radius: 20px;
+    padding: 24px;
+    backdrop-filter: blur(5px);
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 1;
+}
+
+.card-header-modern {
+    background: linear-gradient(135deg, var(--warm-primary) 0%, var(--warm-primary-light) 100%);
+    color: white;
+    border-radius: 16px 16px 0 0;
+    padding: 16px 20px;
+    margin: -24px -24px 20px -24px;
+    font-weight: 600;
+}
+
+.card-header-info {
+    background: linear-gradient(135deg, var(--warm-info) 0%, #38bdf8 100%);
+}
+
+.card-header-warning {
+    background: linear-gradient(135deg, var(--warm-accent) 0%, #f59e0b 100%);
+}
+
+.card-header-success {
+    background: linear-gradient(135deg, var(--warm-success) 0%, #22c55e 100%);
+}
+
+.form-control-modern {
+    border: 2px solid rgba(217, 119, 6, 0.2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    background: rgba(255, 255, 255, 0.8);
+    transition: all 0.3s ease;
+}
+
+.form-control-modern:focus {
+    border-color: var(--warm-primary);
+    box-shadow: 0 0 0 0.2rem rgba(217, 119, 6, 0.25);
+    background: white;
+}
+
+.btn-modern-primary {
+    background: linear-gradient(135deg, var(--warm-primary) 0%, var(--warm-primary-light) 100%);
+    border: none;
+    border-radius: 16px;
+    padding: 16px 32px;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    box-shadow: 0 8px 25px rgba(217, 119, 6, 0.25);
+    transition: all 0.3s ease;
+}
+
+.btn-modern-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(217, 119, 6, 0.35);
+    color: white;
+}
+
+.btn-modern-outline {
+    background: rgba(217, 119, 6, 0.1);
+    border: 2px solid rgba(217, 119, 6, 0.2);
+    border-radius: 12px;
+    padding: 12px 24px;
+    color: var(--warm-primary-dark);
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-modern-outline:hover {
+    background: rgba(217, 119, 6, 0.15);
+    border-color: rgba(217, 119, 6, 0.3);
+    color: var(--warm-primary-dark);
+    transform: translateY(-1px);
+}
+
+.story-type-card-modern {
+    background: rgba(255, 255, 255, 0.8);
+    border: 2px solid rgba(217, 119, 6, 0.15);
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.story-type-card-modern:hover {
+    border-color: rgba(217, 119, 6, 0.3);
+    background: rgba(255, 248, 225, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(217, 119, 6, 0.15);
+}
+
+.story-type-card-modern.selected {
+    border-color: var(--warm-primary);
+    background: linear-gradient(135deg, rgba(255, 248, 225, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
+    box-shadow: 0 8px 25px rgba(217, 119, 6, 0.25);
+}
+
+.upload-area-modern {
+    background: linear-gradient(135deg, rgba(224, 242, 254, 0.5) 0%, rgba(255, 255, 255, 0.8) 100%);
+    border: 2px dashed rgba(14, 165, 233, 0.3);
+    border-radius: 20px;
+    padding: 32px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.upload-area-modern:hover {
+    border-color: rgba(14, 165, 233, 0.5);
+    background: linear-gradient(135deg, rgba(224, 242, 254, 0.7) 0%, rgba(255, 255, 255, 0.9) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.15);
+}
+
+.stats-card {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(217, 119, 6, 0.15);
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+    backdrop-filter: blur(5px);
+}
+
+.form-check-modern {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(217, 119, 6, 0.15);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+.form-check-modern:hover {
+    background: rgba(255, 248, 225, 0.8);
+    border-color: rgba(217, 119, 6, 0.3);
+}
+
+.form-check-modern input:checked + label {
+    color: var(--warm-primary-dark);
+    font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .publish-container {
+        padding: 24px;
+        margin: 0 -15px 24px -15px;
+        border-radius: 20px;
+    }
+    
+    .modern-card {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .card-header-modern {
+        margin: -20px -20px 16px -20px;
+        padding: 14px 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .publish-container {
+        padding: 20px;
+    }
+    
+    .modern-card {
+        padding: 16px;
+    }
+    
+    .card-header-modern {
+        margin: -16px -16px 12px -16px;
+        padding: 12px 14px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Modern Page Header -->
+            <div class="publish-container">
+                <div class="publish-header">
+                    <div class="publish-icon">
+                        <i class="fas fa-paper-plane" style="font-size: 1.8rem; color: white;"></i>
+                    </div>
+                    <h1 style="
+                        color: var(--warm-primary-dark);
+                        font-family: 'Georgia', serif;
+                        font-weight: 600;
+                        font-size: 2rem;
+                        margin-bottom: 8px;
+                        letter-spacing: -0.02em;
+                    ">
+                        Publish My Story
+                    </h1>
+                    <p style="
+                        color: var(--warm-secondary);
+                        font-size: 1rem;
+                        margin-bottom: 24px;
+                        opacity: 0.8;
+                    ">
+                        Complete story details and share with readers
+                    </p>
+                    <a href="{{ url_for('dashboard') }}" class="btn-modern-outline">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Story Publishing Form -->
+            <form id="publishStoryForm" enctype="multipart/form-data">
+                <div class="row">
+                    <!-- Left Column - Story Content -->
+                    <div class="col-lg-8">
+                        <!-- Story Content Card -->
+                        <div class="modern-card">
+                            <div class="card-header-modern">
+                                <i class="fas fa-book-open me-2"></i>Story Content
+                            </div>
+                            
+                            <!-- Story Title -->
+                            <div class="mb-4">
+                                <label for="storyTitle" class="form-label fw-bold" style="color: var(--warm-primary-dark); font-size: 1.1rem;">
+                                    <i class="fas fa-heading me-2" style="color: var(--warm-primary);"></i>
+                                    Story Title <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control form-control-modern" id="storyTitle" name="title" 
+                                       placeholder="Give your story an attractive title..." required maxlength="255">
+                                <div class="form-text mt-2" style="color: var(--warm-secondary); opacity: 0.8;">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Title will be displayed in story list, keep it concise and attractive
+                                </div>
+                            </div>
+
+                            <!-- Story Content Preview -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold" style="color: var(--warm-primary-dark); font-size: 1.1rem;">
+                                    <i class="fas fa-align-left me-2" style="color: var(--warm-info);"></i>
+                                    Story Content Preview
+                                </label>
+                                <div class="story-preview-container" style="
+                                    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+                                    border: 2px solid rgba(14, 165, 233, 0.2);
+                                    border-radius: 16px;
+                                    padding: 20px;
+                                    min-height: 300px;
+                                    overflow-y: auto;
+                                    backdrop-filter: blur(5px);
+                                ">
+                                    <div id="storyContentPreview">
+                                        <div class="text-center py-5" style="color: var(--warm-secondary); opacity: 0.7;">
+                                            <div class="d-inline-flex align-items-center justify-content-center mb-3" style="
+                                                width: 56px;
+                                                height: 56px;
+                                                background: linear-gradient(45deg, var(--warm-info), #38bdf8);
+                                                border-radius: 18px;
+                                                box-shadow: 0 6px 20px rgba(14, 165, 233, 0.2);
+                                            ">
+                                                <i class="fas fa-file-alt" style="font-size: 1.5rem; color: white;"></i>
+                                            </div>
+                                            <p class="mb-2" style="font-size: 1rem;">Story content will be automatically retrieved from the recording page</p>
+                                            <p class="mb-0" style="font-size: 0.9rem;">Story content will be automatically loaded from recording page</p>
+                                            <small class="d-block mt-3" style="opacity: 0.6;">
+                                                Language: <span id="storyLanguage" class="fw-semibold">Unknown</span> | 
+                                                Word Count: <span id="wordCount" class="fw-semibold">0</span>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="storyContent" name="content" required>
+                                <input type="hidden" id="languageCode" name="language">
+                                <input type="hidden" id="languageName" name="language_name">
+                            </div>
+
+                            <!-- Auto-generate Description -->
+                            <div class="mb-3">
+                                <label for="storyDescription" class="form-label fw-bold" style="color: var(--warm-primary-dark); font-size: 1.1rem;">
+                                    <i class="fas fa-align-justify me-2" style="color: var(--warm-accent);"></i>
+                                    Story Description
+                                </label>
+                                <textarea class="form-control form-control-modern" id="storyDescription" name="description" 
+                                          rows="4" placeholder="Describe the main content and highlights of your story..." style="resize: vertical;"></textarea>
+                                <div class="d-flex align-items-center mt-3">
+                                    <button type="button" class="btn-modern-outline" id="generateDescriptionBtn" style="padding: 10px 20px; font-size: 0.9rem;">
+                                        <i class="fas fa-magic me-2"></i>AI Generate Description
+                                    </button>
+                                    <small class="text-muted ms-3" style="opacity: 0.7;">
+                                        <i class="fas fa-lightbulb me-1" style="color: var(--warm-accent);"></i>
+                                        Use AI to automatically generate an engaging description based on story content
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Story Type Selection Card -->
+                        <div class="modern-card">
+                            <div class="card-header-modern card-header-info">
+                                <i class="fas fa-bookmark me-2"></i>Story Type
+                            </div>
+                            
+                            <p style="color: var(--warm-secondary); margin-bottom: 20px; opacity: 0.8;">
+                                <i class="fas fa-tags me-2" style="color: var(--warm-info);"></i>
+                                Choose the type that best fits your story
+                            </p>
+                            
+                            <!-- Story Types -->
+                            <div id="storyTypes">
+                                <!-- Story types will be loaded dynamically -->
+                                <div class="text-center py-4">
+                                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="
+                                        width: 48px;
+                                        height: 48px;
+                                        background: linear-gradient(45deg, var(--warm-info), #38bdf8);
+                                        border-radius: 16px;
+                                        box-shadow: 0 6px 20px rgba(14, 165, 233, 0.25);
+                                    ">
+                                        <div class="spinner-border spinner-border-sm" style="color: white;" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                    <p class="mb-0" style="color: var(--warm-primary-dark); font-weight: 500;">
+                                        Loading story types...
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column - Story Settings -->
+                    <div class="col-lg-4">
+                        <!-- Cover Image Card -->
+                        <div class="modern-card">
+                            <div class="card-header-modern card-header-warning">
+                                <i class="fas fa-image me-2"></i>Story Cover
+                            </div>
+                            
+                            <!-- Image Upload Area -->
+                            <div class="mb-3">
+                                <div id="imageUploadArea" class="upload-area-modern" onclick="document.getElementById('coverImage').click()">
+                                    <div id="imagePreview">
+                                        <div class="d-inline-flex align-items-center justify-content-center mb-3" style="
+                                            width: 56px;
+                                            height: 56px;
+                                            background: linear-gradient(45deg, var(--warm-info), #38bdf8);
+                                            border-radius: 18px;
+                                            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.2);
+                                        ">
+                                            <i class="fas fa-cloud-upload-alt" style="font-size: 1.5rem; color: white;"></i>
+                                        </div>
+                                        <p style="color: var(--warm-primary-dark); font-weight: 500; margin-bottom: 8px;">
+                                            Click to upload story cover image
+                                        </p>
+                                        <p style="color: var(--warm-secondary); font-size: 0.9rem; margin-bottom: 0; opacity: 0.8;">
+                                            Click to upload story cover image
+                                        </p>
+                                        <small style="color: var(--warm-secondary); opacity: 0.6; margin-top: 8px; display: block;">
+                                            Supports JPG, PNG, WebP formats, maximum 5MB<br>
+                                            Support JPG, PNG, WebP formats, max 5MB
+                                        </small>
+                                    </div>
+                                </div>
+                                <input type="file" id="coverImage" name="cover_image" accept="image/jpeg,image/png,image/webp" 
+                                       style="display: none;" onchange="previewImage(this)">
+                            </div>
+                        </div>
+
+                        <!-- Publishing Options Card -->
+                        <div class="modern-card">
+                            <div class="card-header-modern card-header-success">
+                                <i class="fas fa-cog me-2"></i>Publishing Settings
+                            </div>
+                            
+                            <!-- Publishing Status -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold" style="color: var(--warm-primary-dark); font-size: 1.1rem; margin-bottom: 16px;">
+                                    <i class="fas fa-toggle-on me-2" style="color: var(--warm-success);"></i>
+                                    Publishing Status
+                                </label>
+                                <div class="form-check form-check-modern">
+                                    <input class="form-check-input" type="radio" name="status" id="statusPending" value="pending">
+                                    <label class="form-check-label w-100" for="statusPending">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-clock me-2" style="color: var(--warm-info);"></i>
+                                            <div>
+                                                <div class="fw-semibold">Submit for Review</div>
+                                                <small style="color: var(--warm-secondary); opacity: 0.8;">Submit to admin for review before publishing</small>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                               
+
+                            <!-- Story Stats -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="color: var(--warm-primary-dark); font-size: 1.1rem; margin-bottom: 16px;">
+                                    <i class="fas fa-chart-bar me-2" style="color: var(--warm-accent);"></i>
+                                    Story Statistics
+                                </label>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="stats-card">
+                                            <div style="color: var(--warm-primary); font-weight: bold; font-size: 1.5rem;" id="displayWordCount">0</div>
+                                            <small style="color: var(--warm-secondary); opacity: 0.8;">Words</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="stats-card">
+                                            <div style="color: var(--warm-info); font-weight: bold; font-size: 1.5rem;" id="readingTime">0</div>
+                                            <small style="color: var(--warm-secondary); opacity: 0.8;">Read Time</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="modern-card">
+                            <div class="d-grid gap-3">
+                                <button type="submit" class="btn-modern-primary" style="font-size: 1.1rem; padding: 18px 32px;">
+                                    <i class="fas fa-paper-plane me-2"></i>Publish Story
+                                </button>
+                                <button type="button" class="btn-modern-outline" onclick="window.history.back()" style="padding: 14px 24px;">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary mb-3" role="status"></div>
+                <h5 id="loadingMessage">Processing...</h5>
+                <p class="text-muted mb-0">Please wait, do not close this page</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Page initialization
+document.addEventListener('DOMContentLoaded', function() {
+    loadStoryFromSession();
+    loadStoryTypes();
+    setupFormValidation();
+});
+
+// Load story content from session storage (from recording page)
+function loadStoryFromSession() {
+    const storyData = sessionStorage.getItem('recordedStory');
+    if (storyData) {
+        const data = JSON.parse(storyData);
+        
+        // Debug logging for story data
+        console.log('📖 Story data from session:', {
+            hasPolishedContent: !!data.polished_content,
+            hasTranscription: !!data.transcription,
+            polishedLength: data.polished_content ? data.polished_content.length : 0,
+            transcriptionLength: data.transcription ? data.transcription.length : 0,
+            language: data.language,
+            languageName: data.language_name
+        });
+        
+        // Update content preview
+        const contentPreview = document.getElementById('storyContentPreview');
+        if (contentPreview) {
+            const content = data.polished_content || data.transcription || '';
+            const isPolished = !!data.polished_content;
+            const badge = isPolished ? 
+                '<span class="badge bg-success mb-2"><i class="fas fa-magic me-1"></i>AI Polished</span>' : 
+                '<span class="badge bg-warning text-dark mb-2"><i class="fas fa-microphone me-1"></i>Raw Transcription</span>';
+            
+            contentPreview.innerHTML = `
+                <div class="p-3">
+                    ${badge}
+                    <div class="mt-2" style="line-height: 1.6; font-size: 0.95rem;">${content}</div>
+                </div>
+            `;
+        }
+        
+        // Set hidden form fields
+        const storyContent = document.getElementById('storyContent');
+        const languageCode = document.getElementById('languageCode');
+        const languageName = document.getElementById('languageName');
+        
+        if (storyContent) storyContent.value = data.polished_content || data.transcription || '';
+        if (languageCode) languageCode.value = data.language || 'zh-CN';
+        if (languageName) languageName.value = data.language_name || 'Chinese';
+        
+        // Update language display
+        const storyLanguage = document.getElementById('storyLanguage');
+        if (storyLanguage) {
+            storyLanguage.textContent = data.language_name || 'Chinese';
+        }
+        
+        // Calculate and display word count
+        const content = data.polished_content || data.transcription || '';
+        const wordCount = calculateWordCount(content);
+        
+        const wordCountEl = document.getElementById('wordCount');
+        const displayWordCountEl = document.getElementById('displayWordCount');
+        if (wordCountEl) wordCountEl.textContent = wordCount;
+        if (displayWordCountEl) displayWordCountEl.textContent = wordCount;
+        
+        // Calculate reading time (assuming 200 words per minute for Chinese, 250 for English)
+        const isEnglish = (data.language || '').includes('en');
+        const wordsPerMinute = isEnglish ? 250 : 200;
+        const readingTime = Math.max(1, Math.ceil(wordCount / wordsPerMinute));
+        
+        const readingTimeEl = document.getElementById('readingTime');
+        if (readingTimeEl) readingTimeEl.textContent = readingTime;
+    }
+}
+
+// Calculate word count
+function calculateWordCount(text) {
+    if (!text) return 0;
+    // For Chinese: count characters, for English: count words
+    const hasChineseChars = /[\u4e00-\u9fff]/.test(text);
+    if (hasChineseChars) {
+        return text.replace(/\s/g, '').length; // Chinese character count
+    } else {
+        return text.trim().split(/\s+/).length; // English word count
+    }
+}
+
+// Load story types (simplified tags)
+async function loadStoryTypes() {
+    try {
+        const response = await fetch('/api/get_story_types');
+        const data = await response.json();
+        
+        if (data.success) {
+            renderStoryTypes(data.story_types);
+        } else {
+            document.getElementById('storyTypes').innerHTML = 
+                '<div class="alert alert-warning">Failed to load story types, please refresh and try again</div>';
+        }
+    } catch (error) {
+        console.error('Failed to load story types:', error);
+        document.getElementById('storyTypes').innerHTML = 
+            '<div class="alert alert-danger">Network error, unable to load story types</div>';
+    }
+}
+
+// Render story types - Modern Design
+function renderStoryTypes(storyTypes) {
+    const container = document.getElementById('storyTypes');
+    container.innerHTML = '';
+    
+    const typesHTML = storyTypes.map((type, index) => `
+        <div class="col-md-6 col-xl-4 mb-3">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="story_type" value="${type.id}" id="type${type.id}" ${index === 0 ? 'checked' : ''} style="display: none;">
+                <label class="form-check-label w-100" for="type${type.id}">
+                    <div class="story-type-card-modern ${index === 0 ? 'selected' : ''}">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="d-inline-flex align-items-center justify-content-center me-3" style="
+                                width: 40px;
+                                height: 40px;
+                                background: linear-gradient(45deg, var(--warm-primary), var(--warm-primary-light));
+                                border-radius: 12px;
+                                box-shadow: 0 4px 15px rgba(217, 119, 6, 0.2);
+                            ">
+                                <i class="fas fa-bookmark" style="font-size: 1rem; color: white;"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1" style="color: var(--warm-primary-dark); font-weight: 600;">${type.name}</h6>
+                                <small style="color: var(--warm-secondary); opacity: 0.8; line-height: 1.3;">${type.description}</small>
+                            </div>
+                        </div>
+                    </div>
+                </label>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = `<div class="row">${typesHTML}</div>`;
+    
+    // Add click handlers for story type cards
+    container.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Reset all card styles
+            container.querySelectorAll('.story-type-card-modern').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Highlight selected card
+            const selectedCard = container.querySelector(`label[for="${this.id}"] .story-type-card-modern`);
+            if (selectedCard) {
+                selectedCard.classList.add('selected');
+            }
+        });
+    });
+}
+
+// Preview uploaded image
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        
+        // Validate file size (5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+                            alert('Image file too large, please select an image smaller than 5MB');
+            input.value = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('imagePreview').innerHTML = `
+                <div class="uploaded-image-container">
+                    <img src="${e.target.result}" class="img-fluid" style="
+                        max-height: 200px; 
+                        border-radius: 16px; 
+                        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+                        margin-bottom: 16px;
+                    ">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <small style="color: var(--warm-primary-dark); font-weight: 500;">${file.name}</small>
+                        <button type="button" class="btn-modern-outline" onclick="removeImage()" style="
+                            padding: 6px 12px; 
+                            font-size: 0.8rem;
+                            background: rgba(239, 68, 68, 0.1);
+                            border-color: rgba(239, 68, 68, 0.3);
+                            color: #dc2626;
+                        ">
+                            <i class="fas fa-times me-1"></i>Remove
+                        </button>
+                    </div>
+                </div>
+            `;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// Remove uploaded image
+function removeImage() {
+    document.getElementById('coverImage').value = '';
+    document.getElementById('imagePreview').innerHTML = `
+        <div class="d-inline-flex align-items-center justify-content-center mb-3" style="
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(45deg, var(--warm-info), #38bdf8);
+            border-radius: 18px;
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.2);
+        ">
+            <i class="fas fa-cloud-upload-alt" style="font-size: 1.5rem; color: white;"></i>
+        </div>
+        <p style="color: var(--warm-primary-dark); font-weight: 500; margin-bottom: 8px;">
+                                Click to upload story cover image
+        </p>
+        <p style="color: var(--warm-secondary); font-size: 0.9rem; margin-bottom: 0; opacity: 0.8;">
+            Click to upload story cover image
+        </p>
+        <small style="color: var(--warm-secondary); opacity: 0.6; margin-top: 8px; display: block;">
+                            Supports JPG, PNG, WebP formats, maximum 5MB<br>
+            Support JPG, PNG, WebP formats, max 5MB
+        </small>
+    `;
+}
+
+// Generate description using AI
+document.getElementById('generateDescriptionBtn').addEventListener('click', async function() {
+    const content = document.getElementById('storyContent').value;
+    if (!content.trim()) {
+        alert('Please ensure story content is loaded first');
+        return;
+    }
+    
+    const btn = this;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch('/api/generate_description', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ content: content })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('storyDescription').value = data.description;
+        } else {
+            alert('Failed to generate description: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error generating description:', error);
+        alert('Network error, please try again later');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+});
+
+// Form validation and submission
+function setupFormValidation() {
+    const form = document.getElementById('publishStoryForm');
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Validate required fields
+        const title = document.getElementById('storyTitle').value.trim();
+        const content = document.getElementById('storyContent').value.trim();
+        
+        if (!title) {
+            alert('Please enter story title');
+            document.getElementById('storyTitle').focus();
+            return;
+        }
+        
+        if (!content) {
+            alert('Story content cannot be empty, please get content from recording page');
+            return;
+        }
+        
+        // Get selected story type
+        const selectedType = document.querySelector('input[name="story_type"]:checked');
+        
+        if (!selectedType) {
+            alert('Please select a type for your story!');
+            return;
+        }
+        
+        console.log('Selected story type:', selectedType.value);
+        
+        // Show loading modal
+        showLoadingModal('Publishing story...');
+        
+        // Prepare form data
+        const formData = new FormData(form);
+        formData.append('story_type', selectedType.value);
+        
+        try {
+            const response = await fetch('/api/publish_story', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Clear session storage
+                sessionStorage.removeItem('recordedStory');
+                
+                // Redirect to my stories with success message
+                sessionStorage.setItem('publishSuccess', 'Story published successfully!');
+                window.location.href = '/my_stories';
+            } else {
+                hideLoadingModal();
+                
+                // Provide better error handling with guidance
+                let errorMessage = result.error || 'Publishing failed';
+                let guidance = '';
+                
+                if (result.error_type === 'no_content') {
+                    guidance = '\n\n💡 Suggestion: ' + (result.suggestion || 'Please record your story first');
+                    
+                    // Show a more user-friendly dialog with options
+                    if (confirm(errorMessage + guidance + '\n\nWould you like to go back to the recording page now?')) {
+                        window.location.href = '/record_story';
+                        return;
+                    }
+                } else {
+                    alert('Publishing failed: ' + errorMessage + guidance);
+                }
+            }
+        } catch (error) {
+            hideLoadingModal();
+            console.error('Error publishing story:', error);
+            alert('Network error, please try again later');
+        }
+    });
+}
+
+// Loading modal functions
+function showLoadingModal(message) {
+    document.getElementById('loadingMessage').textContent = message;
+    new bootstrap.Modal(document.getElementById('loadingModal')).show();
+}
+
+function hideLoadingModal() {
+    bootstrap.Modal.getInstance(document.getElementById('loadingModal')).hide();
+}
+</script>
+
+<!-- Modern publish page styles are in the extra_css block above -->
+{% endblock %}
