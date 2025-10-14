@@ -1,0 +1,15 @@
+# GUI Story Inserter Additional Requirements
+# 在原有requirements.txt基础上增加以下依赖
+
+# 已有的核心依赖（requirements.txt中）
+# Flask==3.0.0
+# Flask-Login==0.6.3
+# PyMySQL>=1.0.0
+# bcrypt>=4.0.0
+# Pillow>=10.0.0
+
+# GUI专用依赖（通常Python自带，如果没有需要安装）
+# tkinter - Python自带，无需安装
+
+# 图像处理增强（如果需要更多功能）
+Pillow>=10.0.0
