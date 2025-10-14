@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, make_response
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import pymysql
 import bcrypt
@@ -861,7 +861,12 @@ def reset_password_api():
 @login_required
 def record_story():
     """Voice recording page"""
-    return render_template('record_story.html', user=current_user)
+    response = make_response(render_template('record_story.html', user=current_user))
+    # Disable caching to ensure users get the latest JavaScript code
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route('/api/users')
 @login_required
