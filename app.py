@@ -25,9 +25,15 @@ app.config['MAX_FORM_MEMORY_SIZE'] = 50 * 1024 * 1024  # 50MB for form data buff
 
 # Production security settings
 if Config.FLASK_ENV == 'production':
-    app.config['SESSION_COOKIE_SECURE'] = True
+    # Temporarily disable SECURE flag for debugging session issues
+    # Zeabur's reverse proxy might not be setting X-Forwarded-Proto correctly
+    app.config['SESSION_COOKIE_SECURE'] = False  # Changed from True
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
+# Session configuration for Zeabur deployment
+app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 24 hours
+app.config['SESSION_REFRESH_EACH_REQUEST'] = True
 
 # Add built-in functions to Jinja2 environment
 app.jinja_env.globals.update(min=min, max=max)
