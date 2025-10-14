@@ -1,9 +1,11 @@
 {
   "name": "AI Story Collection",
   "buildCommand": "pip install -r requirements.txt",
-  "startCommand": "gunicorn app:app --config gunicorn_config.py",
+  "startCommand": "gunicorn app:app --config gunicorn_config.py --timeout 600 --graceful-timeout 120 --log-level info",
   "env": {
-    "PORT": "8080"
+    "PORT": "8080",
+    "GUNICORN_TIMEOUT": "600",
+    "GUNICORN_GRACEFUL_TIMEOUT": "120"
   },
   "nginx": {
     "clientMaxBodySize": "40M",

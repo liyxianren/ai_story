@@ -1,1 +1,1 @@
-web: gunicorn app:app --config gunicorn_config.py
+web: gunicorn app:app --config gunicorn_config.py --timeout 600 --graceful-timeout 120 --log-level info

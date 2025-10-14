@@ -19,7 +19,9 @@ graceful_timeout = int(os.environ.get('GUNICORN_GRACEFUL_TIMEOUT', '120'))  # De
 keepalive = 5
 
 # Log the actual timeout values being used
-print(f"Gunicorn config: timeout={timeout}s, graceful_timeout={graceful_timeout}s", flush=True)
+import sys
+sys.stderr.write(f"[GUNICORN CONFIG] timeout={timeout}s, graceful_timeout={graceful_timeout}s\n")
+sys.stderr.flush()
 
 # Request settings
 limit_request_line = 0  # No limit on request line size
