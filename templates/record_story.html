@@ -3909,17 +3909,18 @@ document.addEventListener('DOMContentLoaded', () => {
     window.storyRecorder = new VoiceRecorder();
 
     // LOG CONFIGURATION FOR DEBUGGING
-    console.log('='.repeat(60));
+    const separator = '============================================================';
+    console.log(separator);
     console.log('🎙️ VOICE RECORDER INITIALIZED');
-    console.log('='.repeat(60));
+    console.log(separator);
     console.log('📊 CHUNK DURATION:', window.storyRecorder.chunkDuration, 'seconds');
     console.log('📦 MAX FILE SIZE:', (window.storyRecorder.maxFileSize / (1024 * 1024)).toFixed(2), 'MB');
     console.log('⏱️ MAX SYNC DURATION:', window.storyRecorder.maxSyncDuration, 'seconds');
     console.log('⏳ MAX ASYNC DURATION:', window.storyRecorder.maxAsyncDuration, 'seconds');
-    console.log('='.repeat(60));
+    console.log(separator);
     console.log('✅ Expected chunk size for 35s: ~6.4 MB raw, ~8.5 MB base64');
     console.log('❌ If you see 50s chunks (~8.7 MB), browser cache issue!');
-    console.log('='.repeat(60));
+    console.log(separator);
 });
 </script>
 
