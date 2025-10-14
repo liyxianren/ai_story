@@ -13,9 +13,13 @@ max_requests = 1000
 max_requests_jitter = 50
 
 # Timeout settings for large file uploads
-timeout = 600  # 10 minutes - enough time for 30MB audio file uploads and processing
-graceful_timeout = 120  # 2 minutes for graceful shutdown
+# Allow override via environment variable for Zeabur
+timeout = int(os.environ.get('GUNICORN_TIMEOUT', '600'))  # Default 10 minutes
+graceful_timeout = int(os.environ.get('GUNICORN_GRACEFUL_TIMEOUT', '120'))  # Default 2 minutes
 keepalive = 5
+
+# Log the actual timeout values being used
+print(f"Gunicorn config: timeout={timeout}s, graceful_timeout={graceful_timeout}s", flush=True)
 
 # Request settings
 limit_request_line = 0  # No limit on request line size

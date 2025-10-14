@@ -1,0 +1,14 @@
+{
+  "name": "AI Story Collection",
+  "buildCommand": "pip install -r requirements.txt",
+  "startCommand": "gunicorn app:app --config gunicorn_config.py",
+  "env": {
+    "PORT": "8080"
+  },
+  "nginx": {
+    "clientMaxBodySize": "40M",
+    "proxyReadTimeout": "600s",
+    "proxyConnectTimeout": "600s",
+    "proxySendTimeout": "600s"
+  }
+}
