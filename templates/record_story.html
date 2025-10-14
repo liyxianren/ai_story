@@ -2301,14 +2301,18 @@ class VoiceRecorder {
             numberOfChannels: buffer.numberOfChannels,
             duration: buffer.duration
         });
-        
+
+        // FORCE MONO: Google Speech API requires single channel audio
         const length = buffer.length;
-        const numberOfChannels = buffer.numberOfChannels;
+        const originalChannels = buffer.numberOfChannels;
+        const numberOfChannels = 1; // Always output mono
         const sampleRate = buffer.sampleRate;
         const bytesPerSample = 2; // 16-bit
         const blockAlign = numberOfChannels * bytesPerSample;
         const byteRate = sampleRate * blockAlign;
         const dataSize = length * blockAlign;
+
+        console.log('🔄 CONVERTING TO MONO:', originalChannels, 'channels →', numberOfChannels, 'channel');
         const arrayBuffer = new ArrayBuffer(44 + dataSize);
         const view = new DataView(arrayBuffer);
         
@@ -2347,15 +2351,21 @@ class VoiceRecorder {
             totalSize: 44 + dataSize
         });
         
-        // Convert float samples to 16-bit PCM
+        // Convert float samples to 16-bit PCM (MONO - average all channels)
         let offset = 44;
         for (let i = 0; i < length; i++) {
-            for (let channel = 0; channel < numberOfChannels; channel++) {
+            // Average all channels to create mono
+            let monoSample = 0;
+            for (let channel = 0; channel < originalChannels; channel++) {
                 const channelData = buffer.getChannelData(channel);
-                const sample = Math.max(-1, Math.min(1, channelData[i]));
-                view.setInt16(offset, sample * 0x7FFF, true);
-                offset += 2;
+                monoSample += channelData[i];
             }
+            monoSample /= originalChannels;
+
+            // Clamp and convert to 16-bit PCM
+            const sample = Math.max(-1, Math.min(1, monoSample));
+            view.setInt16(offset, sample * 0x7FFF, true);
+            offset += 2;
         }
         
         console.log('✅ WAV CONVERSION COMPLETE:', {
