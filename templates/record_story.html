@@ -2399,14 +2399,38 @@ class VoiceRecorder {
         });
         
         const length = buffer.length;
-        const numberOfChannels = buffer.numberOfChannels;
+        const originalChannels = buffer.numberOfChannels;
         const sampleRate = buffer.sampleRate;
         const bytesPerSample = 2; // 16-bit
+        
+        // Google API 要求单声道音频，因此始终转换为 mono
+        const numberOfChannels = 1; // 强制使用单声道
         const blockAlign = numberOfChannels * bytesPerSample;
         const byteRate = sampleRate * blockAlign;
         const dataSize = length * blockAlign;
         const arrayBuffer = new ArrayBuffer(44 + dataSize);
         const view = new DataView(arrayBuffer);
+        
+        // 如果原始音频是多声道，需要转换为单声道
+        let monoData = null;
+        if (originalChannels > 1) {
+            console.log(`🔄 CONVERTING ${originalChannels} CHANNELS TO MONO`);
+            monoData = new Float32Array(length);
+            
+            // 将所有声道的数据取平均值
+            for (let i = 0; i < length; i++) {
+                let sum = 0;
+                for (let channel = 0; channel < originalChannels; channel++) {
+                    sum += buffer.getChannelData(channel)[i];
+                }
+                monoData[i] = sum / originalChannels;
+            }
+            
+            console.log('✅ MONO CONVERSION COMPLETE');
+        } else {
+            console.log('✅ AUDIO IS ALREADY MONO, NO CONVERSION NEEDED');
+            monoData = buffer.getChannelData(0);
+        }
         
         // WAV header
         const writeString = (offset, string) => {
@@ -2424,7 +2448,7 @@ class VoiceRecorder {
         writeString(12, 'fmt ');                          // Subchunk1ID
         view.setUint32(16, 16, true);                     // Subchunk1Size (16 for PCM)
         view.setUint16(20, 1, true);                      // AudioFormat (1 for PCM)
-        view.setUint16(22, numberOfChannels, true);       // NumChannels
+        view.setUint16(22, numberOfChannels, true);       // NumChannels (强制为1)
         view.setUint32(24, sampleRate, true);             // SampleRate
         view.setUint32(28, byteRate, true);               // ByteRate
         view.setUint16(32, blockAlign, true);             // BlockAlign
@@ -2435,7 +2459,8 @@ class VoiceRecorder {
         view.setUint32(40, dataSize, true);               // Subchunk2Size
         
         console.log('📊 WAV HEADER INFO:', {
-            channels: numberOfChannels,
+            originalChannels: originalChannels,
+            outputChannels: numberOfChannels,
             sampleRate: sampleRate,
             byteRate: byteRate,
             blockAlign: blockAlign,
@@ -2443,20 +2468,18 @@ class VoiceRecorder {
             totalSize: 44 + dataSize
         });
         
-        // Convert float samples to 16-bit PCM
+        // Convert float samples to 16-bit PCM (单声道)
         let offset = 44;
         for (let i = 0; i < length; i++) {
-            for (let channel = 0; channel < numberOfChannels; channel++) {
-                const channelData = buffer.getChannelData(channel);
-                const sample = Math.max(-1, Math.min(1, channelData[i]));
-                view.setInt16(offset, sample * 0x7FFF, true);
-                offset += 2;
-            }
+            const sample = Math.max(-1, Math.min(1, monoData[i]));
+            view.setInt16(offset, sample * 0x7FFF, true);
+            offset += 2;
         }
         
         console.log('✅ WAV CONVERSION COMPLETE:', {
             finalSize: arrayBuffer.byteLength,
-            expectedSize: 44 + dataSize
+            expectedSize: 44 + dataSize,
+            channels: numberOfChannels
         });
         
         return new Blob([arrayBuffer], { type: 'audio/wav' });
