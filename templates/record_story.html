@@ -1922,6 +1922,40 @@ class VoiceRecorder {
                 duration: totalDuration
             });
             
+            // ===== 新增：先上传保存原始完整文件 =====
+            console.log('📤 STEP 1: UPLOADING ORIGINAL FILE FOR STORAGE...');
+            
+            let audioInfo = null;
+            try {
+                const uploadFormData = new FormData();
+                uploadFormData.append('audio', file, file.name);
+                
+                const uploadResponse = await fetch('/api/upload_audio', {
+                    method: 'POST',
+                    body: uploadFormData,
+                    credentials: 'same-origin'
+                });
+                
+                const uploadResult = await uploadResponse.json();
+                
+                if (uploadResult.success) {
+                    audioInfo = {
+                        audio_path: uploadResult.audio_path,
+                        audio_original_name: uploadResult.audio_original_name,
+                        audio_duration: uploadResult.audio_duration,
+                        audio_format: uploadResult.audio_format
+                    };
+                    console.log('✅ ORIGINAL FILE UPLOADED:', audioInfo);
+                } else {
+                    console.warn('⚠️ ORIGINAL FILE UPLOAD FAILED:', uploadResult.error);
+                    console.warn('Will continue with transcription but audio playback will not be available');
+                }
+            } catch (uploadError) {
+                console.error('💥 UPLOAD ERROR:', uploadError);
+                console.warn('Will continue with transcription but audio playback will not be available');
+            }
+            // ===== 结束新增部分 =====
+            
             // Update loading message
             document.getElementById('transcriptionLoading').classList.remove('d-none');
             const loadingText = document.querySelector('#transcriptionLoading p');
@@ -2000,7 +2034,12 @@ class VoiceRecorder {
                         chunked: true,
                         chunkCount: chunks.length,
                         polished: true,
-                        gemini: polishingResult.gemini
+                        gemini: polishingResult.gemini,
+                        // ===== 新增：添加音频信息 =====
+                        audio_path: audioInfo?.audio_path,
+                        audio_original_name: audioInfo?.audio_original_name,
+                        audio_duration: audioInfo?.audio_duration,
+                        audio_format: audioInfo?.audio_format
                     });
                 } else {
                     // Check if it's an authentication error
@@ -2022,7 +2061,12 @@ class VoiceRecorder {
                         chunked: true,
                         chunkCount: chunks.length,
                         polished: false,
-                        gemini: polishingResult.gemini || { success: false, error: polishingResult.error || 'Polishing failed' }
+                        gemini: polishingResult.gemini || { success: false, error: polishingResult.error || 'Polishing failed' },
+                        // ===== 新增：添加音频信息 =====
+                        audio_path: audioInfo?.audio_path,
+                        audio_original_name: audioInfo?.audio_original_name,
+                        audio_duration: audioInfo?.audio_duration,
+                        audio_format: audioInfo?.audio_format
                     });
                 }
                 
@@ -2039,7 +2083,12 @@ class VoiceRecorder {
                     chunked: true,
                     chunkCount: chunks.length,
                     polished: false,
-                    gemini: { success: false, error: `Polishing error: ${error.message}` }
+                    gemini: { success: false, error: `Polishing error: ${error.message}` },
+                    // ===== 新增：添加音频信息 =====
+                    audio_path: audioInfo?.audio_path,
+                    audio_original_name: audioInfo?.audio_original_name,
+                    audio_duration: audioInfo?.audio_duration,
+                    audio_format: audioInfo?.audio_format
                 });
             }
             
@@ -2870,6 +2919,40 @@ class VoiceRecorder {
             // Clean up temporary URL
             URL.revokeObjectURL(tempAudio.src);
             
+            // ===== 新增：先上传保存原始录音文件 =====
+            console.log('📤 STEP 1: UPLOADING ORIGINAL RECORDING FOR STORAGE...');
+            
+            let audioInfo = null;
+            try {
+                const uploadFormData = new FormData();
+                uploadFormData.append('audio', blob, 'recording.webm');
+                
+                const uploadResponse = await fetch('/api/upload_audio', {
+                    method: 'POST',
+                    body: uploadFormData,
+                    credentials: 'same-origin'
+                });
+                
+                const uploadResult = await uploadResponse.json();
+                
+                if (uploadResult.success) {
+                    audioInfo = {
+                        audio_path: uploadResult.audio_path,
+                        audio_original_name: uploadResult.audio_original_name,
+                        audio_duration: uploadResult.audio_duration,
+                        audio_format: uploadResult.audio_format
+                    };
+                    console.log('✅ ORIGINAL RECORDING UPLOADED:', audioInfo);
+                } else {
+                    console.warn('⚠️ ORIGINAL RECORDING UPLOAD FAILED:', uploadResult.error);
+                    console.warn('Will continue with transcription but audio playback will not be available');
+                }
+            } catch (uploadError) {
+                console.error('💥 UPLOAD ERROR:', uploadError);
+                console.warn('Will continue with transcription but audio playback will not be available');
+            }
+            // ===== 结束新增部分 =====
+            
             // Create chunks from the blob
             const chunks = await this.createAudioChunksFromBlob(blob, actualDuration);
             
@@ -2918,7 +3001,12 @@ class VoiceRecorder {
                         chunked: true,
                         chunkCount: chunks.length,
                         polished: true,
-                        gemini: polishingResult.gemini
+                        gemini: polishingResult.gemini,
+                        // ===== 新增：添加音频信息 =====
+                        audio_path: audioInfo?.audio_path,
+                        audio_original_name: audioInfo?.audio_original_name,
+                        audio_duration: audioInfo?.audio_duration,
+                        audio_format: audioInfo?.audio_format
                     });
                 } else {
                     // Check if it's an authentication error
@@ -2940,7 +3028,12 @@ class VoiceRecorder {
                         chunked: true,
                         chunkCount: chunks.length,
                         polished: false,
-                        gemini: polishingResult.gemini || { success: false, error: polishingResult.error || 'Polishing failed' }
+                        gemini: polishingResult.gemini || { success: false, error: polishingResult.error || 'Polishing failed' },
+                        // ===== 新增：添加音频信息 =====
+                        audio_path: audioInfo?.audio_path,
+                        audio_original_name: audioInfo?.audio_original_name,
+                        audio_duration: audioInfo?.audio_duration,
+                        audio_format: audioInfo?.audio_format
                     });
                 }
                 
@@ -2957,7 +3050,12 @@ class VoiceRecorder {
                     chunked: true,
                     chunkCount: chunks.length,
                     polished: false,
-                    gemini: { success: false, error: `Polishing error: ${error.message}` }
+                    gemini: { success: false, error: `Polishing error: ${error.message}` },
+                    // ===== 新增：添加音频信息 =====
+                    audio_path: audioInfo?.audio_path,
+                    audio_original_name: audioInfo?.audio_original_name,
+                    audio_duration: audioInfo?.audio_duration,
+                    audio_format: audioInfo?.audio_format
                 });
             }
             

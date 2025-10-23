@@ -902,6 +902,99 @@ def api_users():
             cursor.close()
             connection.close()
 
+@app.route('/api/upload_audio', methods=['POST'])
+@login_required
+def upload_audio_only():
+    """Upload and save audio file without transcription (for chunked processing)"""
+    try:
+        logger.info("Audio upload API called (without transcription)")
+        
+        # Check if audio file is present
+        if 'audio' not in request.files:
+            return jsonify({'success': False, 'error': 'No audio file provided'}), 400
+        
+        audio_file = request.files['audio']
+        if audio_file.filename == '':
+            return jsonify({'success': False, 'error': 'No audio file selected'}), 400
+        
+        # Get audio format from filename
+        file_extension = audio_file.filename.split('.')[-1].lower() if '.' in audio_file.filename else 'webm'
+        
+        # Read audio data
+        audio_data = audio_file.read()
+        
+        # Validate audio size (allow up to 30MB for original file)
+        if len(audio_data) > 30 * 1024 * 1024:
+            return jsonify({'success': False, 'error': 'Audio file too large (max 30MB)'}), 400
+        
+        logger.info(f"Uploading audio file: {audio_file.filename}, size: {len(audio_data)} bytes")
+        
+        # Calculate audio duration using mutagen
+        from io import BytesIO
+        from werkzeug.datastructures import FileStorage
+        import tempfile
+        from mutagen import File as MutagenFile
+        
+        actual_duration = 0
+        try:
+            # Create temporary file to calculate duration
+            with tempfile.NamedTemporaryFile(suffix=f'.{file_extension}', delete=False) as temp_audio:
+                temp_audio.write(audio_data)
+                temp_audio_path = temp_audio.name
+            
+            # Read audio metadata
+            audio_info = MutagenFile(temp_audio_path)
+            if audio_info and hasattr(audio_info.info, 'length'):
+                actual_duration = int(audio_info.info.length)
+                logger.info(f"Audio duration: {actual_duration} seconds")
+            
+            # Clean up temp file
+            import os
+            os.remove(temp_audio_path)
+        except Exception as e:
+            logger.warning(f"Could not calculate duration: {e}")
+            # Fallback to rough estimate
+            actual_duration = max(1, int(len(audio_data) / (16000 * 2)))
+        
+        # Create a FileStorage object from audio data
+        audio_file_for_save = FileStorage(
+            stream=BytesIO(audio_data),
+            filename=audio_file.filename,
+            content_type=f'audio/{file_extension}'
+        )
+        
+        # Upload audio file
+        audio_result = audio_service.upload_story_audio(
+            file=audio_file_for_save,
+            user_id=current_user.id,
+            story_id=None,  # No story_id yet
+            duration=actual_duration
+        )
+        
+        if audio_result['success']:
+            logger.info(f"Audio uploaded successfully: {audio_result['audio_path']}")
+            return jsonify({
+                'success': True,
+                'audio_path': audio_result['audio_path'],
+                'audio_original_name': audio_result['metadata']['original_filename'],
+                'audio_duration': audio_result['duration'] or actual_duration,
+                'audio_format': audio_result['format'],
+                'message': 'Audio file uploaded successfully'
+            })
+        else:
+            logger.error(f"Audio upload failed: {audio_result.get('error')}")
+            return jsonify({
+                'success': False,
+                'error': audio_result.get('error', 'Failed to upload audio')
+            }), 500
+    
+    except Exception as e:
+        logger.error(f"Audio upload error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f'Audio upload failed: {str(e)}'
+        }), 500
+
 @app.route('/api/transcribe', methods=['POST'])
 @login_required
 def transcribe_audio():
@@ -1234,7 +1327,7 @@ def story_library():
             JOIN users u ON s.user_id = u.id
             LEFT JOIN story_tags st ON s.id = st.story_id
             LEFT JOIN tags t ON st.tag_id = t.id
-            WHERE s.status = 'published'
+            WHERE s.status = 'published' AND s.deleted_at IS NULL
             GROUP BY s.id, s.title, s.description, s.image_path, s.created_at, s.view_count, s.like_count, u.username
             ORDER BY s.created_at DESC
         """)
@@ -1247,7 +1340,7 @@ def story_library():
             FROM tags t
             JOIN story_tags st ON t.id = st.tag_id
             JOIN stories s ON st.story_id = s.id
-            WHERE s.status = 'published'
+            WHERE s.status = 'published' AND s.deleted_at IS NULL
             ORDER BY t.name
         """)
         
