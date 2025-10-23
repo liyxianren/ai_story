@@ -38,7 +38,9 @@ class Config:
     MAX_AUDIO_STORAGE_DURATION = 3600  # 60 minutes
 
     # Audio Chunking Configuration
-    MAX_CHUNK_SIZE = 9 * 1024 * 1024  # 9MB per chunk (留1MB余量给Google API的10MB限制)
+    # 注意：音频通过REST API发送时会被Base64编码，导致体积增大约33%
+    # 因此7MB的音频经Base64编码后约为9.3MB，低于Google API的10MB限制
+    MAX_CHUNK_SIZE = 7 * 1024 * 1024  # 7MB per chunk (考虑Base64编码膨胀约33%)
     MAX_CHUNK_DURATION = 59  # 59秒（留1秒余量给Google API的60秒限制）
 
     # Language Mapping: Frontend codes to Google Speech-to-Text codes

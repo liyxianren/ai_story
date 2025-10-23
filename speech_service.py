@@ -30,6 +30,9 @@ class SpeechTranscriptionService:
             # Convert audio to base64 for REST API
             audio_base64 = base64.b64encode(audio_data).decode('utf-8')
             
+            # Log size comparison for debugging
+            logger.info(f"Audio size: original={len(audio_data)} bytes, base64={len(audio_base64)} bytes, ratio={len(audio_base64)/len(audio_data):.2f}x")
+            
             # Map frontend language code to Google's format
             google_language_code = self.language_mapping.get(language_code, language_code)
             
@@ -201,12 +204,14 @@ class SpeechTranscriptionService:
                     'confidence': 0.0
                 }
             
-            # Check audio size (Google has a limit of ~10MB for synchronous recognition)
-            if len(audio_data) > 10 * 1024 * 1024:
-                logger.error(f"Audio chunk size {len(audio_data)} bytes exceeds Google API limit")
+            # Check audio size before Base64 encoding (Base64 will increase size by ~33%)
+            # Google API limit is 10MB for the entire request payload (including Base64 encoded audio)
+            max_safe_size = int(7.5 * 1024 * 1024)  # 7.5MB raw audio = ~10MB after Base64 encoding
+            if len(audio_data) > max_safe_size:
+                logger.error(f"Audio chunk size {len(audio_data)} bytes exceeds safe limit for Base64 encoding")
                 return {
                     'success': False,
-                    'error': 'Audio chunk is too large for Google API (max 10MB per chunk). The chunking algorithm should have split this into smaller pieces.',
+                    'error': f'Audio chunk is too large ({len(audio_data)} bytes). Maximum allowed: 7.5MB (to account for Base64 encoding overhead that increases size by 33%).',
                     'transcript': '',
                     'confidence': 0.0,
                     'error_type': 'chunk_size_exceeded'

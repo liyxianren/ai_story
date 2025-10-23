@@ -1186,7 +1186,7 @@ class VoiceRecorder {
         this.recordingMode = 'microphone';
         this.uploadedFile = null;
         this.maxFileSize = 30 * 1024 * 1024; // 30MB
-        this.maxChunkSize = 9 * 1024 * 1024; // 9MB per chunk (留1MB余量)
+        this.maxChunkSize = 7 * 1024 * 1024; // 7MB per chunk (考虑Base64编码膨胀约33%)
         this.maxChunkDuration = 59; // 59秒
         this.supportedFormats = ['mp3', 'wav', 'm4a', 'mp4', 'ogg', 'webm', 'flac'];
         this.maxSyncDuration = 59; // seconds for synchronous API
