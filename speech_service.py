@@ -203,11 +203,13 @@ class SpeechTranscriptionService:
             
             # Check audio size (Google has a limit of ~10MB for synchronous recognition)
             if len(audio_data) > 10 * 1024 * 1024:
+                logger.error(f"Audio chunk size {len(audio_data)} bytes exceeds Google API limit")
                 return {
                     'success': False,
-                    'error': 'Audio file is too large. Please record a shorter audio clip (max 10MB).',
+                    'error': 'Audio chunk is too large for Google API (max 10MB per chunk). The chunking algorithm should have split this into smaller pieces.',
                     'transcript': '',
-                    'confidence': 0.0
+                    'confidence': 0.0,
+                    'error_type': 'chunk_size_exceeded'
                 }
             
             logger.info(f"Transcribing {len(audio_data)} bytes of {input_format} audio in language: {language_code}")

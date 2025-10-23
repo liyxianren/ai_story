@@ -907,6 +907,8 @@ def api_users():
 def transcribe_audio():
     """Transcribe uploaded audio using Google Speech-to-Text"""
     try:
+        logger.info(f"Transcribe request received - Content-Length: {request.content_length}")
+        
         # Check if audio file is present
         if 'audio' not in request.files:
             return jsonify({'success': False, 'error': 'No audio file provided'}), 400
@@ -924,9 +926,16 @@ def transcribe_audio():
         # Read audio data
         audio_data = audio_file.read()
 
-        # Validate audio size (limit to 25MB)
-        if len(audio_data) > 25 * 1024 * 1024:
-            return jsonify({'success': False, 'error': 'Audio file too large (max 25MB)'}), 400
+        # Validate audio chunk size (Google API limit is 10MB per chunk)
+        # 移除原来的25MB检查，因为我们现在允许30MB上传，并且切片已经在前端处理
+        # 但保留单个切片的大小检查
+        if len(audio_data) > 10 * 1024 * 1024:
+            logger.warning(f"Received large audio chunk: {len(audio_data)} bytes")
+            return jsonify({
+                'success': False, 
+                'error': 'Single audio chunk too large (max 10MB). Please ensure chunking is working correctly.',
+                'error_type': 'chunk_too_large'
+            }), 400
 
         # Transcribe audio using speech service
         result = speech_service.transcribe_audio(

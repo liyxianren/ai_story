@@ -324,7 +324,8 @@
                                 </h5>
                                 <p class="text-muted mb-3">
                                     Supported formats: MP3, WAV, M4A, MP4, OGG, WEBM<br>
-                                    Maximum file size: 10 MB | Maximum duration: 60 minutes
+                                    Maximum file size: 30 MB | Maximum duration: 60 minutes<br>
+                                    <i class="fas fa-info-circle me-1"></i>Large files will be automatically split into smaller chunks for processing
                                 </p>
                                 <button type="button" class="btn btn-primary" id="browseFileBtn">
                                     <i class="fas fa-folder-open me-2"></i>Browse Files
@@ -1184,7 +1185,9 @@ class VoiceRecorder {
         this.recentLanguages = this.getRecentLanguages();
         this.recordingMode = 'microphone';
         this.uploadedFile = null;
-        this.maxFileSize = 10 * 1024 * 1024; // 10MB
+        this.maxFileSize = 30 * 1024 * 1024; // 30MB
+        this.maxChunkSize = 9 * 1024 * 1024; // 9MB per chunk (留1MB余量)
+        this.maxChunkDuration = 59; // 59秒
         this.supportedFormats = ['mp3', 'wav', 'm4a', 'mp4', 'ogg', 'webm', 'flac'];
         this.maxSyncDuration = 59; // seconds for synchronous API
         this.chunkDuration = 50; // seconds per chunk (safe buffer for Google API)
@@ -1741,7 +1744,7 @@ class VoiceRecorder {
         if (file.size > this.maxFileSize) {
             return {
                 valid: false,
-                error: `File size too large. Maximum allowed: ${this.formatFileSize(this.maxFileSize)}`
+                error: `File size too large. Maximum allowed: ${this.formatFileSize(this.maxFileSize)}. Current file: ${this.formatFileSize(file.size)}`
             };
         }
         
@@ -2133,67 +2136,31 @@ class VoiceRecorder {
                     const arrayBuffer = e.target.result;
                     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
                     
-                    // Smart chunking: calculate optimal chunk sizes
-                    const chunks = [];
-                    const sampleRate = audioBuffer.sampleRate;
-                    const maxChunkDuration = 59; // Google API limit
+                    console.log('🎵 AUDIO BUFFER INFO:', {
+                        duration: audioBuffer.duration,
+                        sampleRate: audioBuffer.sampleRate,
+                        numberOfChannels: audioBuffer.numberOfChannels,
+                        length: audioBuffer.length
+                    });
                     
-                    // Calculate number of chunks needed
-                    const numChunks = Math.ceil(totalDuration / maxChunkDuration);
-                    const idealChunkDuration = totalDuration / numChunks;
+                    // 第一步：按时间初步切片
+                    const initialChunks = this.createInitialTimeBasedChunks(audioBuffer, totalDuration);
                     
-                    console.log(`🔧 AUDIO SPLITTING PLAN: ${totalDuration}s → ${numChunks} chunks (~${idealChunkDuration.toFixed(1)}s each)`);
+                    console.log(`📊 INITIAL CHUNKS: ${initialChunks.length} chunks based on time`);
                     
-                    for (let i = 0; i < numChunks; i++) {
-                        const startTime = i * idealChunkDuration;
-                        const endTime = Math.min((i + 1) * idealChunkDuration, totalDuration);
-                        const actualDuration = endTime - startTime;
-                        
-                        console.log(`🎵 CREATING CHUNK ${i + 1}: ${startTime.toFixed(1)}s - ${endTime.toFixed(1)}s (${actualDuration.toFixed(1)}s)`);
-                        
-                        // Validate chunk duration
-                        if (actualDuration >= 60) {
-                            console.log('🚨 ERROR: CHUNK DURATION EXCEEDS 60s!', actualDuration);
-                        }
-                        
-                        const startSample = Math.floor(startTime * sampleRate);
-                        const endSample = Math.floor(endTime * sampleRate);
-                        
-                        console.log(`📊 SAMPLE INFO: ${startSample} - ${endSample} (total: ${endSample - startSample} samples)`);
-                        
-                        const chunkBuffer = audioContext.createBuffer(
-                            audioBuffer.numberOfChannels,
-                            endSample - startSample,
-                            sampleRate
-                        );
-                        
-                        // Copy audio data
-                        for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
-                            const channelData = audioBuffer.getChannelData(channel);
-                            const chunkData = chunkBuffer.getChannelData(channel);
-                            for (let j = 0; j < endSample - startSample; j++) {
-                                chunkData[j] = channelData[startSample + j];
-                            }
-                        }
-                        
-                        // Convert to WAV blob
-                        const wavBlob = this.audioBufferToWav(chunkBuffer);
-                        
-                        console.log(`💾 WAV CHUNK SIZE: ${wavBlob.size} bytes`);
-                        
-                        chunks.push({
-                            blob: wavBlob,
-                            index: i,
-                            startTime: startTime,
-                            endTime: endTime,
-                            duration: actualDuration
-                        });
-                        
-                        console.log(`✅ CHUNK ${i + 1} CREATED: ${actualDuration.toFixed(1)}s, ${wavBlob.size} bytes`);
-                    }
+                    // 第二步：检查每个切片的大小，如果超过限制则进一步细分
+                    const finalChunks = await this.refineChunksBasedOnSize(initialChunks, audioBuffer);
                     
-                    resolve(chunks);
+                    console.log(`✅ FINAL CHUNKS: ${finalChunks.length} chunks after size optimization`);
+                    console.log('📋 CHUNK DETAILS:', finalChunks.map(c => ({
+                        index: c.index,
+                        duration: c.duration.toFixed(1) + 's',
+                        size: this.formatFileSize(c.size)
+                    })));
+                    
+                    resolve(finalChunks);
                 } catch (error) {
+                    console.error('❌ CHUNK CREATION ERROR:', error);
                     reject(error);
                 }
             };
@@ -2201,6 +2168,135 @@ class VoiceRecorder {
             reader.onerror = reject;
             reader.readAsArrayBuffer(file);
         });
+    }
+    
+    // 创建基于时间的初始切片
+    createInitialTimeBasedChunks(audioBuffer, totalDuration) {
+        const maxChunkDuration = this.maxChunkDuration; // 59秒
+        const sampleRate = audioBuffer.sampleRate;
+        const chunks = [];
+        
+        // 计算需要的切片数
+        const numChunks = Math.ceil(totalDuration / maxChunkDuration);
+        const idealChunkDuration = totalDuration / numChunks;
+        
+        console.log(`⏱️ TIME-BASED CHUNKING: ${totalDuration}s → ${numChunks} chunks (~${idealChunkDuration.toFixed(1)}s each)`);
+        
+        for (let i = 0; i < numChunks; i++) {
+            const startTime = i * idealChunkDuration;
+            const endTime = Math.min((i + 1) * idealChunkDuration, totalDuration);
+            const duration = endTime - startTime;
+            
+            const startSample = Math.floor(startTime * sampleRate);
+            const endSample = Math.floor(endTime * sampleRate);
+            
+            chunks.push({
+                index: i,
+                startTime: startTime,
+                endTime: endTime,
+                duration: duration,
+                startSample: startSample,
+                endSample: endSample
+            });
+        }
+        
+        return chunks;
+    }
+    
+    // 基于大小优化切片
+    async refineChunksBasedOnSize(initialChunks, audioBuffer) {
+        const finalChunks = [];
+        let globalIndex = 0;
+        
+        for (const chunk of initialChunks) {
+            console.log(`🔍 CHECKING CHUNK ${chunk.index}: ${chunk.duration.toFixed(1)}s`);
+            
+            // 创建临时音频缓冲区来估算大小
+            const tempBuffer = this.extractAudioSegment(
+                audioBuffer, 
+                chunk.startSample, 
+                chunk.endSample
+            );
+            
+            // 转换为WAV并检查大小
+            const wavBlob = this.audioBufferToWav(tempBuffer);
+            const chunkSize = wavBlob.size;
+            
+            console.log(`📏 CHUNK SIZE: ${this.formatFileSize(chunkSize)}`);
+            
+            // 如果切片大小在限制内，直接使用
+            if (chunkSize <= this.maxChunkSize) {
+                console.log(`✅ CHUNK ${chunk.index} OK: ${this.formatFileSize(chunkSize)} ≤ ${this.formatFileSize(this.maxChunkSize)}`);
+                
+                finalChunks.push({
+                    blob: wavBlob,
+                    index: globalIndex++,
+                    startTime: chunk.startTime,
+                    endTime: chunk.endTime,
+                    duration: chunk.duration,
+                    size: chunkSize
+                });
+            } else {
+                // 需要进一步细分
+                console.log(`⚠️ CHUNK ${chunk.index} TOO LARGE: ${this.formatFileSize(chunkSize)} > ${this.formatFileSize(this.maxChunkSize)}`);
+                
+                // 计算需要细分成多少个子切片
+                const subChunksNeeded = Math.ceil(chunkSize / this.maxChunkSize);
+                const subChunkDuration = chunk.duration / subChunksNeeded;
+                
+                console.log(`✂️ SUBDIVIDING: ${chunk.duration.toFixed(1)}s → ${subChunksNeeded} sub-chunks (~${subChunkDuration.toFixed(1)}s each)`);
+                
+                // 创建子切片
+                for (let j = 0; j < subChunksNeeded; j++) {
+                    const subStartTime = chunk.startTime + (j * subChunkDuration);
+                    const subEndTime = Math.min(chunk.startTime + ((j + 1) * subChunkDuration), chunk.endTime);
+                    const subDuration = subEndTime - subStartTime;
+                    
+                    const subStartSample = Math.floor(subStartTime * audioBuffer.sampleRate);
+                    const subEndSample = Math.floor(subEndTime * audioBuffer.sampleRate);
+                    
+                    const subBuffer = this.extractAudioSegment(audioBuffer, subStartSample, subEndSample);
+                    const subWavBlob = this.audioBufferToWav(subBuffer);
+                    
+                    console.log(`  ➡️ SUB-CHUNK ${j + 1}/${subChunksNeeded}: ${subDuration.toFixed(1)}s, ${this.formatFileSize(subWavBlob.size)}`);
+                    
+                    finalChunks.push({
+                        blob: subWavBlob,
+                        index: globalIndex++,
+                        startTime: subStartTime,
+                        endTime: subEndTime,
+                        duration: subDuration,
+                        size: subWavBlob.size,
+                        isSubChunk: true,
+                        parentChunkIndex: chunk.index
+                    });
+                }
+            }
+        }
+        
+        return finalChunks;
+    }
+    
+    // 提取音频片段
+    extractAudioSegment(audioBuffer, startSample, endSample) {
+        const sampleRate = audioBuffer.sampleRate;
+        const numberOfChannels = audioBuffer.numberOfChannels;
+        const segmentLength = endSample - startSample;
+        
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const segmentBuffer = audioContext.createBuffer(numberOfChannels, segmentLength, sampleRate);
+        
+        // 复制音频数据
+        for (let channel = 0; channel < numberOfChannels; channel++) {
+            const channelData = audioBuffer.getChannelData(channel);
+            const segmentData = segmentBuffer.getChannelData(channel);
+            
+            for (let i = 0; i < segmentLength; i++) {
+                segmentData[i] = channelData[startSample + i];
+            }
+        }
+        
+        return segmentBuffer;
     }
     
     async processChunksInBatches(chunks, language, batchSize = 3) {
@@ -2896,89 +2992,23 @@ class VoiceRecorder {
                     
                     console.log('⏱️ 使用的实际时长 ACTUAL DURATION USED:', actualDuration);
                     
-                    const chunks = [];
-                    const sampleRate = audioBuffer.sampleRate;
-                    const maxChunkDuration = 59;
+                    // 使用智能切片算法（同时考虑时间和大小）
+                    // 第一步：按时间初步切片
+                    const initialChunks = this.createInitialTimeBasedChunks(audioBuffer, actualDuration);
                     
-                    const numChunks = Math.ceil(actualDuration / maxChunkDuration);
-                    const idealChunkDuration = actualDuration / numChunks;
+                    console.log(`📊 INITIAL RECORDING CHUNKS: ${initialChunks.length} chunks based on time`);
                     
-                    console.log(`🔧 录音分割计划 RECORDING SPLITTING PLAN: ${actualDuration}s → ${numChunks} chunks (~${idealChunkDuration.toFixed(1)}s each)`);
+                    // 第二步：检查每个切片的大小，如果超过限制则进一步细分
+                    const finalChunks = await this.refineChunksBasedOnSize(initialChunks, audioBuffer);
                     
-                    for (let i = 0; i < numChunks; i++) {
-                        const startTime = i * idealChunkDuration;
-                        const endTime = Math.min((i + 1) * idealChunkDuration, actualDuration);
-                        const chunkDuration = endTime - startTime;
-                        
-                        console.log(`🎵 创建录音分块 ${i + 1} CREATING RECORDING CHUNK ${i + 1}: ${startTime.toFixed(1)}s - ${endTime.toFixed(1)}s (${chunkDuration.toFixed(1)}s)`);
-                        
-                        if (chunkDuration >= 60) {
-                            console.log('🚨 错误 ERROR: 录音分块时长超过60秒！RECORDING CHUNK EXCEEDS 60s!', chunkDuration);
-                        }
-                        
-                        const startSample = Math.floor(startTime * sampleRate);
-                        const endSample = Math.floor(endTime * sampleRate);
-                        const sampleCount = endSample - startSample;
-                        
-                        console.log(`📊 SAMPLE INFO: ${startSample} - ${endSample} (count: ${sampleCount})`);
-                        
-                        // Validate sample count
-                        if (sampleCount <= 0 || !isFinite(sampleCount)) {
-                            console.log('🚨 错误 ERROR: 无效的采样数量！INVALID SAMPLE COUNT!', sampleCount);
-                            throw new Error(`无效的采样数量: ${sampleCount} | Invalid sample count: ${sampleCount}`);
-                        }
-                        
-                        if (endSample > audioBuffer.length) {
-                            console.log('🚨 错误 ERROR: 结束采样超出范围！END SAMPLE OUT OF RANGE!', {
-                                endSample,
-                                audioBufferLength: audioBuffer.length
-                            });
-                            // Adjust endSample to not exceed buffer length
-                            const adjustedEndSample = audioBuffer.length;
-                            const adjustedSampleCount = adjustedEndSample - startSample;
-                            console.log('🔧 调整采样范围 ADJUSTING SAMPLE RANGE:', {
-                                oldEndSample: endSample,
-                                newEndSample: adjustedEndSample,
-                                newSampleCount: adjustedSampleCount
-                            });
-                        }
-                        
-                        const finalEndSample = Math.min(endSample, audioBuffer.length);
-                        const finalSampleCount = finalEndSample - startSample;
-                        
-                        if (finalSampleCount <= 0) {
-                            console.log('🚨 跳过无效分块 SKIPPING INVALID CHUNK:', finalSampleCount);
-                            continue;
-                        }
-                        
-                        const chunkBuffer = audioContext.createBuffer(
-                            audioBuffer.numberOfChannels,
-                            finalSampleCount,
-                            sampleRate
-                        );
-                        
-                        for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
-                            const channelData = audioBuffer.getChannelData(channel);
-                            const chunkData = chunkBuffer.getChannelData(channel);
-                            for (let j = 0; j < finalSampleCount; j++) {
-                                chunkData[j] = channelData[startSample + j];
-                            }
-                        }
-                        
-                        const wavBlob = this.audioBufferToWav(chunkBuffer);
-                        
-                        chunks.push({
-                            blob: wavBlob,
-                            index: i,
-                            startTime: startTime,
-                            endTime: endTime,
-                            duration: chunkDuration
-                        });
-                        
-                        console.log(`✅ 录音分块 ${i + 1} 创建完成 RECORDING CHUNK ${i + 1} CREATED: ${chunkDuration.toFixed(1)}s, ${wavBlob.size} bytes`);
-                    }
+                    console.log(`✅ FINAL RECORDING CHUNKS: ${finalChunks.length} chunks after size optimization`);
+                    console.log('📋 RECORDING CHUNK DETAILS:', finalChunks.map(c => ({
+                        index: c.index,
+                        duration: c.duration.toFixed(1) + 's',
+                        size: this.formatFileSize(c.size)
+                    })));
                     
-                    resolve(chunks);
+                    resolve(finalChunks);
                 } catch (error) {
                     console.log('💥 录音分块创建失败 RECORDING CHUNK CREATION FAILED:', error);
                     reject(error);
