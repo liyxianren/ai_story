@@ -1,0 +1,397 @@
+{% extends "base.html" %}
+
+{% block title %}User Feedback Management - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .feedback-card {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+    }
+    
+    .feedback-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    }
+    
+    .feedback-type-badge {
+        border-radius: 20px;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .feedback-status-badge {
+        border-radius: 15px;
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .feedback-content {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 10px 0;
+        line-height: 1.6;
+    }
+    
+    .admin-response {
+        background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+        border-radius: 10px;
+        padding: 15px;
+        margin: 10px 0;
+        line-height: 1.6;
+        border-left: 4px solid #2196f3;
+    }
+    
+    .filters-card {
+        background: linear-gradient(135deg, #fff8e1 0%, #f3e5f5 100%);
+        border-radius: 15px;
+        border: none;
+        margin-bottom: 25px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-comments text-primary me-3"></i>
+                User Feedback Management
+            </h1>
+            <p class="text-muted mt-2">Manage and respond to user feedback</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h4>{{ stats.total }}</h4>
+                    <small>Total Feedback</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h4>{{ stats.new }}</h4>
+                    <small>New Feedback</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h4>{{ stats.reviewed }}</h4>
+                    <small>Reviewed</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h4>{{ stats.resolved }}</h4>
+                    <small>Resolved</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card filters-card">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="new" {% if request.args.get('status') == 'new' %}selected{% endif %}>New</option>
+                        <option value="reviewed" {% if request.args.get('status') == 'reviewed' %}selected{% endif %}>Reviewed</option>
+                        <option value="resolved" {% if request.args.get('status') == 'resolved' %}selected{% endif %}>Resolved</option>
+                        <option value="closed" {% if request.args.get('status') == 'closed' %}selected{% endif %}>Closed</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Type</label>
+                    <select name="type" class="form-select">
+                        <option value="">All Types</option>
+                        <option value="suggestion" {% if request.args.get('type') == 'suggestion' %}selected{% endif %}>Suggestion</option>
+                        <option value="bug_report" {% if request.args.get('type') == 'bug_report' %}selected{% endif %}>Bug Report</option>
+                        <option value="compliment" {% if request.args.get('type') == 'compliment' %}selected{% endif %}>Compliment</option>
+                        <option value="general" {% if request.args.get('type') == 'general' %}selected{% endif %}>General</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Search feedback content..." 
+                           value="{{ request.args.get('search', '') }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Filter
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Feedback List -->
+    {% if feedback_list %}
+        {% for feedback in feedback_list %}
+        <div class="feedback-card card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center mb-2">
+                            <h6 class="mb-0 me-3">{{ feedback.username or 'Anonymous User' }}</h6>
+                            
+                            <!-- Feedback Type Badge -->
+                            {% if feedback.feedback_type == 'suggestion' %}
+                                <span class="feedback-type-badge bg-info text-white">💡 Suggestion</span>
+                            {% elif feedback.feedback_type == 'bug_report' %}
+                                <span class="feedback-type-badge bg-danger text-white">🐛 Bug Report</span>
+                            {% elif feedback.feedback_type == 'compliment' %}
+                                <span class="feedback-type-badge bg-success text-white">👍 Compliment</span>
+                            {% else %}
+                                <span class="feedback-type-badge bg-secondary text-white">💬 General</span>
+                            {% endif %}
+                            
+                            <!-- Status Badge -->
+                            {% if feedback.status == 'new' %}
+                                <span class="feedback-status-badge bg-warning text-dark ms-2">New</span>
+                            {% elif feedback.status == 'reviewed' %}
+                                <span class="feedback-status-badge bg-info text-white ms-2">Reviewed</span>
+                            {% elif feedback.status == 'resolved' %}
+                                <span class="feedback-status-badge bg-success text-white ms-2">Resolved</span>
+                            {% else %}
+                                <span class="feedback-status-badge bg-secondary text-white ms-2">Closed</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="feedback-content">
+                            {{ feedback.content }}
+                        </div>
+                        
+                        {% if feedback.admin_response %}
+                        <div class="admin-response">
+                            <strong><i class="fas fa-reply me-2"></i>Admin Response:</strong><br>
+                            {{ feedback.admin_response }}
+                        </div>
+                        {% endif %}
+                        
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            Submitted: {{ feedback.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            {% if feedback.admin_viewed_at %}
+                                | Viewed: {{ feedback.admin_viewed_at.strftime('%Y-%m-%d %H:%M') }}
+                            {% endif %}
+                        </small>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-grid gap-2">
+                            {% if feedback.status == 'new' %}
+                                <button class="btn btn-outline-primary btn-sm" onclick="markAsReviewed({{ feedback.id }})">
+                                    <i class="fas fa-eye me-2"></i>Mark as Reviewed
+                                </button>
+                            {% endif %}
+                            
+                            <button class="btn btn-outline-info btn-sm" onclick="showResponseModal({{ feedback.id }}, '{{ feedback.admin_response or '' }}')">
+                                <i class="fas fa-reply me-2"></i>
+                                {% if feedback.admin_response %}Update Response{% else %}Add Response{% endif %}
+                            </button>
+                            
+                            {% if feedback.status != 'resolved' %}
+                                <button class="btn btn-outline-success btn-sm" onclick="markAsResolved({{ feedback.id }})">
+                                    <i class="fas fa-check me-2"></i>Mark as Resolved
+                                </button>
+                            {% endif %}
+                            
+                            <button class="btn btn-outline-secondary btn-sm" onclick="markAsClosed({{ feedback.id }})">
+                                <i class="fas fa-times me-2"></i>Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+        <nav aria-label="Feedback pagination">
+            <ul class="pagination justify-content-center">
+                {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_feedback', page=pagination.prev_num, **request.args) }}">Previous</a>
+                    </li>
+                {% endif %}
+                
+                {% for page_num in pagination.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != pagination.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin_feedback', page=page_num, **request.args) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">…</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_feedback', page=pagination.next_num, **request.args) }}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No feedback found</h5>
+            <p class="text-muted">No feedback matches your current filters.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Response Modal -->
+<div class="modal fade" id="responseModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Admin Response</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="responseForm">
+                    <input type="hidden" id="feedbackId">
+                    <div class="mb-3">
+                        <label for="adminResponse" class="form-label">Response</label>
+                        <textarea class="form-control" id="adminResponse" rows="4" 
+                                placeholder="Write your response to the user..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitResponse()">Save Response</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Show response modal
+function showResponseModal(feedbackId, currentResponse) {
+    document.getElementById('feedbackId').value = feedbackId;
+    document.getElementById('adminResponse').value = currentResponse;
+    new bootstrap.Modal(document.getElementById('responseModal')).show();
+}
+
+// Submit admin response
+async function submitResponse() {
+    const feedbackId = document.getElementById('feedbackId').value;
+    const response = document.getElementById('adminResponse').value.trim();
+    
+    if (!response) {
+        alert('Please enter a response');
+        return;
+    }
+    
+    try {
+        const result = await fetch('/admin/api/feedback_response', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                feedback_id: feedbackId,
+                admin_response: response
+            })
+        });
+        
+        const data = await result.json();
+        
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('responseModal')).hide();
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Network error: ' + error.message);
+    }
+}
+
+// Mark as reviewed
+async function markAsReviewed(feedbackId) {
+    await updateFeedbackStatus(feedbackId, 'reviewed');
+}
+
+// Mark as resolved
+async function markAsResolved(feedbackId) {
+    await updateFeedbackStatus(feedbackId, 'resolved');
+}
+
+// Mark as closed
+async function markAsClosed(feedbackId) {
+    if (confirm('Are you sure you want to close this feedback?')) {
+        await updateFeedbackStatus(feedbackId, 'closed');
+    }
+}
+
+// Update feedback status
+async function updateFeedbackStatus(feedbackId, status) {
+    try {
+        const result = await fetch('/admin/api/feedback_status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                feedback_id: feedbackId,
+                status: status
+            })
+        });
+        
+        const data = await result.json();
+        
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Network error: ' + error.message);
+    }
+}
+</script>
+{% endblock %}

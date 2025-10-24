@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - 
+echoverse
+{% endblock %}
+
+{% block content %}
+<!-- Admin Header -->
+<div class="bg-gradient-primary text-white py-4 mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="h3 mb-0 text-white">
+                    <i class="fas fa-tachometer-alt me-3"></i>
+                    Admin Dashboard
+                </h1>
+                <p class="mb-0 mt-2 opacity-75">
+echoverse
+ Platform Admin System</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="d-flex justify-content-md-end gap-2">
+                    <a href="{{ url_for('admin_stories') }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-book me-2"></i>Story Management
+                    </a>
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-users me-2"></i>User Management
+                    </a>
+                    <a href="{{ url_for('admin_recycling_bin') }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-trash-restore me-2"></i>Recycling Bin
+                    </a>
+                    <a href="{{ url_for('admin_feedback') }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-comments me-2"></i>User Feedback
+                    </a>
+                    <a href="{{ url_for('admin_logout') }}" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-5">
+        <!-- Total Stories -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-warm h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-book-open" style="font-size: 2.5rem; color: var(--color-primary);"></i>
+                    </div>
+                    <h3 class="h4 mb-2">{{ (stats.stories.values() | sum) or 0 }}</h3>
+                    <p class="text-muted mb-0">Total Stories</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Stories -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-warm h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-clock" style="font-size: 2.5rem; color: #fbbf24;"></i>
+                    </div>
+                    <h3 class="h4 mb-2">{{ stats.stories.get('pending', 0) }}</h3>
+                    <p class="text-muted mb-0">Pending Stories</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Published Stories -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-warm h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-check-circle" style="font-size: 2.5rem; color: #16a34a;"></i>
+                    </div>
+                    <h3 class="h4 mb-2">{{ stats.stories.get('published', 0) }}</h3>
+                    <p class="text-muted mb-0">Published Stories</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Users -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-warm h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-users" style="font-size: 2.5rem; color: #0ea5e9;"></i>
+                    </div>
+                    <h3 class="h4 mb-2">{{ stats.total_users or 0 }}</h3>
+                    <p class="text-muted mb-0">Registered Users</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Breakdown -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-warm h-100">
+                <div class="card-header bg-light border-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2 text-primary"></i>
+                        Story Status Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for status, count in stats.stories.items() %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center">
+                            {% if status == 'published' %}
+                                <div class="badge bg-success me-3">Published</div>
+                            {% elif status == 'pending' %}
+                                <div class="badge bg-warning me-3">Pending</div>
+                            {% elif status == 'rejected' %}
+                                <div class="badge bg-danger me-3">Rejected</div>
+                            {% elif status == 'draft' %}
+                                <div class="badge bg-secondary me-3">Draft</div>
+                            {% else %}
+                                <div class="badge bg-info me-3">{{ status }}</div>
+                            {% endif %}
+                        </div>
+                        <span class="fw-bold">{{ count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0 shadow-warm h-100">
+                <div class="card-header bg-light border-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-star me-2 text-primary"></i>
+                        Popular Stories
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if top_stories %}
+                        {% for story in top_stories %}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="mb-1">
+                                    <a href="{{ url_for('admin_story_detail', story_id=story.id) }}" 
+                                       class="text-decoration-none">{{ story.title[:30] }}{% if story.title|length > 30 %}...{% endif %}</a>
+                                </h6>
+                                <small class="text-muted">Author: {{ story.author }}</small>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">
+                                    <i class="fas fa-eye me-1"></i>{{ story.view_count or 0 }}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center py-3">No published stories yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Pending Stories -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-warm">
+                <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock me-2 text-warning"></i>
+                        Recent Pending Stories
+                    </h5>
+                    <a href="{{ url_for('admin_stories', status='pending') }}" class="btn btn-primary btn-sm">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_pending %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Author</th>
+                                        <th>Submitted</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for story in recent_pending %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ url_for('admin_story_detail', story_id=story.id) }}" 
+                                               class="text-decoration-none fw-semibold">
+                                                {{ story.title }}
+                                            </a>
+                                        </td>
+                                        <td>{{ story.author }}</td>
+                                        <td>
+                                            <small class="text-muted">
+                                                {{ story.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-success btn-sm" 
+                                                        onclick="approveStory({{ story.id }})">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                <button class="btn btn-danger btn-sm" 
+                                                        onclick="rejectStory({{ story.id }})">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                                <a href="{{ url_for('admin_story_detail', story_id=story.id) }}" 
+                                                   class="btn btn-info btn-sm">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox" style="font-size: 3rem; color: #d1d5db;"></i>
+                            <p class="text-muted mt-3">No pending stories at the moment</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Quick approve/reject functions
+function approveStory(storyId) {
+    if (confirm('Are you sure you want to approve this story?')) {
+        fetch(`/admin/api/approve_story/${storyId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Story approved successfully!');
+                location.reload();
+            } else {
+                alert('Operation failed: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Network error, please try again');
+        });
+    }
+}
+
+function rejectStory(storyId) {
+    if (confirm('Are you sure you want to reject this story?')) {
+        fetch(`/admin/api/reject_story/${storyId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Story has been rejected');
+                location.reload();
+            } else {
+                alert('Operation failed: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Network error, please try again');
+        });
+    }
+}
+
+// Auto-refresh every 5 minutes
+setTimeout(() => {
+    location.reload();
+}, 300000);
+</script>
+{% endblock %}
