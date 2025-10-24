@@ -3105,7 +3105,7 @@ def admin_permanently_delete_story(story_id):
 
         # Verify story is in recycling bin and get file paths
         cursor.execute("""
-            SELECT id, image_path, audio_path
+            SELECT id, image_path, audio_path, video_path
             FROM stories
             WHERE id = %s AND deleted_at IS NOT NULL
         """, (story_id,))
@@ -3135,6 +3135,14 @@ def admin_permanently_delete_story(story_id):
                     logger.info(f"Deleted audio file: {audio_full_path}")
             except Exception as e:
                 logger.error(f"Failed to delete audio file: {e}")
+
+        # Delete video file if exists
+        if story.get('video_path'):
+            try:
+                video_service.delete_story_video(story['video_path'])
+                logger.info(f"Deleted video file: {story['video_path']}")
+            except Exception as e:
+                logger.error(f"Failed to delete video file: {e}")
 
         # Delete related data first
         cursor.execute("DELETE FROM story_likes WHERE story_id = %s", (story_id,))
@@ -3185,7 +3193,7 @@ def admin_batch_recycling_action():
             for story_id in story_ids:
                 # Verify story is in recycling bin and get file paths
                 cursor_dict.execute("""
-                    SELECT id, image_path, audio_path
+                    SELECT id, image_path, audio_path, video_path
                     FROM stories
                     WHERE id = %s AND deleted_at IS NOT NULL
                 """, (story_id,))
@@ -3211,6 +3219,14 @@ def admin_batch_recycling_action():
                                 logger.info(f"Batch delete: Removed audio file: {audio_full_path}")
                         except Exception as e:
                             logger.error(f"Batch delete: Failed to delete audio file: {e}")
+
+                    # Delete video file if exists
+                    if story.get('video_path'):
+                        try:
+                            video_service.delete_story_video(story['video_path'])
+                            logger.info(f"Batch delete: Removed video file: {story['video_path']}")
+                        except Exception as e:
+                            logger.error(f"Batch delete: Failed to delete video file: {e}")
 
                     # Delete related data
                     cursor.execute("DELETE FROM story_likes WHERE story_id = %s", (story_id,))

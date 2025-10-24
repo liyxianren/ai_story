@@ -516,12 +516,6 @@ echoverse
 
                 <div class="video-info" style="margin-top: 20px; padding: 16px; background: rgba(255, 255, 255, 0.6); border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.2);">
                     <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 20px; color: #6b7280; font-size: 0.95rem;">
-                        {% if story.video_original_name %}
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-file-video" style="color: #8b5cf6;"></i>
-                            <span>File: <strong style="color: var(--warm-primary);">{{ story.video_original_name }}</strong></span>
-                        </div>
-                        {% endif %}
                         {% if story.video_duration %}
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <i class="fas fa-clock" style="color: #8b5cf6;"></i>
