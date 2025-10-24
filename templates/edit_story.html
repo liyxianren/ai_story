@@ -85,8 +85,8 @@
                                 {% if story.image_path %}
                                 <div class="mt-3">
                                     <small class="text-muted d-block mb-2">当前封面：</small>
-                                    <img src="{{ story.image_path }}" alt="当前封面" 
-                                         class="img-thumbnail" style="max-width: 200px; max-height: 120px; object-fit: cover;">
+                                    <img src="{{ story.image_path }}" alt="当前封面"
+                                         class="img-thumbnail" style="max-width: 200px; max-height: 120px; object-fit: contain; background-color: #fef3c7;">
                                 </div>
                                 {% endif %}
                             </div>

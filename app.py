@@ -17,6 +17,7 @@ from speech_service import speech_service
 from gemini_service import gemini_service
 from image_service import image_service
 from audio_service import audio_service
+from video_service import video_service
 from config import Config
 
 app = Flask(__name__)
@@ -190,8 +191,9 @@ def index():
         cursor = connection.cursor(pymysql.cursors.DictCursor)
         
         cursor.execute("""
-            SELECT s.id, s.title, s.description, s.image_path, s.view_count, 
+            SELECT s.id, s.title, s.description, s.image_path, s.view_count,
                    s.created_at, s.published_at, u.username,
+                   s.audio_path, s.video_path,
                    COALESCE(s.description, LEFT(s.content, 200)) as excerpt
             FROM stories s
             JOIN users u ON s.user_id = u.id
@@ -380,13 +382,15 @@ def my_stories():
         
         # 获取当前用户的所有故事
         cursor.execute("""
-            SELECT 
+            SELECT
                 s.id,
                 s.title,
                 s.description,
                 s.content,
                 s.status,
                 s.image_path,
+                s.audio_path,
+                s.video_path,
                 s.created_at,
                 s.updated_at,
                 s.view_count,
@@ -396,7 +400,7 @@ def my_stories():
             LEFT JOIN story_tags st ON s.id = st.story_id
             LEFT JOIN tags t ON st.tag_id = t.id
             WHERE s.user_id = %s
-            GROUP BY s.id, s.title, s.description, s.content, s.status, s.image_path, s.created_at, s.updated_at, s.view_count, s.like_count
+            GROUP BY s.id, s.title, s.description, s.content, s.status, s.image_path, s.audio_path, s.video_path, s.created_at, s.updated_at, s.view_count, s.like_count
             ORDER BY s.created_at DESC
         """, (current_user.id,))
         
@@ -1254,6 +1258,7 @@ def story_detail(story_id):
                 s.image_path, s.image_original_name,
                 s.audio_path, s.audio_original_name, s.audio_duration, s.audio_format,
                 s.audio_language, s.audio_language_name,
+                s.video_path, s.video_original_name, s.video_duration, s.video_format,
                 s.reading_time, s.word_count,
                 s.status, s.view_count, s.like_count, s.created_at, s.updated_at, s.published_at,
                 u.username as author, u.bio as author_bio,
@@ -1267,6 +1272,7 @@ def story_detail(story_id):
                      s.image_path, s.image_original_name,
                      s.audio_path, s.audio_original_name, s.audio_duration, s.audio_format,
                      s.audio_language, s.audio_language_name,
+                     s.video_path, s.video_original_name, s.video_duration, s.video_format,
                      s.reading_time, s.word_count,
                      s.status, s.view_count, s.like_count, s.created_at, s.updated_at, s.published_at,
                      u.username, u.bio
@@ -1315,11 +1321,13 @@ def story_library():
         
         # Get all published stories with user info and tags
         cursor.execute("""
-            SELECT 
+            SELECT
                 s.id,
                 s.title,
                 s.description,
                 s.image_path,
+                s.audio_path,
+                s.video_path,
                 s.created_at,
                 s.view_count,
                 s.like_count,
@@ -1330,7 +1338,7 @@ def story_library():
             LEFT JOIN story_tags st ON s.id = st.story_id
             LEFT JOIN tags t ON st.tag_id = t.id
             WHERE s.status = 'published' AND s.deleted_at IS NULL
-            GROUP BY s.id, s.title, s.description, s.image_path, s.created_at, s.view_count, s.like_count, u.username
+            GROUP BY s.id, s.title, s.description, s.image_path, s.audio_path, s.video_path, s.created_at, s.view_count, s.like_count, u.username
             ORDER BY s.created_at DESC
         """)
         
@@ -1633,7 +1641,31 @@ def publish_story_api():
                 logger.info("No image file provided")
         else:
             logger.info("No cover_image in request files")
-        
+
+        # Handle video upload
+        video_path = None
+        video_original_name = None
+        video_duration = None
+        video_format = None
+
+        if 'story_video' in request.files:
+            file = request.files['story_video']
+            if file and file.filename:
+                logger.info(f"Uploading video: {file.filename}")
+                upload_result = video_service.upload_story_video(file, current_user.id)
+                if upload_result['success']:
+                    video_path = upload_result['video_path']
+                    video_original_name = upload_result['metadata']['original_filename']
+                    video_duration = upload_result['duration']
+                    video_format = upload_result['format']
+                    logger.info("Video uploaded successfully")
+                else:
+                    logger.error(f"Video upload failed: {upload_result.get('error', 'Unknown error')}")
+            else:
+                logger.info("No video file provided")
+        else:
+            logger.info("No story_video in request files")
+
         # Insert story into database
         logger.info("Connecting to database for story insertion")
         connection = pymysql.connect(**DB_CONFIG)
@@ -1646,8 +1678,9 @@ def publish_story_api():
                                image_path, image_original_name,
                                audio_path, audio_original_name, audio_duration, audio_format,
                                audio_language, audio_language_name,
+                               video_path, video_original_name, video_duration, video_format,
                                reading_time, word_count, status, published_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
         published_at = datetime.now() if status == 'published' else None
@@ -1657,6 +1690,7 @@ def publish_story_api():
             image_path, image_original_name,
             audio_path, audio_original_name, audio_duration, audio_format,
             audio_language, audio_language_name,
+            video_path, video_original_name, video_duration, video_format,
             reading_time, word_count, status, published_at
         ))
         

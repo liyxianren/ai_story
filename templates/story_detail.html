@@ -54,7 +54,8 @@ echoverse
     .story-cover-image {
         width: 100%;
         height: 350px;
-        object-fit: cover;
+        object-fit: contain;
+        background-color: #fef3c7;
         transition: transform 0.3s ease;
     }
 
@@ -292,7 +293,8 @@ echoverse
     .related-story-image {
         width: 100%;
         height: 120px;
-        object-fit: cover;
+        object-fit: contain;
+        background-color: #fef3c7;
         border-radius: 12px;
         margin-bottom: 12px;
     }
@@ -490,6 +492,52 @@ echoverse
                             <span>Language: <strong>{{ story.audio_language_name }}</strong></span>
                         </div>
                         {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if story.video_path %}
+            <!-- Video Player Section -->
+            <div class="story-content-section" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%); margin-bottom: 32px;">
+                <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 16px 24px; border-radius: 16px 16px 0 0; margin: -40px -40px 24px -40px;">
+                    <h3 style="margin: 0; font-size: 1.3rem; display: flex; align-items: center; gap: 12px;">
+                        <i class="fas fa-video"></i>
+                        <span>Watch Story Video</span>
+                    </h3>
+                </div>
+
+                <div class="video-player-container">
+                    <video id="storyVideoPlayer" controls style="width: 100%; max-height: 500px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); outline: none; object-fit: contain; background-color: #fef3c7;">
+                        <source src="/video/stories/{{ story.video_path }}" type="video/{{ story.video_format or 'mp4' }}">
+                        Your browser does not support video playback.
+                    </video>
+                </div>
+
+                <div class="video-info" style="margin-top: 20px; padding: 16px; background: rgba(255, 255, 255, 0.6); border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.2);">
+                    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 20px; color: #6b7280; font-size: 0.95rem;">
+                        {% if story.video_original_name %}
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-file-video" style="color: #8b5cf6;"></i>
+                            <span>File: <strong style="color: var(--warm-primary);">{{ story.video_original_name }}</strong></span>
+                        </div>
+                        {% endif %}
+                        {% if story.video_duration %}
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-clock" style="color: #8b5cf6;"></i>
+                            <span>Duration: <strong>{{ story.video_duration }}</strong> seconds</span>
+                        </div>
+                        {% endif %}
+                        {% if story.video_format %}
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-film" style="color: #8b5cf6;"></i>
+                            <span>Format: <strong>{{ story.video_format.upper() }}</strong></span>
+                        </div>
+                        {% endif %}
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-user-circle" style="color: #8b5cf6;"></i>
+                            <span>Uploaded by <strong style="color: var(--warm-primary);">{{ story.author }}</strong></span>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -76,8 +76,8 @@
                         
                         {% if story.image_path %}
                         <div class="ms-3">
-                            <img src="{{ story.image_path }}" alt="故事封面" 
-                                 class="img-thumbnail" style="max-width: 120px; max-height: 80px; object-fit: cover;">
+                            <img src="{{ story.image_path }}" alt="故事封面"
+                                 class="img-thumbnail" style="max-width: 120px; max-height: 80px; object-fit: contain; background-color: #fef3c7;">
                         </div>
                         {% endif %}
                     </div>

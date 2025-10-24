@@ -22,7 +22,7 @@ class Config:
     
     # Upload Configuration
     UPLOAD_FOLDER = '/image'
-    MAX_CONTENT_LENGTH = 31 * 1024 * 1024  # 31MB (略大于30MB以留余量)
+    MAX_CONTENT_LENGTH = 105 * 1024 * 1024  # 105MB (支持100MB视频上传)
     
     # Environment
     FLASK_ENV = os.environ.get('FLASK_ENV', 'development')

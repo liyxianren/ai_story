@@ -457,8 +457,44 @@ echoverse
                                         </small>
                                     </div>
                                 </div>
-                                <input type="file" id="coverImage" name="cover_image" accept="image/jpeg,image/png,image/webp" 
+                                <input type="file" id="coverImage" name="cover_image" accept="image/jpeg,image/png,image/webp"
                                        style="display: none;" onchange="previewImage(this)">
+                            </div>
+                        </div>
+
+                        <!-- Video Content Card -->
+                        <div class="modern-card">
+                            <div class="card-header-modern" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                                <i class="fas fa-video me-2"></i>Video Content (Optional)
+                            </div>
+
+                            <!-- Video Upload Area -->
+                            <div class="mb-3">
+                                <div id="videoUploadArea" class="upload-area-modern" onclick="document.getElementById('storyVideo').click()">
+                                    <div id="videoPreview">
+                                        <div class="d-inline-flex align-items-center justify-content-center mb-3" style="
+                                            width: 64px;
+                                            height: 64px;
+                                            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.1));
+                                            border-radius: 16px;
+                                            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+                                        ">
+                                            <i class="fas fa-film" style="font-size: 28px; color: #8b5cf6;"></i>
+                                        </div>
+                                        <p style="color: #8b5cf6; font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;">
+                                            Upload Story Video
+                                        </p>
+                                        <p style="color: #7c3aed; font-size: 0.9rem; margin-bottom: 0; opacity: 0.8;">
+                                            Click to upload video content
+                                        </p>
+                                        <small style="color: #7c3aed; opacity: 0.6; margin-top: 8px; display: block;">
+                                            Supports MP4, WebM, MOV formats, max 100MB<br>
+                                            支持 MP4, WebM, MOV 格式，最大 100MB
+                                        </small>
+                                    </div>
+                                </div>
+                                <input type="file" id="storyVideo" name="story_video" accept="video/mp4,video/webm,video/quicktime"
+                                       style="display: none;" onchange="previewVideo(this)">
                             </div>
                         </div>
 
@@ -797,6 +833,78 @@ function removeImage() {
         <small style="color: var(--warm-secondary); opacity: 0.6; margin-top: 8px; display: block;">
                             Supports JPG, PNG, WebP formats, maximum 5MB<br>
             Support JPG, PNG, WebP formats, max 5MB
+        </small>
+    `;
+}
+
+// Video preview function
+function previewVideo(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+
+        // Validate file size (100MB max)
+        if (file.size > 100 * 1024 * 1024) {
+            alert('视频文件过大，请选择小于100MB的视频\nVideo file too large, please select a video smaller than 100MB');
+            input.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('videoPreview').innerHTML = `
+                <div class="uploaded-video-container">
+                    <video controls style="
+                        max-height: 200px;
+                        width: 100%;
+                        border-radius: 16px;
+                        box-shadow: 0 8px 25px rgba(139, 92, 246, 0.2);
+                        margin-bottom: 16px;
+                        object-fit: contain;
+                        background-color: #000;
+                    ">
+                        <source src="${e.target.result}" type="${file.type}">
+                        Your browser does not support video playback.
+                    </video>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <small style="color: #8b5cf6; font-weight: 500;">${file.name}</small>
+                        <button type="button" class="btn-modern-outline" onclick="removeVideo()" style="
+                            padding: 6px 12px;
+                            font-size: 0.8rem;
+                            background: rgba(239, 68, 68, 0.1);
+                            border-color: rgba(239, 68, 68, 0.3);
+                            color: #dc2626;
+                        ">
+                            <i class="fas fa-times me-1"></i>Remove
+                        </button>
+                    </div>
+                </div>
+            `;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function removeVideo() {
+    document.getElementById('storyVideo').value = '';
+    document.getElementById('videoPreview').innerHTML = `
+        <div class="d-inline-flex align-items-center justify-content-center mb-3" style="
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.1));
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+        ">
+            <i class="fas fa-film" style="font-size: 28px; color: #8b5cf6;"></i>
+        </div>
+        <p style="color: #8b5cf6; font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;">
+            Upload Story Video
+        </p>
+        <p style="color: #7c3aed; font-size: 0.9rem; margin-bottom: 0; opacity: 0.8;">
+            Click to upload video content
+        </p>
+        <small style="color: #7c3aed; opacity: 0.6; margin-top: 8px; display: block;">
+            Supports MP4, WebM, MOV formats, max 100MB<br>
+            支持 MP4, WebM, MOV 格式，最大 100MB
         </small>
     `;
 }
