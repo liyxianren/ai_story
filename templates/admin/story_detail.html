@@ -198,12 +198,12 @@
                 </div>
             </div>
 
-            <!-- Timeline -->
+            <!-- Published Date -->
             <div class="card border-0 shadow-warm">
                 <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
-                        <i class="fas fa-clock me-2 text-primary"></i>
-                        Timeline
+                        <i class="fas fa-calendar me-2 text-primary"></i>
+                        Published Date
                     </h5>
                     <button class="btn btn-sm btn-outline-primary" onclick="toggleTimeEdit()">
                         <i class="fas fa-edit me-1"></i>Edit
@@ -212,44 +212,23 @@
                 <div class="card-body">
                     <!-- Display Mode -->
                     <div id="timelineDisplay">
-                        <div class="timeline">
-                            <div class="timeline-item d-flex align-items-center py-2">
-                                <div class="timeline-marker bg-primary me-3"></div>
-                                <div>
-                                    <small class="text-muted">Created</small>
-                                    <div class="fw-semibold">{{ story.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
-                                </div>
+                        <div class="text-center py-3">
+                            <div class="h4 mb-1 text-success" id="publishedAtDisplay">
+                                {{ (story.published_at or story.created_at).strftime('%B %d, %Y') }}
                             </div>
-
-                            {% if story.updated_at and story.updated_at != story.created_at %}
-                            <div class="timeline-item d-flex align-items-center py-2">
-                                <div class="timeline-marker bg-info me-3"></div>
-                                <div>
-                                    <small class="text-muted">Last Updated</small>
-                                    <div class="fw-semibold">{{ story.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
-                                </div>
-                            </div>
-                            {% endif %}
-
-                            {% if story.published_at %}
-                            <div class="timeline-item d-flex align-items-center py-2">
-                                <div class="timeline-marker bg-success me-3"></div>
-                                <div>
-                                    <small class="text-muted">Published</small>
-                                    <div class="fw-semibold" id="publishedAtDisplay">{{ story.published_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
-                                </div>
-                            </div>
-                            {% endif %}
+                            <small class="text-muted">
+                                {{ (story.published_at or story.created_at).strftime('%H:%M:%S') }}
+                            </small>
                         </div>
                     </div>
 
                     <!-- Edit Form (hidden by default) -->
                     <div id="timelineEditForm" class="d-none">
                         <div class="mb-3">
-                            <label class="form-label">Published Time</label>
+                            <label class="form-label">Published Date & Time</label>
                             <input type="datetime-local" class="form-control" id="publishedAtInput"
-                                   value="{% if story.published_at %}{{ story.published_at.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
-                            <small class="text-muted">Modify the story's published time</small>
+                                   value="{{ (story.published_at or story.created_at).strftime('%Y-%m-%dT%H:%M') }}">
+                            <small class="text-muted">This date will be displayed on the story page</small>
                         </div>
                         <div class="d-flex gap-2">
                             <button class="btn btn-sm btn-success" onclick="savePublishedAt()">

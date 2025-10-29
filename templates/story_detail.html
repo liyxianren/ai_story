@@ -409,7 +409,7 @@ echoverse
                             </div>
                             <div class="meta-item">
                                 <i class="fas fa-calendar"></i>
-                                <span>{{ story.created_at.strftime('%B %d, %Y') }}</span>
+                                <span>{{ (story.published_at or story.created_at).strftime('%B %d, %Y') }}</span>
                             </div>
                             <div class="meta-item">
                                 <i class="fas fa-clock"></i>
