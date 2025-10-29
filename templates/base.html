@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}User Management System{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* 故事传承网站 - 现代化amber主题 */
+            --color-primary: #d97706; /* 琥珀色主色调 */
+            --color-primary-light: #fbbf24;
+            --color-primary-dark: #92400e;
+            --color-secondary: #7f1d1d;
+            --color-neutral-light: #fef3c7;
+            --color-neutral: #f59e0b;
+            --color-neutral-dark: #4b5563;
+            
+            /* 兼容原有变量 */
+            --warm-primary: #d97706;
+            --warm-primary-dark: #92400e;
+            --warm-primary-light: #fbbf24;
+            --warm-secondary: #7f1d1d;
+            --warm-neutral: #fef3c7;
+            --warm-background: #FFF8E1;
+            --warm-success: #16a34a;
+            --warm-info: #0ea5e9;
+            --warm-warning: #ea580c;
+            --warm-white: #FEFEFE;
+            
+            /* 字体系统 */
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+            --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--warm-background) 0%, #FFF3E0 100%);
+            min-height: 100vh;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            color: #78350f;
+            line-height: 1.6;
+        }
+        
+        /* 现代化导航栏 */
+        .navbar {
+            background: rgba(254, 243, 199, 0.85) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(217, 119, 6, 0.15);
+            border-bottom: 1px solid rgba(217, 119, 6, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-brand {
+            color: #92400e !important;
+            font-family: 'Courier New', 'Lucida Console', Monaco, monospace;
+            font-size: 1.4rem;
+            font-weight: bold;
+            letter-spacing: 0.02em;
+            transition: color 0.3s ease;
+        }
+        
+        .navbar-brand:hover {
+            color: #d97706 !important;
+        }
+        
+        /* 现代化卡片设计 */
+        .card {
+            background: var(--warm-white);
+            border: 1px solid var(--warm-primary-light);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(141, 110, 99, 0.12);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            box-shadow: 0 15px 50px rgba(141, 110, 99, 0.18);
+            transform: translateY(-3px);
+        }
+        
+        /* 现代化按钮设计 */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            border: none;
+            color: #fff;
+            font-weight: 500;
+            border-radius: 50px;
+            padding: 12px 24px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(217, 119, 6, 0.2);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--color-primary-dark) 0%, #7c2d12 100%);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(217, 119, 6, 0.3);
+        }
+        
+        .btn-outline-primary {
+            background-color: transparent;
+            border: 2px solid var(--color-primary);
+            color: var(--color-primary);
+            font-weight: 500;
+            border-radius: 50px;
+            padding: 10px 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            border-color: var(--color-primary);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(217, 119, 6, 0.3);
+        }
+        
+        /* 现代化表单控件 */
+        .form-control {
+            border-radius: 15px;
+            border: 2px solid #fde68a;
+            padding: 14px 18px;
+            transition: all 0.3s ease;
+            font-family: 'Segoe UI', sans-serif;
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        .form-control:focus {
+            border-color: var(--warm-primary);
+            box-shadow: 0 0 0 0.2rem rgba(217, 119, 6, 0.25);
+            background: #fff;
+        }
+        
+        /* 现代化警告框 */
+        .alert {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, var(--warm-success) 0%, #15803d 100%);
+            color: white;
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+        }
+        
+        .alert-info {
+            background: linear-gradient(135deg, var(--warm-info) 0%, #0284c7 100%);
+            color: white;
+        }
+        
+        /* 导航链接现代化样式 */
+        .nav-link {
+            color: #6b7280 !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.5rem !important;
+            border-radius: 8px;
+            margin: 0 4px;
+        }
+        
+        .nav-link:hover {
+            color: #374151 !important;
+            background: rgba(217, 119, 6, 0.1);
+            border-bottom-color: #fbbf24;
+        }
+        
+        .nav-link.active {
+            color: #111827 !important;
+            background: rgba(217, 119, 6, 0.15);
+            border-bottom-color: var(--color-primary);
+        }
+        
+        /* 标题样式 */
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--warm-primary-dark);
+            font-family: 'Georgia', serif;
+        }
+        
+        /* 工具类 */
+        .text-primary {
+            color: var(--warm-primary) !important;
+        }
+        
+        .bg-primary {
+            background: linear-gradient(135deg, var(--warm-primary) 0%, var(--warm-primary-dark) 100%) !important;
+        }
+        
+        .border-primary {
+            border-color: var(--warm-primary) !important;
+        }
+        
+        /* 现代化动画 */
+        @keyframes blob {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        .animate-blob {
+            animation: blob 7s infinite;
+        }
+
+        .animation-delay-2000 {
+            animation-delay: 2s;
+        }
+
+        .animation-delay-4000 {
+            animation-delay: 4s;
+        }
+        
+        /* 全局增强样式 */
+        .img-fluid {
+            transition: transform 0.3s ease;
+        }
+        
+        .img-fluid:hover {
+            transform: scale(1.02);
+        }
+        
+        /* 文本截断工具类 */
+        .text-truncate-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .text-truncate-3 {
+            display: -webkit-box;
+            
+            
+            : 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        /* 阴影工具类 */
+        .shadow-warm {
+            box-shadow: 0 10px 40px rgba(141, 110, 99, 0.12) !important;
+        }
+        
+        .shadow-warm-lg {
+            box-shadow: 0 15px 50px rgba(141, 110, 99, 0.18) !important;
+        }
+        
+        /* 渐变背景工具类 */
+        .bg-gradient-warm {
+            background: linear-gradient(135deg, var(--warm-background) 0%, #FFF3E0 100%) !important;
+        }
+        
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%) !important;
+        }
+        
+        /* 响应式优化 */
+        @media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+            
+            .btn-primary, .btn-outline-primary {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+            
+            .display-4 {
+                font-size: 2rem !important;
+            }
+            
+            .fs-5 {
+                font-size: 1rem !important;
+            }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url_for('index') }}">
+                <i class="fa-solid fa-book-open me-2" style="color: var(--color-primary); font-size: 1.5rem;"></i>
+                <span>echoverse</span>
+            </a>
+            
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="box-shadow: none;">
+                <i class="fa-solid fa-bars" style="color: var(--color-primary); font-size: 1.2rem;"></i>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">
+                            Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'story_library' %}active{% endif %}" href="{{ url_for('story_library') }}">
+                            Story Library
+                        </a>
+                    </li>
+                    
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'record_story' %}active{% endif %}" href="{{ url_for('record_story') }}">
+                                Record Story
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'my_stories' %}active{% endif %}" href="{{ url_for('my_stories') }}">
+                                My Stories
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'profile' %}active{% endif %}" href="{{ url_for('profile') }}">
+                                Profile
+                            </a>
+                        </li>
+                        <li class="nav-item ms-3">
+                            <a class="btn btn-primary btn-sm" href="{{ url_for('logout') }}">
+                                <i class="fa-solid fa-sign-out-alt me-2"></i>
+                                Logout
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login') }}">
+                                Login
+                            </a>
+                        </li>
+                        <li class="nav-item ms-3">
+                            <a class="btn btn-primary btn-sm" href="{{ url_for('register') }}">
+                                <i class="fa-solid fa-user-plus me-2"></i>
+                                Register
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mt-5 pt-4">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' if category == 'success' else 'info' }} alert-dismissible fade show" role="alert">
+                        <div class="d-flex align-items-center">
+                            {% if category == 'success' %}
+                                <i class="fas fa-check-circle me-3"></i>
+                            {% elif category == 'error' %}
+                                <i class="fas fa-exclamation-triangle me-3"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle me-3"></i>
+                            {% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="{% if not current_user.is_authenticated %}pt-5{% else %}pt-4{% endif %}">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-5 mt-5" style="background: linear-gradient(135deg, #78350f 0%, #92400e 100%); color: #fef3c7;">
+        <div class="container">
+            <div class="row g-4 mb-4">
+                <div class="col-lg-3 col-md-6">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fa-solid fa-book-open me-2" style="color: #fbbf24; font-size: 1.5rem;"></i>
+                        <span class="fw-bold fs-5" style="color: #fff; font-family: Georgia, serif;">echoverse</span>
+                    </div>
+                    <p class="mb-3" style="color: #fde68a;">
+                        Preserving voices. AI-powered. Human-rooted.
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-decoration-none" style="color: #fbbf24; transition: color 0.3s ease;">
+                            <i class="fa-brands fa-weixin fs-5"></i>
+                        </a>
+                        <a href="#" class="text-decoration-none" style="color: #fbbf24; transition: color 0.3s ease;">
+                            <i class="fa-brands fa-weibo fs-5"></i>
+                        </a>
+                        <a href="#" class="text-decoration-none" style="color: #fbbf24; transition: color 0.3s ease;">
+                            <i class="fa-brands fa-qq fs-5"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="text-white mb-3">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="{{ url_for('index') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">Home</a></li>
+                        {% if current_user.is_authenticated %}
+                            <li class="mb-2"><a href="{{ url_for('record_story') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">Record Story</a></li>
+                            <li class="mb-2"><a href="{{ url_for('my_stories') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">My Stories</a></li>
+                            <li class="mb-2"><a href="{{ url_for('profile') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">Profile</a></li>
+                        {% endif %}
+                        <li class="mb-2"><a href="{{ url_for('story_library') }}" class="text-decoration-none" style="color: #fde68a; transition: color 0.3s ease;">Story Library</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="text-white mb-3">
+                        <i class="fas fa-comment-dots me-2"></i>
+                        User Feedback
+                    </h5>
+                    <p class="mb-3" style="color: #fde68a; font-size: 0.9rem;">
+                        Help us improve! Share your suggestions and ideas.
+                    </p>
+                    {% if current_user.is_authenticated %}
+                        <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#feedbackModal" style="border-radius: 20px; transition: all 0.3s ease;">
+                            <i class="fas fa-paper-plane me-2"></i>
+                            Send Feedback
+                        </button>
+                    {% else %}
+                        <p class="small" style="color: #fbbf24;">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Please log in to send feedback
+                        </p>
+                    {% endif %}
+                </div>
+
+            </div>
+            
+            <hr style="border-color: #92400e; opacity: 0.5;">
+            <div class="text-center pt-3">
+                <p class="mb-0" style="color: #fbbf24;">
+                    <i class="fa-solid fa-book-open me-2"></i>
+                    © 2025 echoverse - Preserving voices. AI-powered. Human-rooted.| 
+                    <i class="fa-solid fa-heart mx-2" style="color: #fbbf24;"></i>
+                    Every Story Deserves to be Treasured
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Feedback Modal -->
+    {% if current_user.is_authenticated %}
+    <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
+                <div class="modal-header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border-radius: 20px 20px 0 0;">
+                    <h5 class="modal-title" id="feedbackModalLabel">
+                        <i class="fas fa-comment-dots me-2"></i>
+                        Send Us Your Feedback
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="feedbackForm">
+                        <div class="mb-3">
+                            <label for="feedbackType" class="form-label fw-bold">
+                                <i class="fas fa-tag me-2"></i>
+                                Feedback Type
+                            </label>
+                            <select class="form-select" id="feedbackType" name="feedback_type" required style="border-radius: 12px;">
+                                <option value="">Select feedback type...</option>
+                                <option value="suggestion">💡 Suggestion</option>
+                                <option value="bug_report">🐛 Bug Report</option>
+                                <option value="compliment">👍 Compliment</option>
+                                <option value="general">💬 General Feedback</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="feedbackContent" class="form-label fw-bold">
+                                <i class="fas fa-edit me-2"></i>
+                                Your Feedback
+                            </label>
+                            <textarea class="form-control" id="feedbackContent" name="content" rows="4" 
+                                    placeholder="Tell us what you think about our platform. Your feedback helps us improve!"
+                                    required style="border-radius: 12px; resize: vertical;"></textarea>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Please be as detailed as possible. Your feedback is important to us!
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 12px;">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn btn-warning" style="border-radius: 12px;">
+                                <i class="fas fa-paper-plane me-2"></i>
+                                Send Feedback
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script>
+        // Auto-hide flash messages after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                if (alert) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            });
+        }, 5000);
+        
+        // Add hover effects to footer links
+        document.addEventListener('DOMContentLoaded', function() {
+            const footerLinks = document.querySelectorAll('footer a');
+            footerLinks.forEach(link => {
+                link.addEventListener('mouseenter', function() {
+                    this.style.color = '#fff';
+                });
+                link.addEventListener('mouseleave', function() {
+                    if (this.style.color !== '#fbbf24') {
+                        this.style.color = '#fde68a';
+                    }
+                });
+            });
+        });
+        
+        // Feedback form handling
+        {% if current_user.is_authenticated %}
+        document.getElementById('feedbackForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+            
+            try {
+                const formData = new FormData(this);
+                const response = await fetch('/api/submit_feedback', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show success message
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('feedbackModal'));
+                    modal.hide();
+                    
+                    // Reset form
+                    this.reset();
+                    
+                    // Show success alert
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                    alertDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+                    alertDiv.innerHTML = `
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Thank you!</strong> Your feedback has been sent successfully.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    document.body.appendChild(alertDiv);
+                    
+                    // Auto remove after 5 seconds
+                    setTimeout(() => {
+                        if (alertDiv.parentNode) {
+                            alertDiv.remove();
+                        }
+                    }, 5000);
+                    
+                } else {
+                    alert('Error: ' + result.error);
+                }
+                
+            } catch (error) {
+                console.error('Feedback submission error:', error);
+                alert('Network error. Please try again later.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+        {% endif %}
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+    
+    <script>
+        // 语言切换功能
+        function changeLanguage(languageCode) {
+            // 显示加载状态
+            const loadingHtml = `
+                <div class="d-flex justify-content-center align-items-center py-3">
+                    <div class="spinner-border spinner-border-sm me-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span>切换语言中...</span>
+                </div>
+            `;
+            
+            // 可以在这里显示加载状态
+            
+            // 调用后端 API 切换语言
+            fetch(`/set_language/${languageCode}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 刷新页面以应用新语言
+                    window.location.reload();
+                } else {
+                    console.error('语言切换失败:', data.error);
+                    alert('语言切换失败，请稍后再试');
+                }
+            })
+            .catch(error => {
+                console.error('请求错误:', error);
+                alert('网络错误，请稍后再试');
+            });
+        }
+        
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 可以在这里添加其他初始化代码
+        });
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

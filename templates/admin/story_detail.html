@@ -1,0 +1,437 @@
+{% extends "base.html" %}
+
+{% block title %}{{ story.title }} - Story Detail - Admin Panel{% endblock %}
+
+{% block content %}
+<!-- Admin Header -->
+<div class="bg-gradient-primary text-white py-4 mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="h3 mb-0 text-white">
+                    <i class="fas fa-book-open me-3"></i>
+                    Story Detail
+                </h1>
+                <p class="mb-0 mt-2 opacity-75">{{ story.title }}</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="d-flex justify-content-md-end gap-2">
+                    <a href="{{ url_for('admin_stories', status=story.status) }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-left me-2"></i>Back to List
+                    </a>
+                    {% if story.status == 'published' %}
+                    <a href="{{ url_for('story_detail', story_id=story.id) }}"
+                       class="btn btn-outline-light btn-sm" target="_blank">
+                        <i class="fas fa-external-link-alt me-2"></i>View Public Page
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- Story Content -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-warm mb-4">
+                <!-- Story Header -->
+                <div class="card-header bg-light border-0">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h2 class="h4 mb-2">{{ story.title }}</h2>
+                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                {% if story.status == 'published' %}
+                                    <span class="badge bg-success">Published</span>
+                                {% elif story.status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% elif story.status == 'rejected' %}
+                                    <span class="badge bg-danger">Rejected</span>
+                                {% elif story.status == 'draft' %}
+                                    <span class="badge bg-secondary">Draft</span>
+                                {% else %}
+                                    <span class="badge bg-info">{{ story.status }}</span>
+                                {% endif %}
+
+                                {% if story.language_name %}
+                                <span class="badge bg-info">{{ story.language_name }}</span>
+                                {% endif %}
+
+                                <span class="badge bg-secondary">{{ story.word_count or 0 }} words</span>
+
+                                {% if story.reading_time %}
+                                <span class="badge bg-secondary">{{ story.reading_time }} min read</span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if story.tags %}
+                            <div class="mb-2">
+                                {% for tag in story.tags.split(',') %}
+                                <span class="badge bg-outline-primary me-1"># {{ tag.strip() }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if story.image_path %}
+                        <div class="ms-3">
+                            <img src="{{ story.image_path }}" alt="Story Cover"
+                                 class="img-thumbnail" style="max-width: 120px; max-height: 80px; object-fit: contain; background-color: #fef3c7;">
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Story Description -->
+                {% if story.description %}
+                <div class="card-body border-bottom">
+                    <h6 class="text-muted mb-2">Description</h6>
+                    <p class="text-muted">{{ story.description }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Story Content -->
+                <div class="card-body">
+                    <h6 class="text-muted mb-3">Story Content</h6>
+                    <div class="story-content" style="line-height: 1.8; font-size: 1.1rem;">
+                        {{ story.content | replace('\n\n', '</p><p>') | replace('\n', '<br>') | safe }}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                {% if story.status == 'pending' %}
+                <div class="card-footer bg-light border-0">
+                    <div class="d-flex justify-content-end gap-2">
+                        <button class="btn btn-danger" onclick="rejectStory({{ story.id }})">
+                            <i class="fas fa-times me-2"></i>Reject
+                        </button>
+                        <button class="btn btn-success" onclick="approveStory({{ story.id }})">
+                            <i class="fas fa-check me-2"></i>Approve
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Author Info -->
+            <div class="card border-0 shadow-warm mb-4">
+                <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2 text-primary"></i>
+                        Author Information
+                    </h5>
+                    <button class="btn btn-sm btn-outline-primary" onclick="toggleAuthorEdit()">
+                        <i class="fas fa-edit me-1"></i>Edit
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="authorDisplay" class="d-flex align-items-center mb-3">
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3"
+                             style="width: 50px; height: 50px;">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">{{ story.author }}</h6>
+                            <small class="text-muted">{{ story.author_email }}</small>
+                        </div>
+                    </div>
+
+                    <!-- Edit Form (hidden by default) -->
+                    <div id="authorEditForm" class="d-none">
+                        <div class="mb-3">
+                            <label class="form-label">Display Author Name</label>
+                            <input type="text" class="form-control" id="displayAuthor"
+                                   value="{{ story.author }}" placeholder="Enter author name">
+                            <small class="text-muted">This name will be displayed publicly, without affecting the actual user association</small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-success" onclick="saveAuthor()">
+                                <i class="fas fa-check me-1"></i>Save
+                            </button>
+                            <button class="btn btn-sm btn-secondary" onclick="cancelAuthorEdit()">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Story Stats -->
+            <div class="card border-0 shadow-warm mb-4">
+                <div class="card-header bg-light border-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2 text-primary"></i>
+                        Story Statistics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h4 mb-1 text-primary">{{ story.view_count or 0 }}</div>
+                                <small class="text-muted">Views</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h4 mb-1 text-success">{{ story.like_count or 0 }}</div>
+                                <small class="text-muted">Likes</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h5 mb-1 text-info">{{ story.word_count or 0 }}</div>
+                                <small class="text-muted">Words</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h5 mb-1 text-warning">{{ story.reading_time or 0 }}</div>
+                                <small class="text-muted">Reading Time (min)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="card border-0 shadow-warm">
+                <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock me-2 text-primary"></i>
+                        Timeline
+                    </h5>
+                    <button class="btn btn-sm btn-outline-primary" onclick="toggleTimeEdit()">
+                        <i class="fas fa-edit me-1"></i>Edit
+                    </button>
+                </div>
+                <div class="card-body">
+                    <!-- Display Mode -->
+                    <div id="timelineDisplay">
+                        <div class="timeline">
+                            <div class="timeline-item d-flex align-items-center py-2">
+                                <div class="timeline-marker bg-primary me-3"></div>
+                                <div>
+                                    <small class="text-muted">Created</small>
+                                    <div class="fw-semibold">{{ story.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                                </div>
+                            </div>
+
+                            {% if story.updated_at and story.updated_at != story.created_at %}
+                            <div class="timeline-item d-flex align-items-center py-2">
+                                <div class="timeline-marker bg-info me-3"></div>
+                                <div>
+                                    <small class="text-muted">Last Updated</small>
+                                    <div class="fw-semibold">{{ story.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if story.published_at %}
+                            <div class="timeline-item d-flex align-items-center py-2">
+                                <div class="timeline-marker bg-success me-3"></div>
+                                <div>
+                                    <small class="text-muted">Published</small>
+                                    <div class="fw-semibold" id="publishedAtDisplay">{{ story.published_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Edit Form (hidden by default) -->
+                    <div id="timelineEditForm" class="d-none">
+                        <div class="mb-3">
+                            <label class="form-label">Published Time</label>
+                            <input type="datetime-local" class="form-control" id="publishedAtInput"
+                                   value="{% if story.published_at %}{{ story.published_at.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+                            <small class="text-muted">Modify the story's published time</small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-success" onclick="savePublishedAt()">
+                                <i class="fas fa-check me-1"></i>Save
+                            </button>
+                            <button class="btn btn-sm btn-secondary" onclick="cancelTimeEdit()">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.story-content {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.story-content p:first-child::first-letter {
+    font-size: 3em;
+    font-weight: bold;
+    float: left;
+    line-height: 1;
+    margin: 0 8px 0 0;
+    color: var(--color-primary);
+}
+
+.timeline-marker {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.badge.bg-outline-primary {
+    background-color: transparent !important;
+    border: 1px solid var(--color-primary);
+    color: var(--color-primary);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Story approval/rejection functions
+function approveStory(storyId) {
+    if (confirm('Are you sure you want to approve this story? It will be publicly visible in the story library.')) {
+        fetch(`/admin/api/approve_story/${storyId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Story approved successfully!');
+                window.location.href = "{{ url_for('admin_stories', status='published') }}";
+            } else {
+                alert('Operation failed: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Network error, please try again');
+        });
+    }
+}
+
+function rejectStory(storyId) {
+    if (confirm('Are you sure you want to reject this story? It will not be displayed in the story library.')) {
+        fetch(`/admin/api/reject_story/${storyId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Story rejected');
+                window.location.href = "{{ url_for('admin_stories', status='rejected') }}";
+            } else {
+                alert('Operation failed: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Network error, please try again');
+        });
+    }
+}
+
+// Metadata editing functions
+function toggleAuthorEdit() {
+    document.getElementById('authorDisplay').classList.toggle('d-none');
+    document.getElementById('authorEditForm').classList.toggle('d-none');
+}
+
+function cancelAuthorEdit() {
+    document.getElementById('authorDisplay').classList.remove('d-none');
+    document.getElementById('authorEditForm').classList.add('d-none');
+    // Reset input value
+    document.getElementById('displayAuthor').value = "{{ story.author }}";
+}
+
+function saveAuthor() {
+    const displayAuthor = document.getElementById('displayAuthor').value.trim();
+
+    if (!displayAuthor) {
+        alert('Please enter an author name');
+        return;
+    }
+
+    fetch('/admin/api/update_story_metadata/{{ story.id }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            display_author: displayAuthor
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Author name updated successfully!');
+            location.reload();
+        } else {
+            alert('Update failed: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Network error, please try again');
+    });
+}
+
+function toggleTimeEdit() {
+    document.getElementById('timelineDisplay').classList.toggle('d-none');
+    document.getElementById('timelineEditForm').classList.toggle('d-none');
+}
+
+function cancelTimeEdit() {
+    document.getElementById('timelineDisplay').classList.remove('d-none');
+    document.getElementById('timelineEditForm').classList.add('d-none');
+}
+
+function savePublishedAt() {
+    const publishedAt = document.getElementById('publishedAtInput').value;
+
+    if (!publishedAt) {
+        alert('Please select a published time');
+        return;
+    }
+
+    fetch('/admin/api/update_story_metadata/{{ story.id }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            published_at: publishedAt
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Published time updated successfully!');
+            location.reload();
+        } else {
+            alert('Update failed: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Network error, please try again');
+    });
+}
+</script>
+{% endblock %}
