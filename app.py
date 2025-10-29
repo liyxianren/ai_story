@@ -2975,16 +2975,21 @@ def admin_update_story_metadata(story_id):
                 # Parse datetime string (format: YYYY-MM-DDTHH:MM)
                 from datetime import datetime as dt
                 published_at = dt.strptime(published_at_str, '%Y-%m-%dT%H:%M')
+                # Sync all three time fields to the same value
                 update_fields.append("published_at = %s")
+                params.append(published_at)
+                update_fields.append("created_at = %s")
+                params.append(published_at)
+                update_fields.append("updated_at = %s")
                 params.append(published_at)
             except ValueError:
                 cursor.close()
                 connection.close()
                 return jsonify({'success': False, 'error': 'Invalid published time format'}), 400
-
-        # Always update updated_at
-        update_fields.append("updated_at = %s")
-        params.append(datetime.now())
+        else:
+            # If only updating author, still update updated_at
+            update_fields.append("updated_at = %s")
+            params.append(datetime.now())
 
         # Add story_id to params
         params.append(story_id)
